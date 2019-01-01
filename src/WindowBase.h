@@ -10,7 +10,7 @@ namespace chunklands_core {
   public:
     static Napi::FunctionReference constructor;
     static void Initialize(Napi::Env env);
-    
+
   public:
     WindowBase(const Napi::CallbackInfo& info);
 
@@ -20,8 +20,15 @@ namespace chunklands_core {
     void SwapBuffers(const Napi::CallbackInfo& info);
     void Clear(const Napi::CallbackInfo& info);
 
+    void SetKeyCallback(const Napi::CallbackInfo& info);
+
+  private:
+    static void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
+    void KeyCallback(int key, int scancode, int action, int mods);
+
   private:
     GLFWwindow* window_ = nullptr;
+    Napi::FunctionReference key_callback_;
   };
 
 }

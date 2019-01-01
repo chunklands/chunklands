@@ -13,6 +13,9 @@ const window = new Window({
 });
 
 window.makeContextCurrent();
+window.on('key', data => {
+  console.log(data);
+});
 
 loop.start();
 loop.on('loop', diff => {

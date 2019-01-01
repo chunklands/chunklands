@@ -5,6 +5,9 @@ module.exports = class Window extends EventEmitter {
   constructor({width = 1024, height = 768, title = 'Chunklands'} = {}) {
     super();
     this._window = new WindowBase({width, height, title});
+    this._window.setKeyCallback((key, scancode, action, mods) => {
+      this.emit('key', {key, scancode, action, mods});
+    });
   }
 
   get shouldClose() {

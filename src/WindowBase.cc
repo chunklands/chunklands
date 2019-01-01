@@ -11,7 +11,8 @@ namespace chunklands_core {
         InstanceAccessor("shouldClose", &WindowBase::ShouldClose, nullptr),
         InstanceMethod("close", &WindowBase::Close),
         InstanceMethod("swapBuffers", &WindowBase::SwapBuffers),
-        InstanceMethod("clear", &WindowBase::Clear)
+        InstanceMethod("clear", &WindowBase::Clear),
+        InstanceMethod("setKeyCallback", &WindowBase::SetKeyCallback)
       })
     );
 
@@ -27,6 +28,9 @@ namespace chunklands_core {
       nullptr,
       nullptr
     );
+
+    glfwSetWindowUserPointer(window_, this);
+    glfwSetKeyCallback(window_, KeyCallback);
   }
 
   void WindowBase::MakeContextCurrent(const Napi::CallbackInfo& info) {
@@ -62,6 +66,35 @@ namespace chunklands_core {
   void WindowBase::Clear(const Napi::CallbackInfo& info) {
     glClearColor(1.f, 1.f, 1.f, 1.f);
     glClear(GL_COLOR_BUFFER_BIT);
+  }
+
+  void WindowBase::SetKeyCallback(const Napi::CallbackInfo& info) {
+    if (!info[0].IsFunction()) {
+      key_callback_.Reset();
+      return;
+    }
+
+    key_callback_ = Napi::Persistent(info[0].As<Napi::Function>());
+  }
+
+  void WindowBase::KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+    WindowBase* target = reinterpret_cast<WindowBase*>(glfwGetWindowUserPointer(window));
+    target->KeyCallback(key, scancode, action, mods);
+  }
+
+  void WindowBase::KeyCallback(int key, int scancode, int action, int mods) {
+    if (key_callback_.IsEmpty()) {
+      return;
+    }
+
+    Napi::HandleScope scope(Env());
+
+    key_callback_.Call({
+      Napi::Number::New(Env(), key),
+      Napi::Number::New(Env(), scancode),
+      Napi::Number::New(Env(), action),
+      Napi::Number::New(Env(), mods)
+    });
   }
   
 }
