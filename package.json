@@ -1,0 +1,22 @@
+{
+  "name": "chunklands",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "native:dev": "nodemon --watch src -e h,cc --exec \"cmake-js build --debug\"",
+    "app:dev": "nodemon --delay 3 --watch src --watch build/Debug -e js,node --exec \"node src/app.js\"",
+    "start": "concurrently --handle-input --kill-others-on-fail --names \"native,app\" -c \"bgBlue.bold,bgCyan.bold\" \"npm run native:dev\" \"npm run app:dev\"",
+    "clean": "cmake-js clean"
+  },
+  "keywords": [],
+  "author": "Philipp Renoth <renoth@wildoak.de>",
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {
+    "bindings": "^1.3.1",
+    "cmake-js": "^4.0.1",
+    "concurrently": "^4.1.0",
+    "node-addon-api": "^1.6.2",
+    "nodemon": "^1.18.9"
+  }
+}
