@@ -20,6 +20,9 @@ namespace chunklands {
   }
 
   WindowBase::WindowBase(const Napi::CallbackInfo& info) : Napi::ObjectWrap<WindowBase>(info) {
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+
     auto&& config = info[0].ToObject();
     window_ = glfwCreateWindow(
       config.Get("width").ToNumber(),
@@ -65,7 +68,7 @@ namespace chunklands {
 
   void WindowBase::Clear(const Napi::CallbackInfo& info) {
     glClearColor(1.f, 1.f, 1.f, 1.f);
-    glClear(GL_COLOR_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   }
 
   void WindowBase::SetKeyCallback(const Napi::CallbackInfo& info) {
