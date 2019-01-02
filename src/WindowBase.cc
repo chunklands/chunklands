@@ -1,6 +1,6 @@
 #include "WindowBase.h"
 
-namespace chunklands_core {
+namespace chunklands {
   
   Napi::FunctionReference WindowBase::constructor;
 

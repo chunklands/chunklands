@@ -1,2 +1,2 @@
-const core = require('bindings')('chunklands.node');
-module.exports = core;
+const chunklands = require('bindings')('chunklands.node');
+module.exports = chunklands;

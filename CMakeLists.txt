@@ -7,7 +7,7 @@ set(CHUNKLANDS_SRC_DIR "${CMAKE_SOURCE_DIR}/src")
 set(CHUNKLANDS_DEPS_DIR "${CMAKE_SOURCE_DIR}/deps")
 set(CHUNKLANDS_DEPS_DIR_GLFW "${CHUNKLANDS_DEPS_DIR}/glfw")
 
-file(GLOB SOURCE_FILES "${CHUNKLANDS_SRC_DIR}/*.cc")
+file(GLOB SOURCE_FILES "${CHUNKLANDS_SRC_DIR}/*.cc" "${CHUNKLANDS_DEPS_DIR_GLFW}/src/glfw/deps/glad.c")
 add_library(${PROJECT_NAME} SHARED ${SOURCE_FILES})
 
 # OpenGL
@@ -38,6 +38,8 @@ if (NOT EXISTS "${CHUNKLANDS_DEPS_DIR_GLFW}")
 
   add_dependencies(${PROJECT_NAME} glfw)
 endif()
+
+target_include_directories(${PROJECT_NAME} PRIVATE "${CHUNKLANDS_DEPS_DIR_GLFW}/src/glfw/deps")
 
 add_subdirectory("${CHUNKLANDS_DEPS_DIR_GLFW}/src/glfw")
 target_link_libraries(${PROJECT_NAME} glfw ${GLFW_LIBRARIES})

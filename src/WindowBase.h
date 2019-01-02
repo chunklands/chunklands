@@ -2,9 +2,9 @@
 #define __CHUNKLANDS_CORE_WINDOWBASE_H__
 
 #include <napi.h>
-#include <GLFW/glfw3.h>
+#include "gl.h"
 
-namespace chunklands_core {
+namespace chunklands {
 
   class WindowBase : public Napi::ObjectWrap<WindowBase> {
   public:

@@ -1,6 +1,7 @@
-const {initialize, pollEvents, terminate} = require('./module');
+const {initialize, pollEvents, terminate, loadProcs} = require('./module');
 const Loop = require('./Loop');
 const Window = require('./Window');
+const Scene = require('./Scene');
 
 initialize();
 
@@ -12,10 +13,14 @@ const window = new Window({
   title: 'Chunklands'
 });
 
+const scene = new Scene();
 window.makeContextCurrent();
 window.on('key', data => {
   console.log(data);
 });
+
+loadProcs();
+scene.prepare();
 
 loop.start();
 loop.on('loop', diff => {
@@ -31,5 +36,7 @@ loop.on('loop', diff => {
   }
 
   window.clear();
+  scene.render();
+  
   window.swapBuffers();
 });
