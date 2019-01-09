@@ -11,8 +11,7 @@ namespace chunklands {
         InstanceAccessor("shouldClose", &WindowBase::ShouldClose, nullptr),
         InstanceMethod("close", &WindowBase::Close),
         InstanceMethod("swapBuffers", &WindowBase::SwapBuffers),
-        InstanceMethod("clear", &WindowBase::Clear),
-        InstanceMethod("setKeyCallback", &WindowBase::SetKeyCallback)
+        InstanceMethod("clear", &WindowBase::Clear)
       })
     );
 
@@ -68,15 +67,6 @@ namespace chunklands {
   void WindowBase::Clear(const Napi::CallbackInfo& info) {
     glClearColor(1.f, 1.f, 1.f, 1.f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  }
-
-  void WindowBase::SetKeyCallback(const Napi::CallbackInfo& info) {
-    if (!info[0].IsFunction()) {
-      key_callback_.Reset();
-      return;
-    }
-
-    key_callback_ = Napi::Persistent(info[0].As<Napi::Function>());
   }
 
   int WindowBase::GetKey(int key) {

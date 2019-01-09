@@ -20,14 +20,11 @@ namespace chunklands {
     void SwapBuffers(const Napi::CallbackInfo& info);
     void Clear(const Napi::CallbackInfo& info);
 
-    void SetKeyCallback(const Napi::CallbackInfo& info);
-
   public: // Native
     int GetKey(int key);
 
   private:
     GLFWwindow* window_ = nullptr;
-    Napi::FunctionReference key_callback_;
   };
 
 }
