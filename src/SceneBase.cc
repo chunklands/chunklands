@@ -31,9 +31,12 @@ namespace chunklands {
   }
 
   static const GLfloat g_vb_data[] = {
-    -1.0f, -1.0f, 0.0f,
-    1.0f, -1.0f, 0.0f,
-    0.0f,  1.0f, 0.0f,
+    -5.f, 0.f, -5.f, // 1         1--------4
+    -5.f, 0.f,  5.f, // 2         | \      |
+     5.f, 0.f , 5.f, // 3         |   \    |
+    -5.f, 0.f, -5.f, // 1         |     \  |
+     5.f, 0.f , 5.f, // 3         |       \|
+     5.f, 0.f, -5.f, // 4         2--------3
   };
 
   void SceneBase::Prepare(const Napi::CallbackInfo& info) {
@@ -105,7 +108,7 @@ namespace chunklands {
     }
 
     proj_ = glm::perspective(glm::radians(45.f), 640.f / 480.f, 0.1f, 100.0f); 
-    view_ = glm::lookAt(glm::vec3(0.f, 0.f, 5.f), glm::vec3(0.f, 0.f, 1.f), glm::vec3(0.f, 1.f, 0.f));
+    view_ = glm::lookAt(glm::vec3(0.f, 2.f, 8.f), glm::vec3(0.f, 1.f, 1.f), glm::vec3(0.f, 1.f, 0.f));
 
     glUseProgram(program_);
 
@@ -125,7 +128,7 @@ namespace chunklands {
     glEnableVertexAttribArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, vb_);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
-    glDrawArrays(GL_TRIANGLES, 0, 3);
+    glDrawArrays(GL_TRIANGLES, 0, 6);
     glDisableVertexAttribArray(0);
 
     CHECK_GL();
