@@ -31,6 +31,9 @@ namespace chunklands {
 
     glm::mat4 view_;
     GLint view_uniform_location_;
+
+    glm::mat4 proj_;
+    GLint proj_uniform_location_;
   };
 }
 

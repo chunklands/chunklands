@@ -104,10 +104,17 @@ namespace chunklands {
       CHECK_GL();
     }
 
-    view_ = glm::identity<glm::mat4>();
-    view_uniform_location_ = glGetUniformLocation(program_, "u_view");
+    proj_ = glm::perspective(glm::radians(45.f), 640.f / 480.f, 0.1f, 100.0f); 
+    view_ = glm::lookAt(glm::vec3(0.f, 0.f, 5.f), glm::vec3(0.f, 0.f, 1.f), glm::vec3(0.f, 1.f, 0.f));
+
     glUseProgram(program_);
+
+    view_uniform_location_ = glGetUniformLocation(program_, "u_view");
     glUniformMatrix4fv(view_uniform_location_, 1, GL_FALSE, glm::value_ptr(view_));
+
+    proj_uniform_location_ = glGetUniformLocation(program_, "u_proj");
+    glUniformMatrix4fv(proj_uniform_location_, 1, GL_FALSE, glm::value_ptr(proj_));
+
     glUseProgram(0);
     CHECK_GL();
   }
