@@ -1,5 +1,6 @@
 const fs = require('fs');
 const {SceneBase} = require('./module');
+const Window = require('./Window');
 
 module.exports = class Scene {
   constructor() {
@@ -9,11 +10,18 @@ module.exports = class Scene {
     });
   }
 
-  prepare() {
-    this._scene.prepare();
+  /**
+   * @param {Window} window 
+   */
+  prepare(window) {
+    this._scene.prepare(window._window);
   }
 
-  render() {
-    this._scene.render();
+  /**
+   * 
+   * @param {number} diff 
+   */
+  render(diff) {
+    this._scene.render(diff);
   }
 }

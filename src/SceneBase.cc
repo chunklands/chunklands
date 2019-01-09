@@ -40,6 +40,9 @@ namespace chunklands {
   };
 
   void SceneBase::Prepare(const Napi::CallbackInfo& info) {
+    Napi::Object window = info[0].ToObject();
+    window_ref_ = Napi::Persistent(window);
+    window_base_ = WindowBase::Unwrap(window);
 
     // vertex data
     glGenVertexArrays(1, &vao_);
@@ -108,23 +111,42 @@ namespace chunklands {
     }
 
     proj_ = glm::perspective(glm::radians(45.f), 640.f / 480.f, 0.1f, 100.0f); 
-    view_ = glm::lookAt(glm::vec3(0.f, 2.f, 8.f), glm::vec3(0.f, 1.f, 1.f), glm::vec3(0.f, 1.f, 0.f));
-
-    glUseProgram(program_);
 
     view_uniform_location_ = glGetUniformLocation(program_, "u_view");
-    glUniformMatrix4fv(view_uniform_location_, 1, GL_FALSE, glm::value_ptr(view_));
-
     proj_uniform_location_ = glGetUniformLocation(program_, "u_proj");
-    glUniformMatrix4fv(proj_uniform_location_, 1, GL_FALSE, glm::value_ptr(proj_));
 
+    glUseProgram(program_);
+    glUniformMatrix4fv(proj_uniform_location_, 1, GL_FALSE, glm::value_ptr(proj_));
     glUseProgram(0);
+
     CHECK_GL();
   }
 
   void SceneBase::Render(const Napi::CallbackInfo& info) {
+    float diff = info[0].ToNumber().FloatValue();
+
+    if (window_base_->GetKey(GLFW_KEY_W)) {
+      pos_.z -= diff;
+    }
+
+    if (window_base_->GetKey(GLFW_KEY_S)) {
+      pos_.z += diff;
+    }
+
+    if (window_base_->GetKey(GLFW_KEY_A)) {
+      pos_.x -= diff;
+    }
+
+    if (window_base_->GetKey(GLFW_KEY_D)) {
+      pos_.x += diff;
+    }
     
     glUseProgram(program_);
+
+    view_ = glm::lookAt(pos_, pos_ + glm::vec3(0.f, -.5f, -1.f), glm::vec3(0.f, 1.f, 0.f));
+    
+    glUniformMatrix4fv(view_uniform_location_, 1, GL_FALSE, glm::value_ptr(view_));
+
     glEnableVertexAttribArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, vb_);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);

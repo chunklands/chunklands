@@ -11,7 +11,7 @@ namespace chunklands {
     static Napi::FunctionReference constructor;
     static void Initialize(Napi::Env env);
 
-  public:
+  public: // JS
     WindowBase(const Napi::CallbackInfo& info);
 
     void MakeContextCurrent(const Napi::CallbackInfo& info);
@@ -22,9 +22,8 @@ namespace chunklands {
 
     void SetKeyCallback(const Napi::CallbackInfo& info);
 
-  private:
-    static void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
-    void KeyCallback(int key, int scancode, int action, int mods);
+  public: // Native
+    int GetKey(int key);
 
   private:
     GLFWwindow* window_ = nullptr;

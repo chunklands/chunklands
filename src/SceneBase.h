@@ -3,7 +3,9 @@
 
 #include <napi.h>
 #include "gl.h"
+#include "WindowBase.h"
 #include <glm/mat4x4.hpp>
+#include <glm/vec3.hpp>
 
 namespace chunklands {
   class SceneBase : public Napi::ObjectWrap<SceneBase> {
@@ -19,6 +21,9 @@ namespace chunklands {
     void Render(const Napi::CallbackInfo& info);
 
   private:
+    Napi::ObjectReference window_ref_;
+    WindowBase* window_base_ = nullptr;
+
     std::string vsh_src_;
     std::string fsh_src_;
     
@@ -28,6 +33,8 @@ namespace chunklands {
     GLuint vsh_;
     GLuint fsh_;
     GLuint program_;
+
+    glm::vec3 pos_ = glm::vec3(0.f, 2.f, 4.f);
 
     glm::mat4 view_;
     GLint view_uniform_location_;

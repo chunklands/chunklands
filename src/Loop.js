@@ -20,7 +20,7 @@ module.exports = class Loop extends EventEmitter {
 
   _loop() {
     const now = Date.now();
-    this.emit('loop', now - this._lastLoop);
+    this.emit('loop', (now - this._lastLoop) / 1000);
     this._lastLoop = now;
 
     const nowAfterLoop = Date.now();

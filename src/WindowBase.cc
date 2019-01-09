@@ -33,7 +33,6 @@ namespace chunklands {
     );
 
     glfwSetWindowUserPointer(window_, this);
-    glfwSetKeyCallback(window_, KeyCallback);
   }
 
   void WindowBase::MakeContextCurrent(const Napi::CallbackInfo& info) {
@@ -80,24 +79,8 @@ namespace chunklands {
     key_callback_ = Napi::Persistent(info[0].As<Napi::Function>());
   }
 
-  void WindowBase::KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
-    WindowBase* target = reinterpret_cast<WindowBase*>(glfwGetWindowUserPointer(window));
-    target->KeyCallback(key, scancode, action, mods);
-  }
-
-  void WindowBase::KeyCallback(int key, int scancode, int action, int mods) {
-    if (key_callback_.IsEmpty()) {
-      return;
-    }
-
-    Napi::HandleScope scope(Env());
-
-    key_callback_.Call({
-      Napi::Number::New(Env(), key),
-      Napi::Number::New(Env(), scancode),
-      Napi::Number::New(Env(), action),
-      Napi::Number::New(Env(), mods)
-    });
+  int WindowBase::GetKey(int key) {
+    return glfwGetKey(window_, key);
   }
   
 }

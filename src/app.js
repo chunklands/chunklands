@@ -15,12 +15,9 @@ const window = new Window({
 
 const scene = new Scene();
 window.makeContextCurrent();
-window.on('key', data => {
-  console.log(data);
-});
 
 loadProcs();
-scene.prepare();
+scene.prepare(window);
 
 loop.start();
 loop.on('loop', diff => {
@@ -36,7 +33,7 @@ loop.on('loop', diff => {
   }
 
   window.clear();
-  scene.render();
+  scene.render(diff);
   
   window.swapBuffers();
 });
