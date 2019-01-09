@@ -1,5 +1,8 @@
 #include "SceneBase.h"
 
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
 namespace chunklands {
   Napi::FunctionReference SceneBase::constructor;
 
@@ -100,9 +103,17 @@ namespace chunklands {
 
       CHECK_GL();
     }
+
+    view_ = glm::identity<glm::mat4>();
+    view_uniform_location_ = glGetUniformLocation(program_, "u_view");
+    glUseProgram(program_);
+    glUniformMatrix4fv(view_uniform_location_, 1, GL_FALSE, glm::value_ptr(view_));
+    glUseProgram(0);
+    CHECK_GL();
   }
 
   void SceneBase::Render(const Napi::CallbackInfo& info) {
+    
     glUseProgram(program_);
     glEnableVertexAttribArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, vb_);

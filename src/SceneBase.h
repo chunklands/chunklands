@@ -3,6 +3,7 @@
 
 #include <napi.h>
 #include "gl.h"
+#include <glm/mat4x4.hpp>
 
 namespace chunklands {
   class SceneBase : public Napi::ObjectWrap<SceneBase> {
@@ -27,6 +28,9 @@ namespace chunklands {
     GLuint vsh_;
     GLuint fsh_;
     GLuint program_;
+
+    glm::mat4 view_;
+    GLint view_uniform_location_;
   };
 }
 
