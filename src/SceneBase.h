@@ -2,11 +2,12 @@
 #define __CHUNKLANDS_SCENEBASE_H__
 
 #include <napi.h>
+#include <glm/mat4x4.hpp>
+#include <glm/vec3.hpp>
 #include "napi/UnwrappedObject.h"
 #include "gl.h"
 #include "WindowBase.h"
-#include <glm/mat4x4.hpp>
-#include <glm/vec3.hpp>
+#include "Chunk.h"
 
 namespace chunklands {
   class SceneBase : public Napi::ObjectWrap<SceneBase> {
@@ -30,14 +31,13 @@ namespace chunklands {
     std::string vsh_src_;
     std::string fsh_src_;
     
-    GLuint vao_;
-    GLuint vb_;
+    Chunk chunk_;
 
     GLuint vsh_;
     GLuint fsh_;
     GLuint program_;
 
-    glm::vec3 pos_ = glm::vec3(0.f, 2.f, 4.f);
+    glm::vec3 pos_ = glm::vec3(8.f, 8.f, 20.f);
 
     glm::mat4 view_;
     GLint view_uniform_location_;

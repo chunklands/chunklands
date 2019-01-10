@@ -29,28 +29,11 @@ namespace chunklands {
     fsh_src_ = settings.Get("fragmentShader").ToString();
   }
 
-  static const GLfloat g_vb_data[] = {
-    -5.f, 0.f, -5.f, // 1         1--------4
-    -5.f, 0.f,  5.f, // 2         | \      |
-     5.f, 0.f , 5.f, // 3         |   \    |
-    -5.f, 0.f, -5.f, // 1         |     \  |
-     5.f, 0.f , 5.f, // 3         |       \|
-     5.f, 0.f, -5.f, // 4         2--------3
-  };
-
   void SceneBase::SetWindow(const Napi::CallbackInfo& info) {
     window_ = info[0].ToObject();
   }
 
   void SceneBase::Prepare() {
-
-    // vertex data
-    glGenVertexArrays(1, &vao_);
-    glBindVertexArray(vao_);
-    glGenBuffers(1, &vb_);
-    glBindBuffer(GL_ARRAY_BUFFER, vb_);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(g_vb_data), g_vb_data, GL_STATIC_DRAW);
-    CHECK_GL();
 
     { // vertex shader (duplicated code)
       vsh_ = glCreateShader(GL_VERTEX_SHADER);
@@ -120,6 +103,8 @@ namespace chunklands {
     glUseProgram(0);
 
     CHECK_GL();
+
+    chunk_.Prepare();
   }
 
   void SceneBase::Render(double diff) {
@@ -145,17 +130,13 @@ namespace chunklands {
     
     glUseProgram(program_);
 
-    view_ = glm::lookAt(pos_, pos_ + glm::vec3(0.f, -.5f, -1.f), glm::vec3(0.f, 1.f, 0.f));
-    
+    view_ = glm::lookAt(pos_, pos_ + glm::vec3(0.f, 0.f, -1.f), glm::vec3(0.f, 1.f, 0.f));
     glUniformMatrix4fv(view_uniform_location_, 1, GL_FALSE, glm::value_ptr(view_));
-
-    glEnableVertexAttribArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, vb_);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
-    glDrawArrays(GL_TRIANGLES, 0, 6);
-    glDisableVertexAttribArray(0);
-
     CHECK_GL();
+
+    chunk_.Render();
+
+    glUseProgram(program_);
 
     window_->SwapBuffers();
   }

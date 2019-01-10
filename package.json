@@ -4,7 +4,7 @@
   "description": "",
   "scripts": {
     "native:dev": "nodemon --watch src -e h,cc --exec \"cmake-js build --debug\"",
-    "app:dev": "nodemon --delay 3 --watch src --watch build/Debug --watch resource -e js,node --exec \"node src/app.js\"",
+    "app:dev": "nodemon --delay 3 --watch src --watch build/Debug --watch resource -e js,node,glsl --exec \"node src/app.js\"",
     "start": "concurrently --handle-input --kill-others-on-fail --names \"native,app\" -c \"bgBlue.bold,bgCyan.bold\" \"npm run native:dev\" \"npm run app:dev\"",
     "clean": "cmake-js clean"
   },

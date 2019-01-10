@@ -1,6 +1,5 @@
 # Chunklands
 
-needs
-- cmake
-- xorg-dev (apt-get)
-- libglu1-mesa-dev (apt-get)
+current status:
+
+![Current Result](./result.png)
