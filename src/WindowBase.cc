@@ -9,9 +9,7 @@ namespace chunklands {
       DefineClass(env, "WindowBase", {
         InstanceMethod("makeContextCurrent", &WindowBase::MakeContextCurrent),
         InstanceAccessor("shouldClose", &WindowBase::ShouldClose, nullptr),
-        InstanceMethod("close", &WindowBase::Close),
-        InstanceMethod("swapBuffers", &WindowBase::SwapBuffers),
-        InstanceMethod("clear", &WindowBase::Clear)
+        InstanceMethod("close", &WindowBase::Close)
       })
     );
 
@@ -65,7 +63,7 @@ namespace chunklands {
     window_ = nullptr;
   }
 
-  void WindowBase::SwapBuffers(const Napi::CallbackInfo& info) {
+  void WindowBase::SwapBuffers() {
     if (!window_) {
       return;
     }
@@ -73,7 +71,7 @@ namespace chunklands {
     glfwSwapBuffers(window_);
   }
 
-  void WindowBase::Clear(const Napi::CallbackInfo& info) {
+  void WindowBase::Clear() {
     glClearColor(1.f, 1.f, 1.f, 1.f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   }

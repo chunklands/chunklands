@@ -17,10 +17,10 @@ namespace chunklands {
     void MakeContextCurrent(const Napi::CallbackInfo& info);
     Napi::Value ShouldClose(const Napi::CallbackInfo& info);
     void Close(const Napi::CallbackInfo& info);
-    void SwapBuffers(const Napi::CallbackInfo& info);
-    void Clear(const Napi::CallbackInfo& info);
 
   public: // Native
+    void SwapBuffers();
+    void Clear();
     int GetKey(int key);
 
   private:

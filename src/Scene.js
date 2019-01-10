@@ -1,27 +1,11 @@
 const fs = require('fs');
 const {SceneBase} = require('./module');
-const Window = require('./Window');
 
-module.exports = class Scene {
+module.exports = class Scene extends SceneBase {
   constructor() {
-    this._scene = new SceneBase({
+    super({
       vertexShader: fs.readFileSync(`${__dirname}/../resource/scene.vsh.glsl`),
       fragmentShader: fs.readFileSync(`${__dirname}/../resource/scene.fsh.glsl`),
     });
-  }
-
-  /**
-   * @param {Window} window 
-   */
-  prepare(window) {
-    this._scene.prepare(window._window);
-  }
-
-  /**
-   * 
-   * @param {number} diff 
-   */
-  render(diff) {
-    this._scene.render(diff);
   }
 }

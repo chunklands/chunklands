@@ -3,6 +3,7 @@
 
 #include "WindowBase.h"
 #include "SceneBase.h"
+#include "GameLoopBase.h"
 
 #define EXPORTS_CLASS(clazz) \
   do { \
@@ -37,21 +38,17 @@ void Terminate(const Napi::CallbackInfo& info) {
   glfwTerminate();
 }
 
-void PollEvents(const Napi::CallbackInfo& info) {
-  glfwPollEvents();
-}
-
 Napi::Object Init(Napi::Env env, Napi::Object exports) {
     
   using namespace chunklands;
 
   exports["initialize"] = Napi::Function::New(env, Initialize);
   exports["terminate"] = Napi::Function::New(env, Terminate);
-  exports["pollEvents"] = Napi::Function::New(env, PollEvents);
   exports["loadProcs"] = Napi::Function::New(env, LoadProcs);
 
   EXPORTS_CLASS(WindowBase);
   EXPORTS_CLASS(SceneBase);
+  EXPORTS_CLASS(GameLoopBase);
 
   return exports;
 }

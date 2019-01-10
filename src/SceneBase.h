@@ -2,6 +2,7 @@
 #define __CHUNKLANDS_SCENEBASE_H__
 
 #include <napi.h>
+#include "napi/UnwrappedObject.h"
 #include "gl.h"
 #include "WindowBase.h"
 #include <glm/mat4x4.hpp>
@@ -16,13 +17,15 @@ namespace chunklands {
   public:
     SceneBase(const Napi::CallbackInfo& info);
 
-  public:
-    void Prepare(const Napi::CallbackInfo& info);
-    void Render(const Napi::CallbackInfo& info);
+  public: // JS
+    void SetWindow(const Napi::CallbackInfo& info);
+  
+  public: // Native
+    void Prepare();
+    void Render(double diff);
 
   private:
-    Napi::ObjectReference window_ref_;
-    WindowBase* window_base_ = nullptr;
+    NapiExt::PersistentObjectWrap<WindowBase> window_;
 
     std::string vsh_src_;
     std::string fsh_src_;

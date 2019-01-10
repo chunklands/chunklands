@@ -1,11 +1,9 @@
-const {initialize, pollEvents, terminate, loadProcs} = require('./module');
-const Loop = require('./Loop');
+const {initialize, terminate, loadProcs} = require('./module');
+const GameLoop = require('./GameLoop');
 const Window = require('./Window');
 const Scene = require('./Scene');
 
 initialize();
-
-const loop = new Loop(60);
 
 const window = new Window({
   width: 640,
@@ -13,27 +11,29 @@ const window = new Window({
   title: 'Chunklands'
 });
 
-const scene = new Scene();
+// set opengl context
 window.makeContextCurrent();
-
 loadProcs();
-scene.prepare(window);
 
-loop.start();
-loop.on('loop', diff => {
+const scene = new Scene();
+scene.setWindow(window);
 
-  pollEvents();
+const gameLoop = new GameLoop();
+gameLoop.setScene(scene);
 
+gameLoop.start();
+
+const loop = () => {
+  gameLoop.loop();
+  
   if (window.shouldClose) {
     window.close();
-    loop.stop();
+    gameLoop.stop();
     terminate();
-    console.log('terminate');
     return;
   }
 
-  window.clear();
-  scene.render(diff);
-  
-  window.swapBuffers();
-});
+  setTimeout(loop, 1000 / 66 /*Hz*/);
+};
+
+loop();

@@ -9,8 +9,7 @@ namespace chunklands {
   void SceneBase::Initialize(Napi::Env env) {
     constructor = Napi::Persistent(
       DefineClass(env, "SceneBase", {
-        InstanceMethod("prepare", &SceneBase::Prepare),
-        InstanceMethod("render", &SceneBase::Render)
+        InstanceMethod("setWindow", &SceneBase::SetWindow)
       })
     );
 
@@ -39,10 +38,11 @@ namespace chunklands {
      5.f, 0.f, -5.f, // 4         2--------3
   };
 
-  void SceneBase::Prepare(const Napi::CallbackInfo& info) {
-    Napi::Object window = info[0].ToObject();
-    window_ref_ = Napi::Persistent(window);
-    window_base_ = WindowBase::Unwrap(window);
+  void SceneBase::SetWindow(const Napi::CallbackInfo& info) {
+    window_ = info[0].ToObject();
+  }
+
+  void SceneBase::Prepare() {
 
     // vertex data
     glGenVertexArrays(1, &vao_);
@@ -122,22 +122,24 @@ namespace chunklands {
     CHECK_GL();
   }
 
-  void SceneBase::Render(const Napi::CallbackInfo& info) {
-    float diff = info[0].ToNumber().FloatValue();
+  void SceneBase::Render(double diff) {
 
-    if (window_base_->GetKey(GLFW_KEY_W)) {
+    glfwPollEvents();
+    window_->Clear();
+
+    if (window_->GetKey(GLFW_KEY_W)) {
       pos_.z -= diff;
     }
 
-    if (window_base_->GetKey(GLFW_KEY_S)) {
+    if (window_->GetKey(GLFW_KEY_S)) {
       pos_.z += diff;
     }
 
-    if (window_base_->GetKey(GLFW_KEY_A)) {
+    if (window_->GetKey(GLFW_KEY_A)) {
       pos_.x -= diff;
     }
 
-    if (window_base_->GetKey(GLFW_KEY_D)) {
+    if (window_->GetKey(GLFW_KEY_D)) {
       pos_.x += diff;
     }
     
@@ -154,5 +156,7 @@ namespace chunklands {
     glDisableVertexAttribArray(0);
 
     CHECK_GL();
+
+    window_->SwapBuffers();
   }
 }
