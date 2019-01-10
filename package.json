@@ -8,7 +8,15 @@
     "start": "concurrently --handle-input --kill-others-on-fail --names \"native,app\" -c \"bgBlue.bold,bgCyan.bold\" \"npm run native:dev\" \"npm run app:dev\"",
     "clean": "cmake-js clean"
   },
-  "keywords": [],
+  "keywords": [
+    "game",
+    "c++",
+    "opengl",
+    "nodejs",
+    "napi",
+    "node-addon-api",
+    "boost"
+  ],
   "author": "Philipp Renoth <renoth@wildoak.de>",
   "license": "MIT",
   "dependencies": {},
