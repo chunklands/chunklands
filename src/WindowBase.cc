@@ -18,6 +18,12 @@ namespace chunklands {
     constructor.SuppressDestruct();
   }
 
+  namespace detail {
+    WindowBase* Unwrap(GLFWwindow* window) {
+      return static_cast<WindowBase*>(glfwGetWindowUserPointer(window));
+    }
+  }
+
   WindowBase::WindowBase(const Napi::CallbackInfo& info) : Napi::ObjectWrap<WindowBase>(info) {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -32,6 +38,9 @@ namespace chunklands {
     );
 
     glfwSetWindowUserPointer(window_, this);
+    glfwSetFramebufferSizeCallback(window_, [](GLFWwindow* window, int width, int height) {
+      detail::Unwrap(window)->UpdateViewport(width, height);
+    });
   }
 
   void WindowBase::MakeContextCurrent(const Napi::CallbackInfo& info) {
@@ -71,6 +80,11 @@ namespace chunklands {
 
   int WindowBase::GetKey(int key) {
     return glfwGetKey(window_, key);
+  }
+
+  void WindowBase::UpdateViewport(int width, int height) {
+    glViewport(0, 0, width, height);
+    CHECK_GL();
   }
   
 }

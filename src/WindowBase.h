@@ -24,6 +24,9 @@ namespace chunklands {
     int GetKey(int key);
 
   private:
+    void UpdateViewport(int width, int height);
+
+  private:
     GLFWwindow* window_ = nullptr;
   };
 
