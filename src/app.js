@@ -1,9 +1,9 @@
-const {initialize, terminate, loadProcs} = require('./module');
+const Environment = require('./Environment');
 const GameLoop = require('./GameLoop');
-const Window = require('./Window');
 const Scene = require('./Scene');
+const Window = require('./Window');
 
-initialize();
+Environment.initialize();
 
 const window = new Window({
   width: 640,
@@ -13,7 +13,7 @@ const window = new Window({
 
 // set opengl context
 window.makeContextCurrent();
-loadProcs();
+Environment.loadProcs();
 
 const scene = new Scene();
 scene.setWindow(window);
@@ -24,16 +24,17 @@ gameLoop.setScene(scene);
 gameLoop.start();
 
 const loop = () => {
+  // in order to have more accurate loop, immediately set timeout
+  const timeoutId = setTimeout(loop, 1000 / 66 /*Hz*/);
   gameLoop.loop();
   
   if (window.shouldClose) {
+    clearTimeout(timeoutId);
     window.close();
     gameLoop.stop();
-    terminate();
+    Environment.terminate();
     return;
   }
-
-  setTimeout(loop, 1000 / 66 /*Hz*/);
 };
 
 loop();

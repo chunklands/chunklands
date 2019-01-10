@@ -8,4 +8,4 @@ module.exports = class Scene extends SceneBase {
       fragmentShader: fs.readFileSync(`${__dirname}/../resource/scene.fsh.glsl`),
     });
   }
-}
+};
