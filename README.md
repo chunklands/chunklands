@@ -2,4 +2,4 @@
 
 current status:
 
-![Current Result](./result.png)
+![Current Result](./status.png)

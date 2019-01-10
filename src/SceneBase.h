@@ -37,7 +37,7 @@ namespace chunklands {
     GLuint fsh_;
     GLuint program_;
 
-    glm::vec3 pos_ = glm::vec3(8.f, 8.f, 20.f);
+    glm::vec3 pos_ = glm::vec3(8.f, 8.7f, 20.f);
 
     glm::mat4 view_;
     GLint view_uniform_location_;

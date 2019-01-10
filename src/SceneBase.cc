@@ -105,6 +105,8 @@ namespace chunklands {
     CHECK_GL();
 
     chunk_.Prepare();
+
+    glEnable(GL_DEPTH_TEST);
   }
 
   void SceneBase::Render(double diff) {
