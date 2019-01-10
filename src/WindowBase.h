@@ -2,6 +2,8 @@
 #define __CHUNKLANDS_CORE_WINDOWBASE_H__
 
 #include <napi.h>
+#include <boost/signals2.hpp>
+#include <glm/vec2.hpp>
 #include "gl.h"
 
 namespace chunklands {
@@ -23,8 +25,13 @@ namespace chunklands {
     void Clear();
     int GetKey(int key);
 
+    glm::ivec2 GetSize() const;
+
   private:
     void UpdateViewport(int width, int height);
+
+  public:
+    boost::signals2::signal<void(int width, int height)> on_resize;
 
   private:
     GLFWwindow* window_ = nullptr;

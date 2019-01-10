@@ -37,7 +37,7 @@ namespace chunklands {
 
     glfwSetWindowUserPointer(window_, this);
     glfwSetFramebufferSizeCallback(window_, [](GLFWwindow* window, int width, int height) {
-      detail::Unwrap(window)->UpdateViewport(width, height);
+      detail::Unwrap(window)->on_resize(width, height);
     });
   }
 
@@ -80,9 +80,9 @@ namespace chunklands {
     return glfwGetKey(window_, key);
   }
 
-  void WindowBase::UpdateViewport(int width, int height) {
-    glViewport(0, 0, width, height);
-    CHECK_GL();
+  glm::ivec2 WindowBase::GetSize() const {
+    glm::ivec2 size;
+    glfwGetWindowSize(window_, &size.x, &size.y);
+    return size;
   }
-  
 }

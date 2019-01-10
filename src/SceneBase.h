@@ -25,8 +25,11 @@ namespace chunklands {
     void Prepare();
     void Render(double diff);
 
+    void UpdateViewport(int width, int height);
+
   private:
     NapiExt::PersistentObjectWrap<WindowBase> window_;
+    boost::signals2::scoped_connection window_on_resize_conn_;
 
     std::string vsh_src_;
     std::string fsh_src_;

@@ -16,6 +16,8 @@ namespace chunklands {
     constructor.SuppressDestruct();
   }
 
+  constexpr float fovy_degree = 45.f;
+
   SceneBase::SceneBase(const Napi::CallbackInfo& info) : Napi::ObjectWrap<SceneBase>(info) {
     Napi::HandleScope scope(info.Env());
     
@@ -31,6 +33,12 @@ namespace chunklands {
 
   void SceneBase::SetWindow(const Napi::CallbackInfo& info) {
     window_ = info[0].ToObject();
+    glm::ivec2 size = window_->GetSize();
+    UpdateViewport(size.x, size.y);
+
+    window_on_resize_conn_ = window_->on_resize.connect([this](int width, int height) {
+      UpdateViewport(width, height);
+    });
   }
 
   void SceneBase::Prepare() {
@@ -93,16 +101,8 @@ namespace chunklands {
       CHECK_GL();
     }
 
-    proj_ = glm::perspective(glm::radians(45.f), 640.f / 480.f, 0.1f, 100.0f); 
-
     view_uniform_location_ = glGetUniformLocation(program_, "u_view");
     proj_uniform_location_ = glGetUniformLocation(program_, "u_proj");
-
-    glUseProgram(program_);
-    glUniformMatrix4fv(proj_uniform_location_, 1, GL_FALSE, glm::value_ptr(proj_));
-    glUseProgram(0);
-
-    CHECK_GL();
 
     chunk_.Prepare();
 
@@ -134,6 +134,7 @@ namespace chunklands {
 
     view_ = glm::lookAt(pos_, pos_ + glm::vec3(0.f, 0.f, -1.f), glm::vec3(0.f, 1.f, 0.f));
     glUniformMatrix4fv(view_uniform_location_, 1, GL_FALSE, glm::value_ptr(view_));
+    glUniformMatrix4fv(proj_uniform_location_, 1, GL_FALSE, glm::value_ptr(proj_));
     CHECK_GL();
 
     chunk_.Render();
@@ -141,5 +142,11 @@ namespace chunklands {
     glUseProgram(program_);
 
     window_->SwapBuffers();
+  }
+
+  void SceneBase::UpdateViewport(int width, int height) {
+    glViewport(0, 0, width, height);
+    proj_ = glm::perspective(glm::radians(fovy_degree), (float)width / height, 0.1f, 100.0f);
+    CHECK_GL();
   }
 }
