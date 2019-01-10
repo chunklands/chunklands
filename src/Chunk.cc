@@ -1,10 +1,29 @@
 #include "Chunk.h"
 #include <vector>
+#include <cmath>
 
 namespace chunklands {
-  Chunk::Chunk() {
-    ForEachBlock([](char& block_type, int x, int y, int z) {
-      block_type = (2*x + 3*y + 7*z) % 23 == 0 ? 1 : 0; // some pseudo-random stuff
+
+  namespace {
+    constexpr float Ax      = 12.f;
+    constexpr float omega_x = (2.f * M_PI) / 31.f;
+    constexpr float phi_x   = (2.f * M_PI) / 10.f;
+    constexpr float Az      = 9.f;
+    constexpr float omega_z = (2.f * M_PI) / 44.f;
+    constexpr float phi_z   = (2.f * M_PI) / 27.f;
+
+    bool IsGround(const glm::ivec3& pos) {
+      return pos.y < (
+          (Ax * sinf(omega_x * pos.x + phi_x))
+          + (Az * sinf(omega_z * pos.z + phi_z))
+      );
+    }
+  }
+
+  Chunk::Chunk(glm::ivec3 pos) : pos_(std::move(pos)) {
+    ForEachBlock([&](char& block_type, int x, int y, int z) {
+      glm::ivec3 abs_pos((int)SIZE * pos_ + glm::ivec3(x, y, z));
+      block_type = IsGround(abs_pos) ? 1 : 0;
     });
   }
 
@@ -69,6 +88,8 @@ namespace chunklands {
     const int floats_in_buffer = block_count * FLOATS_IN_BLOCK;
     std::vector<GLfloat> vertex_buffer_data(floats_in_buffer);
 
+    glm::vec3 chunk_offset(glm::vec3(pos_) * (float)SIZE);
+
     int vbi = 0; // vertex_buffer index
     ForEachBlock([&](BlockType block_type, int x, int y, int z) {
       // skip AIR
@@ -81,9 +102,9 @@ namespace chunklands {
       for (int fi = 0; fi < FLOATS_IN_BLOCK; ) { // float index
 
         // position vertices
-        vertex_buffer_data[vbi++] = BLOCK_DATA[fi++] + (GLfloat)x;
-        vertex_buffer_data[vbi++] = BLOCK_DATA[fi++] + (GLfloat)y;
-        vertex_buffer_data[vbi++] = BLOCK_DATA[fi++] + (GLfloat)z;
+        vertex_buffer_data[vbi++] = BLOCK_DATA[fi++] + (GLfloat)x + chunk_offset.x;
+        vertex_buffer_data[vbi++] = BLOCK_DATA[fi++] + (GLfloat)y + chunk_offset.y;
+        vertex_buffer_data[vbi++] = BLOCK_DATA[fi++] + (GLfloat)z + chunk_offset.z;
 
         // normal vertices
         vertex_buffer_data[vbi++] = BLOCK_DATA[fi++];

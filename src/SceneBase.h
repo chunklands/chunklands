@@ -34,13 +34,13 @@ namespace chunklands {
     std::string vsh_src_;
     std::string fsh_src_;
     
-    Chunk chunk_;
+    std::vector<std::shared_ptr<Chunk>> chunks_;
 
     GLuint vsh_;
     GLuint fsh_;
     GLuint program_;
 
-    glm::vec3 pos_ = glm::vec3(8.f, 8.7f, 20.f);
+    glm::vec3 pos_ = glm::vec3(8.f, 16.7f, 60.f);
 
     glm::mat4 view_;
     GLint view_uniform_location_;

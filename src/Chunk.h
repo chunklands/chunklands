@@ -2,6 +2,7 @@
 #define __CHUNKLANDS_CHUNK_H__
 
 #include <array>
+#include <glm/vec3.hpp>
 #include "gl.h"
 
 namespace chunklands {
@@ -16,7 +17,7 @@ namespace chunklands {
     using BlocksType = std::array<std::array<std::array<BlockType, SIZE>, SIZE>, SIZE>;
   
   public:
-    Chunk();
+    Chunk(glm::ivec3 pos);
     ~Chunk();
   
   public:
@@ -28,6 +29,7 @@ namespace chunklands {
     void ForEachBlock(const CbFn& fn);
 
   private:
+    glm::ivec3 pos_;
     BlocksType blocks_;
     GLuint vb_vertex_count_ = 0;
 

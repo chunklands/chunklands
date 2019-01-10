@@ -29,6 +29,15 @@ namespace chunklands {
     Napi::Object settings = info[0].ToObject();
     vsh_src_ = settings.Get("vertexShader").ToString();
     fsh_src_ = settings.Get("fragmentShader").ToString();
+
+    // 3x3x3 chunks
+    for (int cx = -1; cx <= 1; cx++) {
+      for (int cy = -1; cy <= 1; cy++) {
+        for (int cz = -1; cz <= 1; cz++) {
+          chunks_.push_back(std::make_shared<Chunk>(glm::ivec3(cx, cy, cz)));
+        }
+      }
+    }
   }
 
   void SceneBase::SetWindow(const Napi::CallbackInfo& info) {
@@ -104,7 +113,9 @@ namespace chunklands {
     view_uniform_location_ = glGetUniformLocation(program_, "u_view");
     proj_uniform_location_ = glGetUniformLocation(program_, "u_proj");
 
-    chunk_.Prepare();
+    for (auto&& chunk : chunks_) {
+      chunk->Prepare();
+    }
 
     glEnable(GL_DEPTH_TEST);
   }
@@ -132,12 +143,14 @@ namespace chunklands {
     
     glUseProgram(program_);
 
-    view_ = glm::lookAt(pos_, pos_ + glm::vec3(0.f, 0.f, -1.f), glm::vec3(0.f, 1.f, 0.f));
+    view_ = glm::lookAt(pos_, pos_ + glm::vec3(0.f, -.3f, -1.f), glm::vec3(0.f, 1.f, 0.f));
     glUniformMatrix4fv(view_uniform_location_, 1, GL_FALSE, glm::value_ptr(view_));
     glUniformMatrix4fv(proj_uniform_location_, 1, GL_FALSE, glm::value_ptr(proj_));
     CHECK_GL();
 
-    chunk_.Render();
+    for (auto&& chunk : chunks_) {
+      chunk->Render();
+    }
 
     glUseProgram(program_);
 
