@@ -74,26 +74,31 @@ namespace chunklands {
     0.f, 0.f, 0.f,  0.f, -1.f, 0.f,   1.f, 0.f, 1.f,  0.f, -1.f, 0.f,   1.f, 0.f, 0.f,  0.f, -1.f, 0.f,
   };
 
-  void Chunk::Prepare() {
-    // count blocks, which are not AIR
-    int block_count = 0;
-    ForEachBlock([&](BlockType block_type, int x, int y, int z) {
-      if (block_type != 0) { // blocks not AIR (=0)
-        block_count++;
-      }
-    });
-    assert(block_count <= BLOCK_COUNT);
+  // for now just an estimation: allocation vs. growing vector
+  constexpr int estimated_block_count = Chunk::SIZE * Chunk::SIZE * Chunk::SIZE / 2;
+  constexpr int estimated_floats_in_buffer = estimated_block_count * FLOATS_IN_BLOCK;
 
+  void Chunk::Prepare() {
     // allocate client side vertex buffer
-    const int floats_in_buffer = block_count * FLOATS_IN_BLOCK;
-    std::vector<GLfloat> vertex_buffer_data(floats_in_buffer);
+    std::vector<GLfloat> vertex_buffer_data;
+    vertex_buffer_data.reserve(estimated_floats_in_buffer);
 
     glm::vec3 chunk_offset(glm::vec3(pos_) * (float)SIZE);
 
-    int vbi = 0; // vertex_buffer index
     ForEachBlock([&](BlockType block_type, int x, int y, int z) {
       // skip AIR
       if (block_type == 0) {
+        return;
+      }
+      
+      if ( // check neighbors
+        (x >= 1     && blocks_[z][y][x-1] != 0) && // left
+        (x < SIZE-1 && blocks_[z][y][x+1] != 0) && // right
+        (y >= 1     && blocks_[z][y-1][x] != 0) && // bottom
+        (y < SIZE-1 && blocks_[z][y+1][x] != 0) && // top
+        (z >= 1     && blocks_[z-1][y][x] != 0) && // front
+        (z < SIZE-1 && blocks_[z+1][y][x] != 0))   // back
+      {
         return;
       }
 
@@ -102,22 +107,16 @@ namespace chunklands {
       for (int fi = 0; fi < FLOATS_IN_BLOCK; ) { // float index
 
         // position vertices
-        vertex_buffer_data[vbi++] = BLOCK_DATA[fi++] + (GLfloat)x + chunk_offset.x;
-        vertex_buffer_data[vbi++] = BLOCK_DATA[fi++] + (GLfloat)y + chunk_offset.y;
-        vertex_buffer_data[vbi++] = BLOCK_DATA[fi++] + (GLfloat)z + chunk_offset.z;
+        vertex_buffer_data.push_back(BLOCK_DATA[fi++] + (GLfloat)x + chunk_offset.x);
+        vertex_buffer_data.push_back(BLOCK_DATA[fi++] + (GLfloat)y + chunk_offset.y);
+        vertex_buffer_data.push_back(BLOCK_DATA[fi++] + (GLfloat)z + chunk_offset.z);
 
         // normal vertices
-        vertex_buffer_data[vbi++] = BLOCK_DATA[fi++];
-        vertex_buffer_data[vbi++] = BLOCK_DATA[fi++];
-        vertex_buffer_data[vbi++] = BLOCK_DATA[fi++];
+        vertex_buffer_data.push_back(BLOCK_DATA[fi++]);
+        vertex_buffer_data.push_back(BLOCK_DATA[fi++]);
+        vertex_buffer_data.push_back(BLOCK_DATA[fi++]);
       }
     });
-
-    // vertex buffer did not grow
-    assert(floats_in_buffer == vertex_buffer_data.size());
-
-    // we counted everything, so this must be equal
-    assert(vbi == vertex_buffer_data.size());
 
     vb_vertex_count_ = vertex_buffer_data.size();
 
