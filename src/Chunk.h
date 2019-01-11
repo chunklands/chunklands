@@ -6,6 +6,12 @@
 #include "gl.h"
 
 namespace chunklands {
+  enum ChunkState {
+    kEmpty,
+    kModelPrepared,
+    kViewPrepared
+  };
+
   class Chunk {
   public:
     static constexpr unsigned SIZE_LB = 4;
@@ -22,7 +28,8 @@ namespace chunklands {
   
   public:
     void Cleanup();
-    void Prepare();
+    void PrepareModel();
+    void PrepareView();
     void Render();
 
     template <typename CbFn>
@@ -32,7 +39,12 @@ namespace chunklands {
       return vb_vertex_count_;
     }
 
+    ChunkState GetState() const {
+      return state_;
+    }
+
   private:
+    ChunkState state_ = kEmpty;
     glm::ivec3 pos_;
     BlocksType blocks_;
     GLuint vb_vertex_count_ = 0;

@@ -21,10 +21,6 @@ namespace chunklands {
   }
 
   Chunk::Chunk(glm::ivec3 pos) : pos_(std::move(pos)) {
-    ForEachBlock([&](char& block_type, int x, int y, int z) {
-      glm::ivec3 abs_pos((int)SIZE * pos_ + glm::ivec3(x, y, z));
-      block_type = IsGround(abs_pos) ? 1 : 0;
-    });
   }
 
   Chunk::~Chunk() {
@@ -41,6 +37,9 @@ namespace chunklands {
       glDeleteVertexArrays(1, &vao_);
       vao_ = 0;
     }
+
+    // blocks don't have to be freed and will not reset them
+    state_ = kEmpty;
   }
 
   constexpr int POSITION_VERTICES_IN_BLOCK = 6 * 2 * 3;
@@ -78,7 +77,20 @@ namespace chunklands {
   constexpr int estimated_block_count = Chunk::SIZE * Chunk::SIZE * Chunk::SIZE / 2;
   constexpr int estimated_floats_in_buffer = estimated_block_count * FLOATS_IN_BLOCK;
 
-  void Chunk::Prepare() {
+  void Chunk::PrepareModel() {
+    assert(state_ == kEmpty);
+    
+    ForEachBlock([&](char& block_type, int x, int y, int z) {
+      glm::ivec3 abs_pos((int)SIZE * pos_ + glm::ivec3(x, y, z));
+      block_type = IsGround(abs_pos) ? 1 : 0;
+    });
+
+    state_ = kModelPrepared;
+  }
+
+  void Chunk::PrepareView() {
+    assert(state_ == kModelPrepared);
+
     // allocate client side vertex buffer
     std::vector<GLfloat> vertex_buffer_data;
     vertex_buffer_data.reserve(estimated_floats_in_buffer);
@@ -140,9 +152,13 @@ namespace chunklands {
 
     glBindVertexArray(0);
     CHECK_GL();
+
+    state_ = kViewPrepared;
   }
 
   void Chunk::Render() {
+    assert(state_ == kViewPrepared);
+
     glBindVertexArray(vao_);
     glDrawArrays(GL_TRIANGLES, 0, vb_vertex_count_);
     CHECK_GL();

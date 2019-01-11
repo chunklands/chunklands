@@ -172,7 +172,8 @@ namespace chunklands {
           }
 
           auto chunk = std::make_shared<Chunk>(pos);
-          chunk->Prepare();
+          chunk->PrepareModel();
+          chunk->PrepareView();
           chunk_map_.insert(std::make_pair(pos, std::move(chunk)));
         }
       }
