@@ -1,16 +1,29 @@
 #ifndef __CHUNKLANDS_SCENEBASE_H__
 #define __CHUNKLANDS_SCENEBASE_H__
 
-#include <napi.h>
+#include <boost/functional/hash.hpp>
 #include <glm/mat4x4.hpp>
 #include <glm/vec3.hpp>
-#include "napi/UnwrappedObject.h"
-#include "gl.h"
-#include "WindowBase.h"
+#include <napi.h>
+#include <unordered_map>
 #include "Chunk.h"
+#include "gl.h"
+#include "napi/UnwrappedObject.h"
+#include "WindowBase.h"
 
 namespace chunklands {
   class SceneBase : public Napi::ObjectWrap<SceneBase> {
+  private:
+    struct ivec3_hasher {
+      std::size_t operator()(const glm::ivec3& v) const {
+        std::size_t seed = 0;
+        boost::hash_combine(seed, boost::hash_value(v.x));
+        boost::hash_combine(seed, boost::hash_value(v.y));
+        boost::hash_combine(seed, boost::hash_value(v.z));
+
+        return seed;
+      }
+    };
   public:
     static Napi::FunctionReference constructor;
     static void Initialize(Napi::Env env);
@@ -34,7 +47,7 @@ namespace chunklands {
     std::string vsh_src_;
     std::string fsh_src_;
     
-    std::vector<std::shared_ptr<Chunk>> chunks_;
+    std::unordered_map<glm::ivec3, std::shared_ptr<Chunk>, ivec3_hasher> chunk_map_;
 
     GLuint vsh_;
     GLuint fsh_;

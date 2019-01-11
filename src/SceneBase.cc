@@ -1,5 +1,6 @@
 #include "SceneBase.h"
 
+#include <iostream>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
@@ -29,15 +30,6 @@ namespace chunklands {
     Napi::Object settings = info[0].ToObject();
     vsh_src_ = settings.Get("vertexShader").ToString();
     fsh_src_ = settings.Get("fragmentShader").ToString();
-
-    // 3x3x3 chunks
-    for (int cx = -1; cx <= 1; cx++) {
-      for (int cy = -1; cy <= 1; cy++) {
-        for (int cz = -1; cz <= 1; cz++) {
-          chunks_.push_back(std::make_shared<Chunk>(glm::ivec3(cx, cy, cz)));
-        }
-      }
-    }
   }
 
   void SceneBase::SetWindow(const Napi::CallbackInfo& info) {
@@ -113,10 +105,6 @@ namespace chunklands {
     view_uniform_location_ = glGetUniformLocation(program_, "u_view");
     proj_uniform_location_ = glGetUniformLocation(program_, "u_proj");
 
-    for (auto&& chunk : chunks_) {
-      chunk->Prepare();
-    }
-
     glEnable(GL_DEPTH_TEST);
   }
 
@@ -140,6 +128,55 @@ namespace chunklands {
     if (window_->GetKey(GLFW_KEY_D)) {
       pos_.x += diff;
     }
+
+    // Calculation of the current chunk we are standing on:
+    //   for n = ]-16;+16[, n / 16 = 0, but we want:
+    //   - 1. for n = [0;+16[ => 0
+    //   - 2. for n = ]-16;0[ => -1
+    // thus for negative dimension values we need to subtract chunk size
+    glm::ivec3 center_chunk_pos = glm::ivec3(pos_.x >= 0 ? pos_.x : pos_.x - Chunk::SIZE,
+                                             pos_.y >= 0 ? pos_.y : pos_.y - Chunk::SIZE,
+                                             pos_.z >= 0 ? pos_.z : pos_.z - Chunk::SIZE
+                                            ) / (int)Chunk::SIZE;
+
+    const int RENDER_DISTANCE = 2;
+    // render from a to b
+    glm::ivec3 a(center_chunk_pos.x - RENDER_DISTANCE,
+                 center_chunk_pos.y - RENDER_DISTANCE,
+                 center_chunk_pos.z - RENDER_DISTANCE);
+    glm::ivec3 b(center_chunk_pos.x + RENDER_DISTANCE,
+                 center_chunk_pos.y + RENDER_DISTANCE,
+                 center_chunk_pos.z + RENDER_DISTANCE);
+
+    // map cleanup: remove unused chunks
+    for (auto&& it = chunk_map_.begin(); it != chunk_map_.end(); ) {
+      auto&& pos = it->first;
+      if (!((a.x <= pos.x && pos.x <= b.x) &&
+            (a.y <= pos.y && pos.y <= b.y) &&
+            (a.z <= pos.z && pos.z <= b.z))) {
+        it = chunk_map_.erase(it);
+      } else {
+        it++;
+      }
+    }
+
+    // map update: insert missing chunks
+    for (int cx = a.x; cx <= b.x; cx++) {
+      for (int cy = a.y; cy <= b.y; cy++) {
+        for (int cz = a.z; cz <= b.z; cz++) {
+          glm::ivec3 pos(cx, cy, cz);
+
+          auto&& chunk_it = chunk_map_.find(pos);
+          if (chunk_it != chunk_map_.end()) {
+            continue; // fine, chunk is in map
+          }
+
+          auto chunk = std::make_shared<Chunk>(pos);
+          chunk->Prepare();
+          chunk_map_.insert(std::make_pair(pos, std::move(chunk)));
+        }
+      }
+    }
     
     glUseProgram(program_);
 
@@ -148,11 +185,18 @@ namespace chunklands {
     glUniformMatrix4fv(proj_uniform_location_, 1, GL_FALSE, glm::value_ptr(proj_));
     CHECK_GL();
 
-    for (auto&& chunk : chunks_) {
+    // map render all chunks
+    unsigned rendered_vertex_count = 0;
+    for (auto&& chunk_entry : chunk_map_) {
+      auto&& chunk = chunk_entry.second;
+
+      rendered_vertex_count += chunk->GetVertexCount();
       chunk->Render();
     }
 
-    glUseProgram(program_);
+    std::cout << "Rendered vertex count: " << rendered_vertex_count << std::endl;
+
+    glUseProgram(0);
 
     window_->SwapBuffers();
   }

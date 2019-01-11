@@ -28,6 +28,10 @@ namespace chunklands {
     template <typename CbFn>
     void ForEachBlock(const CbFn& fn);
 
+    GLuint GetVertexCount() const {
+      return vb_vertex_count_;
+    }
+
   private:
     glm::ivec3 pos_;
     BlocksType blocks_;
