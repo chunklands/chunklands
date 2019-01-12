@@ -1,8 +1,10 @@
 #include "SceneBase.h"
 
-#include <iostream>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <glm/vector_relational.hpp>
+#include <iostream>
+#include "log.h"
 
 namespace chunklands {
   Napi::FunctionReference SceneBase::constructor;
@@ -108,6 +110,10 @@ namespace chunklands {
     glEnable(GL_DEPTH_TEST);
   }
 
+  constexpr int RENDER_DISTANCE   = 2;
+  constexpr int PREFETCH_DISTANCE = 3;
+  static_assert(PREFETCH_DISTANCE > RENDER_DISTANCE, "PREFETCH_DISTANCE must be bigger than RENDER_DISTANCE");
+
   void SceneBase::Render(double diff) {
 
     glfwPollEvents();
@@ -139,49 +145,101 @@ namespace chunklands {
                                              pos_.z >= 0 ? pos_.z : pos_.z - Chunk::SIZE
                                             ) / (int)Chunk::SIZE;
 
-    const int RENDER_DISTANCE = 2;
-    // render from a to b
-    glm::ivec3 a(center_chunk_pos.x - RENDER_DISTANCE,
-                 center_chunk_pos.y - RENDER_DISTANCE,
-                 center_chunk_pos.z - RENDER_DISTANCE);
-    glm::ivec3 b(center_chunk_pos.x + RENDER_DISTANCE,
-                 center_chunk_pos.y + RENDER_DISTANCE,
-                 center_chunk_pos.z + RENDER_DISTANCE);
+    glm::ivec3 render_distance(RENDER_DISTANCE, RENDER_DISTANCE, RENDER_DISTANCE);
+    glm::ivec3 render_from = center_chunk_pos - render_distance;
+    glm::ivec3 render_to   = center_chunk_pos + render_distance;
 
-    // map cleanup: remove unused chunks
+    glm::ivec3 prefetch_distance(PREFETCH_DISTANCE, PREFETCH_DISTANCE, PREFETCH_DISTANCE);
+    glm::ivec3 prefetch_from = center_chunk_pos - prefetch_distance;
+    glm::ivec3 prefetch_to   = center_chunk_pos + prefetch_distance;
+
+    // map cleanup: remove chunks outside prefetch distance
     for (auto&& it = chunk_map_.begin(); it != chunk_map_.end(); ) {
       auto&& pos = it->first;
-      if (!((a.x <= pos.x && pos.x <= b.x) &&
-            (a.y <= pos.y && pos.y <= b.y) &&
-            (a.z <= pos.z && pos.z <= b.z))) {
-        it = chunk_map_.erase(it);
+
+      if ( // check chunk inside prefetch distance
+        glm::all(glm::lessThanEqual(prefetch_from, pos)) &&
+        glm::all(glm::lessThanEqual(pos, prefetch_to))
+      ) {
+        it++; // goto next chunk
       } else {
-        it++;
+        // remove chunk
+        it = chunk_map_.erase(it);
       }
     }
 
-    // map update: insert missing chunks
-    for (int cx = a.x; cx <= b.x; cx++) {
-      for (int cy = a.y; cy <= b.y; cy++) {
-        for (int cz = a.z; cz <= b.z; cz++) {
+    // map update: insert/update chunks
+    for (int cx = prefetch_from.x; cx <= prefetch_to.x; cx++) {
+      for (int cy = prefetch_from.y; cy <= prefetch_to.y; cy++) {
+        for (int cz = prefetch_from.z; cz <= prefetch_to.z; cz++) {
           glm::ivec3 pos(cx, cy, cz);
 
-          auto&& chunk_it = chunk_map_.find(pos);
-          if (chunk_it != chunk_map_.end()) {
-            continue; // fine, chunk is in map
+          // find or create chunk
+          auto&& it = chunk_map_.find(pos);
+          if (it == chunk_map_.end()) {
+            auto&& insert_it = chunk_map_.insert(std::make_pair(pos,
+                                                                std::make_shared<Chunk>(pos)));
+            it = insert_it.first;
           }
 
-          auto chunk = std::make_shared<Chunk>(pos);
-          chunk->PrepareModel();
-          chunk->PrepareView();
-          chunk_map_.insert(std::make_pair(pos, std::move(chunk)));
+          assert(it != chunk_map_.end());
+          assert(it->first == pos);
+          auto&& chunk = it->second;
+
+          // we will call `Prepare*` in reverse order to not update too much in one iteration
+
+          // 1. PrepareView
+          if ( // check chunk inside render distance
+            chunk->GetState() == kModelPrepared &&
+            glm::all(glm::lessThanEqual(render_from, pos)) &&
+            glm::all(glm::lessThanEqual(pos, render_to))
+          ) {
+            do { // to call "break;"
+              auto&& left_chunk_it = chunk_map_.find(glm::ivec3(pos.x-1, pos.y, pos.z));
+              if (left_chunk_it == chunk_map_.end() ||
+                  left_chunk_it->second->GetState() < kModelPrepared) { break; }
+              auto&& right_chunk_it = chunk_map_.find(glm::ivec3(pos.x+1, pos.y, pos.z));
+              if (right_chunk_it == chunk_map_.end() ||
+                  right_chunk_it->second->GetState() < kModelPrepared) { break; }
+              auto&& top_chunk_it = chunk_map_.find(glm::ivec3(pos.x, pos.y+1, pos.z));
+              if (top_chunk_it == chunk_map_.end() ||
+                  top_chunk_it->second->GetState() < kModelPrepared) { break; }
+              auto&& bottom_chunk_it = chunk_map_.find(glm::ivec3(pos.x, pos.y-1, pos.z));
+              if (bottom_chunk_it == chunk_map_.end() ||
+                  bottom_chunk_it->second->GetState() < kModelPrepared) { break; }
+              auto&& front_chunk_it = chunk_map_.find(glm::ivec3(pos.x, pos.y, pos.z-1));
+              if (front_chunk_it == chunk_map_.end() ||
+                  front_chunk_it->second->GetState() < kModelPrepared) { break; }
+              auto&& back_chunk_it = chunk_map_.find(glm::ivec3(pos.x, pos.y, pos.z+1));
+              if (back_chunk_it == chunk_map_.end() ||
+                  back_chunk_it->second->GetState() < kModelPrepared) { break; }
+              
+              const Chunk* neighbors[kNeighborCount] = {
+                &*left_chunk_it->second,
+                &*right_chunk_it->second,
+                &*top_chunk_it->second,
+                &*bottom_chunk_it->second,
+                &*front_chunk_it->second,
+                &*back_chunk_it->second
+              };
+              
+              chunk->PrepareView(neighbors);
+            } while (0);
+          }
+
+          // 2. PrepareModel
+          // always inside prefetch distance
+          if (chunk->GetState() == kEmpty) {
+            chunk->PrepareModel();
+          }
+
         }
       }
     }
     
     glUseProgram(program_);
 
-    view_ = glm::lookAt(pos_, pos_ + glm::vec3(0.f, -.3f, -1.f), glm::vec3(0.f, 1.f, 0.f));
+    view_ = glm::lookAt(pos_, pos_ + glm::vec3(0.f, -.05f, -1.f), glm::vec3(0.f, 1.f, 0.f));
     glUniformMatrix4fv(view_uniform_location_, 1, GL_FALSE, glm::value_ptr(view_));
     glUniformMatrix4fv(proj_uniform_location_, 1, GL_FALSE, glm::value_ptr(proj_));
     CHECK_GL();
@@ -190,6 +248,10 @@ namespace chunklands {
     unsigned rendered_vertex_count = 0;
     for (auto&& chunk_entry : chunk_map_) {
       auto&& chunk = chunk_entry.second;
+
+      if (chunk->GetState() != kViewPrepared) {
+        continue; // no view data
+      }
 
       rendered_vertex_count += chunk->GetVertexCount();
       chunk->Render();

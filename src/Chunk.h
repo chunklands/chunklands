@@ -12,6 +12,17 @@ namespace chunklands {
     kViewPrepared
   };
 
+  enum ChunkNeighbor {
+    kLeft,   // -x
+    kRight,  // +x
+    kTop,    // +y
+    kBottom, // -y
+    kFront,  // +z
+    kBack,   // -z
+
+    kNeighborCount = 6
+  };
+
   class Chunk {
   public:
     static constexpr unsigned SIZE_LB = 4;
@@ -29,7 +40,7 @@ namespace chunklands {
   public:
     void Cleanup();
     void PrepareModel();
-    void PrepareView();
+    void PrepareView(const Chunk* neighbors[kNeighborCount]);
     void Render();
 
     template <typename CbFn>

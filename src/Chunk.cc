@@ -12,12 +12,25 @@ namespace chunklands {
     constexpr float omega_z = (2.f * M_PI) / 44.f;
     constexpr float phi_z   = (2.f * M_PI) / 27.f;
 
-    bool IsGround(const glm::ivec3& pos) {
+    bool IsGroundMountains(const glm::ivec3& pos) {
       return pos.y < (
           (Ax * sinf(omega_x * pos.x + phi_x))
           + (Az * sinf(omega_z * pos.z + phi_z))
       );
     }
+
+    bool IsGroundFlat(const glm::ivec3& pos) {
+      return pos.y < 4;
+    }
+
+    bool IsGroundAbstract1(const glm::ivec3& pos) {
+      return pos.y * pos.y + pos.x < pos.y;
+    }
+
+    bool IsGroundSphere(const glm::ivec3& pos) {
+      return pos.x * pos.x + pos.y * pos.y + pos.z * pos.z < 30*30;
+    }
+
   }
 
   Chunk::Chunk(glm::ivec3 pos) : pos_(std::move(pos)) {
@@ -82,14 +95,20 @@ namespace chunklands {
     
     ForEachBlock([&](char& block_type, int x, int y, int z) {
       glm::ivec3 abs_pos((int)SIZE * pos_ + glm::ivec3(x, y, z));
-      block_type = IsGround(abs_pos) ? 1 : 0;
+      block_type = IsGroundMountains(abs_pos) ? 1 : 0;
     });
 
     state_ = kModelPrepared;
   }
 
-  void Chunk::PrepareView() {
+  void Chunk::PrepareView(const Chunk* neighbors[kNeighborCount]) {
     assert(state_ == kModelPrepared);
+    assert(neighbors[kLeft  ] != nullptr && neighbors[kLeft  ]->GetState() >= kModelPrepared);
+    assert(neighbors[kRight ] != nullptr && neighbors[kRight ]->GetState() >= kModelPrepared);
+    assert(neighbors[kTop   ] != nullptr && neighbors[kTop   ]->GetState() >= kModelPrepared);
+    assert(neighbors[kBottom] != nullptr && neighbors[kBottom]->GetState() >= kModelPrepared);
+    assert(neighbors[kFront ] != nullptr && neighbors[kFront ]->GetState() >= kModelPrepared);
+    assert(neighbors[kBack  ] != nullptr && neighbors[kBack  ]->GetState() >= kModelPrepared);
 
     // allocate client side vertex buffer
     std::vector<GLfloat> vertex_buffer_data;
@@ -102,14 +121,16 @@ namespace chunklands {
       if (block_type == 0) {
         return;
       }
-      
-      if ( // check neighbors
-        (x >= 1     && blocks_[z][y][x-1] != 0) && // left
-        (x < SIZE-1 && blocks_[z][y][x+1] != 0) && // right
-        (y >= 1     && blocks_[z][y-1][x] != 0) && // bottom
-        (y < SIZE-1 && blocks_[z][y+1][x] != 0) && // top
-        (z >= 1     && blocks_[z-1][y][x] != 0) && // front
-        (z < SIZE-1 && blocks_[z+1][y][x] != 0))   // back
+
+      // for all sides of the block, test if adjacent block is opaque
+      if (
+      //                      << inside of chunk || check neighbor >>
+        ((x >= 1     && blocks_[z][y][x-1] != 0) || (x == 0      && neighbors[kLeft  ]->blocks_[z][y][SIZE-1] != 0)) && // left
+        ((x < SIZE-1 && blocks_[z][y][x+1] != 0) || (x == SIZE-1 && neighbors[kRight ]->blocks_[z][y][0]      != 0)) && // right
+        ((y >= 1     && blocks_[z][y-1][x] != 0) || (y == 0      && neighbors[kBottom]->blocks_[z][SIZE-1][x] != 0)) && // bottom
+        ((y < SIZE-1 && blocks_[z][y+1][x] != 0) || (y == SIZE-1 && neighbors[kTop   ]->blocks_[z][0][x]      != 0)) && // top
+        ((z >= 1     && blocks_[z-1][y][x] != 0) || (z == 0      && neighbors[kFront ]->blocks_[SIZE-1][y][x] != 0)) && // front
+        ((z < SIZE-1 && blocks_[z+1][y][x] != 0) || (z == SIZE-1 && neighbors[kBack  ]->blocks_[0][y][x]      != 0)))   // back
       {
         return;
       }
