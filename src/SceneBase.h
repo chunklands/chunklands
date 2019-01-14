@@ -43,6 +43,8 @@ namespace chunklands {
   private:
     NapiExt::PersistentObjectWrap<WindowBase> window_;
     boost::signals2::scoped_connection window_on_resize_conn_;
+    boost::signals2::scoped_connection window_on_cursor_move_conn_;
+    glm::ivec2 last_cursor_pos_;
 
     std::string vsh_src_;
     std::string fsh_src_;
@@ -54,6 +56,8 @@ namespace chunklands {
     GLuint program_;
 
     glm::vec3 pos_ = glm::vec3(8.f, 0.7f, 60.f);
+    float view_yaw_rad = 0.f;
+    float view_pitch_rad = 0.f;
 
     glm::mat4 view_;
     GLint view_uniform_location_;

@@ -19,7 +19,7 @@ namespace chunklands {
     constructor.SuppressDestruct();
   }
 
-  constexpr float fovy_degree = 45.f;
+  constexpr float fovy_degree = 75.f;
 
   SceneBase::SceneBase(const Napi::CallbackInfo& info) : Napi::ObjectWrap<SceneBase>(info) {
     Napi::HandleScope scope(info.Env());
@@ -41,6 +41,19 @@ namespace chunklands {
 
     window_on_resize_conn_ = window_->on_resize.connect([this](int width, int height) {
       UpdateViewport(width, height);
+    });
+
+    window_on_cursor_move_conn_ = window_->on_cursor_move.connect([this](double xpos, double ypos) {
+      glm::ivec2 current_cursor_pos(xpos, ypos);
+      glm::ivec2 cursor_diff = last_cursor_pos_ - current_cursor_pos;
+      last_cursor_pos_ = current_cursor_pos;
+
+      view_pitch_rad += .005f * cursor_diff.y;
+      view_yaw_rad   += .005f * cursor_diff.x;
+
+      constexpr float pitch_break = (.5f * M_PI) - .1;
+      view_pitch_rad = std::max(std::min(view_pitch_rad, pitch_break), -pitch_break);
+      view_yaw_rad = fmodf(view_yaw_rad, 2.f * M_PI);
     });
   }
 
@@ -120,19 +133,40 @@ namespace chunklands {
     window_->Clear();
 
     if (window_->GetKey(GLFW_KEY_W)) {
-      pos_.z -= diff;
+      glm::vec3 move(-sinf(view_yaw_rad) * cosf(view_pitch_rad),
+                     sinf(view_pitch_rad),
+                     -cosf(view_yaw_rad) * cosf(view_pitch_rad));
+      pos_ += (float)diff * move;
     }
 
     if (window_->GetKey(GLFW_KEY_S)) {
-      pos_.z += diff;
+      glm::vec3 move(-sinf(view_yaw_rad) * cosf(view_pitch_rad),
+                     sinf(view_pitch_rad),
+                     -cosf(view_yaw_rad) * cosf(view_pitch_rad));
+      pos_ -= (float)diff * move;
     }
 
     if (window_->GetKey(GLFW_KEY_A)) {
-      pos_.x -= diff;
+      glm::vec3 move(-cosf(view_yaw_rad) * cosf(view_pitch_rad),
+                     0.f,
+                     sinf(view_yaw_rad) * cosf(view_pitch_rad));
+      pos_ += (float)diff * move;
     }
 
     if (window_->GetKey(GLFW_KEY_D)) {
-      pos_.x += diff;
+      glm::vec3 move(-cosf(view_yaw_rad) * cosf(view_pitch_rad),
+                     0.f,
+                     sinf(view_yaw_rad) * cosf(view_pitch_rad));
+      pos_ -= (float)diff * move;
+    }
+
+    if (window_->GetMouseButton(GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
+      window_->StartMouseGrab();
+      last_cursor_pos_ = window_->GetCursorPos();
+    }
+
+    if (window_->GetKey(GLFW_KEY_ESCAPE)) {
+      window_->StopMouseGrab();
     }
 
     // Calculation of the current chunk we are standing on:
@@ -237,9 +271,13 @@ namespace chunklands {
       }
     }
     
-    glUseProgram(program_);
+    
+    glm::vec3 look_center(-sinf(view_yaw_rad) * cosf(view_pitch_rad),
+                          sinf(view_pitch_rad),
+                          -cosf(view_yaw_rad) * cosf(view_pitch_rad));
+    view_ = glm::lookAt(pos_, pos_ + look_center, glm::vec3(0.f, 1.f, 0.f));
 
-    view_ = glm::lookAt(pos_, pos_ + glm::vec3(0.f, -.05f, -1.f), glm::vec3(0.f, 1.f, 0.f));
+    glUseProgram(program_);
     glUniformMatrix4fv(view_uniform_location_, 1, GL_FALSE, glm::value_ptr(view_));
     glUniformMatrix4fv(proj_uniform_location_, 1, GL_FALSE, glm::value_ptr(proj_));
     CHECK_GL();

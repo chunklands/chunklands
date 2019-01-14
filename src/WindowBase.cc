@@ -36,9 +36,12 @@ namespace chunklands {
     );
 
     glfwSetWindowUserPointer(window_, this);
+
     glfwSetFramebufferSizeCallback(window_, [](GLFWwindow* window, int width, int height) {
       detail::Unwrap(window)->on_resize(width, height);
     });
+
+    glfwSetInputMode(window_, GLFW_STICKY_KEYS, 1);
   }
 
   void WindowBase::MakeContextCurrent(const Napi::CallbackInfo& info) {
@@ -80,9 +83,31 @@ namespace chunklands {
     return glfwGetKey(window_, key);
   }
 
+  int WindowBase::GetMouseButton(int button) {
+    return glfwGetMouseButton(window_, button);
+  }
+
+  glm::dvec2 WindowBase::GetCursorPos() const {
+    glm::dvec2 pos;
+    glfwGetCursorPos(window_, &pos.x, &pos.y);
+    return pos;
+  }
+
   glm::ivec2 WindowBase::GetSize() const {
     glm::ivec2 size;
     glfwGetWindowSize(window_, &size.x, &size.y);
     return size;
+  }
+
+  void WindowBase::StartMouseGrab() {
+    glfwSetInputMode(window_, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    glfwSetCursorPosCallback(window_, [](GLFWwindow* window, double xpos, double ypos) {
+      detail::Unwrap(window)->on_cursor_move(xpos, ypos);
+    });
+  }
+
+  void WindowBase::StopMouseGrab() {
+    glfwSetInputMode(window_, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+    glfwSetCursorPosCallback(window_, nullptr);
   }
 }

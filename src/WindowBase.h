@@ -23,7 +23,13 @@ namespace chunklands {
   public: // Native
     void SwapBuffers();
     void Clear();
+
     int GetKey(int key);
+    int GetMouseButton(int button);
+    glm::dvec2 GetCursorPos() const;
+
+    void StartMouseGrab();
+    void StopMouseGrab();
 
     glm::ivec2 GetSize() const;
 
@@ -32,6 +38,7 @@ namespace chunklands {
 
   public:
     boost::signals2::signal<void(int width, int height)> on_resize;
+    boost::signals2::signal<void(double xpos, double ypos)> on_cursor_move;
 
   private:
     GLFWwindow* window_ = nullptr;
