@@ -4,3 +4,4 @@
 #include "WindowBase.h"
 #include "WorldBase.h"
 #include "ChunkGeneratorBase.h"
+#include "BlockRegistrarBase.h"

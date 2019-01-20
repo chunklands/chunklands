@@ -1,3 +1,4 @@
+const BlockRegistrar = require('./BlockRegistrar');
 const ChunkGenerator = require('./ChunkGenerator');
 const Environment = require('./Environment');
 const GameLoop = require('./GameLoop');
@@ -17,7 +18,12 @@ const window = new Window({
 window.makeContextCurrent();
 Environment.loadProcs();
 
+const blockRegistrar = new BlockRegistrar();
+blockRegistrar.addBlock(require('./game/blocks/air'));
+blockRegistrar.addBlock(require('./game/blocks/block'));
+
 const chunkGenerator = new ChunkGenerator();
+chunkGenerator.setBlockRegistrar(blockRegistrar);
 
 const world = new World();
 world.setChunkGenerator(chunkGenerator);

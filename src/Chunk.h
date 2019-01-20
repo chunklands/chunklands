@@ -3,6 +3,7 @@
 
 #include <array>
 #include <glm/vec3.hpp>
+#include "BlockDefinition.h"
 #include "gl.h"
 
 namespace chunklands {
@@ -33,7 +34,7 @@ namespace chunklands {
     static constexpr unsigned BLOCK_COUNT = SIZE * SIZE * SIZE;
 
   public:
-    using BlockType = char;
+    using BlockType = BlockDefinition*;
     using BlocksType = std::array<std::array<std::array<BlockType, SIZE>, SIZE>, SIZE>;
   
   public:
