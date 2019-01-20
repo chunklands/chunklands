@@ -25,7 +25,8 @@ namespace chunklands {
 
   private:
     bool running_ = false;
-    int last_update_ = .0;
+    double last_update_ = .0;
+    double last_render_ = .0;
 
     NapiExt::PersistentObjectWrap<SceneBase> scene_;
   };

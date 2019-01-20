@@ -36,6 +36,7 @@ namespace chunklands {
   
   public: // Native
     void Prepare();
+    void Update(double diff);
     void Render(double diff);
 
     void UpdateViewport(int width, int height);

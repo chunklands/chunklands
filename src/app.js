@@ -25,7 +25,7 @@ gameLoop.start();
 
 const loop = () => {
   // in order to have more accurate loop, immediately set timeout
-  const timeoutId = setTimeout(loop, 1000 / 66 /*Hz*/);
+  const timeoutId = setTimeout(loop, 0);
   gameLoop.loop();
   
   if (window.shouldClose) {

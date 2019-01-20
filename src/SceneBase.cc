@@ -127,37 +127,37 @@ namespace chunklands {
   constexpr int PREFETCH_DISTANCE = 3;
   static_assert(PREFETCH_DISTANCE > RENDER_DISTANCE, "PREFETCH_DISTANCE must be bigger than RENDER_DISTANCE");
 
-  void SceneBase::Render(double diff) {
+  constexpr float move_factor = 20.f;
 
-    glfwPollEvents();
+  void SceneBase::Update(double diff) {
     window_->Clear();
 
-    if (window_->GetKey(GLFW_KEY_W)) {
+    if (window_->GetKey(GLFW_KEY_W) == GLFW_PRESS) {
       glm::vec3 move(-sinf(view_yaw_rad) * cosf(view_pitch_rad),
                      sinf(view_pitch_rad),
                      -cosf(view_yaw_rad) * cosf(view_pitch_rad));
-      pos_ += (float)diff * move;
+      pos_ += move_factor * (float)diff * move;
     }
 
-    if (window_->GetKey(GLFW_KEY_S)) {
+    if (window_->GetKey(GLFW_KEY_S) == GLFW_PRESS) {
       glm::vec3 move(-sinf(view_yaw_rad) * cosf(view_pitch_rad),
                      sinf(view_pitch_rad),
                      -cosf(view_yaw_rad) * cosf(view_pitch_rad));
-      pos_ -= (float)diff * move;
+      pos_ -= move_factor * (float)diff * move;
     }
 
-    if (window_->GetKey(GLFW_KEY_A)) {
+    if (window_->GetKey(GLFW_KEY_A) == GLFW_PRESS) {
       glm::vec3 move(-cosf(view_yaw_rad) * cosf(view_pitch_rad),
                      0.f,
                      sinf(view_yaw_rad) * cosf(view_pitch_rad));
-      pos_ += (float)diff * move;
+      pos_ += move_factor * (float)diff * move;
     }
 
-    if (window_->GetKey(GLFW_KEY_D)) {
+    if (window_->GetKey(GLFW_KEY_D) == GLFW_PRESS) {
       glm::vec3 move(-cosf(view_yaw_rad) * cosf(view_pitch_rad),
                      0.f,
                      sinf(view_yaw_rad) * cosf(view_pitch_rad));
-      pos_ -= (float)diff * move;
+      pos_ -= move_factor * (float)diff * move;
     }
 
     if (window_->GetMouseButton(GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
@@ -277,6 +277,10 @@ namespace chunklands {
                           -cosf(view_yaw_rad) * cosf(view_pitch_rad));
     view_ = glm::lookAt(pos_, pos_ + look_center, glm::vec3(0.f, 1.f, 0.f));
 
+    glfwPollEvents();
+  }
+
+  void SceneBase::Render(double diff) {
     glUseProgram(program_);
     glUniformMatrix4fv(view_uniform_location_, 1, GL_FALSE, glm::value_ptr(view_));
     glUniformMatrix4fv(proj_uniform_location_, 1, GL_FALSE, glm::value_ptr(proj_));
