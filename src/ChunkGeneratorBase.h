@@ -10,7 +10,8 @@ namespace chunklands {
     DECLARE_OBJECT_WRAP(ChunkGeneratorBase)
 
   public:
-    void Generate(Chunk& chunk);
+    void GenerateModel(Chunk& chunk);
+    void GenerateView(Chunk& chunk, const Chunk* neighbors[kNeighborCount]);
   };
 }
 

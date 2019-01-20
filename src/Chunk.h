@@ -22,14 +22,17 @@ namespace chunklands {
 
     kNeighborCount = 6
   };
-
+  class ChunkGeneratorBase;
+  
   class Chunk {
+    friend ChunkGeneratorBase;
+
   public:
     static constexpr unsigned SIZE_LB = 4;
     static constexpr unsigned SIZE = 1 << SIZE_LB;
     static constexpr unsigned BLOCK_COUNT = SIZE * SIZE * SIZE;
 
-  private:
+  public:
     using BlockType = char;
     using BlocksType = std::array<std::array<std::array<BlockType, SIZE>, SIZE>, SIZE>;
   
@@ -38,15 +41,15 @@ namespace chunklands {
     ~Chunk();
   
   public:
+    void InitializeGL();
     void Cleanup();
-    void PrepareView(const Chunk* neighbors[kNeighborCount]);
     void Render();
 
     template <typename CbFn>
     void ForEachBlock(const CbFn& fn);
 
-    GLuint GetVertexCount() const {
-      return vb_vertex_count_;
+    GLuint GetIndexCount() const {
+      return vb_index_count_;
     }
 
     ChunkState GetState() const {
@@ -57,16 +60,12 @@ namespace chunklands {
       return pos_;
     }
 
-    void SetState(ChunkState state) {
-      state_ = state;
-    }
-
   private:
     ChunkState state_ = kEmpty;
     glm::ivec3 pos_;
     BlocksType blocks_;
-    GLuint vb_vertex_count_ = 0;
 
+    GLuint vb_index_count_ = 0;
     GLuint vao_ = 0;
     GLuint vb_ = 0;
   };

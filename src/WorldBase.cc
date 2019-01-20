@@ -150,9 +150,9 @@ namespace chunklands {
           assert(it->first == pos);
           auto&& chunk = it->second;
 
-          // we will call `Prepare*` in reverse order to not update too much in one iteration
+          // we will call `Generate*` in reverse order to not update too much in one iteration
 
-          // 1. PrepareView
+          // 1. GenerateView
           if ( // check chunk inside render distance
             chunk->GetState() == kModelPrepared &&
             glm::all(glm::lessThanEqual(render_from, pos)) &&
@@ -187,15 +187,14 @@ namespace chunklands {
                 &*back_chunk_it->second
               };
               
-              chunk->PrepareView(neighbors);
+              chunk_generator_->GenerateView(*chunk, neighbors);
             } while (0);
           }
 
-          // 2. PrepareModel
+          // 2. GenerateModel
           // always inside prefetch distance
           if (chunk->GetState() == kEmpty) {
-            chunk_generator_->Generate(*chunk);
-            chunk->SetState(kModelPrepared);
+            chunk_generator_->GenerateModel(*chunk);
           }
 
         }
@@ -216,7 +215,7 @@ namespace chunklands {
     CHECK_GL();
 
     // map render all chunks
-    unsigned rendered_vertex_count = 0;
+    unsigned rendered_index_count = 0;
     for (auto&& chunk_entry : chunk_map_) {
       auto&& chunk = chunk_entry.second;
 
@@ -224,11 +223,11 @@ namespace chunklands {
         continue; // no view data
       }
 
-      rendered_vertex_count += chunk->GetVertexCount();
+      rendered_index_count += chunk->GetIndexCount();
       chunk->Render();
     }
 
-    std::cout << "Rendered vertex count: " << rendered_vertex_count << std::endl;
+    std::cout << "Rendered index count: " << rendered_index_count << std::endl;
 
     glUseProgram(0);
   }
