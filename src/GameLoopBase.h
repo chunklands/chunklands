@@ -2,26 +2,17 @@
 #define __CHUNKLANDS_GAMELOOPBASE_H__
 
 #include <napi.h>
-#include "napi/UnwrappedObject.h"
+#include "napi/object_wrap_util.h"
+#include "napi/PersistentObjectWrap.h"
 #include "SceneBase.h"
 
 namespace chunklands {
   class GameLoopBase : public Napi::ObjectWrap<GameLoopBase> {
-  public:
-    static void Initialize(Napi::Env env);
-    static Napi::FunctionReference constructor;
-
-  public:
-    GameLoopBase(const Napi::CallbackInfo& info);
-
-  public: // JS
-    void Start(const Napi::CallbackInfo& info);
-    void Stop(const Napi::CallbackInfo& info);
-    void Loop(const Napi::CallbackInfo& info);
-
-    void SetScene(const Napi::CallbackInfo& info);
-
-  public: // Native
+    DECLARE_OBJECT_WRAP(GameLoopBase)
+    DECLARE_OBJECT_WRAP_CB(void Start)
+    DECLARE_OBJECT_WRAP_CB(void Stop)
+    DECLARE_OBJECT_WRAP_CB(void Loop)
+    DECLARE_OBJECT_WRAP_CB(void SetScene)
 
   private:
     bool running_ = false;

@@ -2,20 +2,11 @@
 #include "gl.h"
 
 namespace chunklands {
-  
-  Napi::FunctionReference EnvironmentBase::constructor;
-
-  void EnvironmentBase::Initialize(Napi::Env env) {
-    constructor = Napi::Persistent(DefineClass(env, "EnvironmentBase", {
-      StaticMethod("initialize", Initialize_),
-      StaticMethod("loadProcs", LoadProcs),
-      StaticMethod("terminate", Terminate)
-    }));
-  }
-
-  EnvironmentBase::EnvironmentBase(const Napi::CallbackInfo& info) : Napi::ObjectWrap<EnvironmentBase>(info) {
-
-  }
+  DEFINE_OBJECT_WRAP_DEFAULT_CTOR(EnvironmentBase, ONE_ARG({
+    StaticMethod("initialize", Initialize_),
+    StaticMethod("loadProcs", LoadProcs),
+    StaticMethod("terminate", Terminate)
+  }))
 
   void EnvironmentBase::Initialize_(const Napi::CallbackInfo& info) {
     const int init = glfwInit();

@@ -8,11 +8,15 @@
 #include <unordered_map>
 #include "Chunk.h"
 #include "gl.h"
-#include "napi/UnwrappedObject.h"
+#include "napi/object_wrap_util.h"
+#include "napi/PersistentObjectWrap.h"
 #include "WindowBase.h"
 
 namespace chunklands {
   class SceneBase : public Napi::ObjectWrap<SceneBase> {
+    DECLARE_OBJECT_WRAP(SceneBase)
+    DECLARE_OBJECT_WRAP_CB(void SetWindow)
+
   private:
     struct ivec3_hasher {
       std::size_t operator()(const glm::ivec3& v) const {
@@ -24,17 +28,8 @@ namespace chunklands {
         return seed;
       }
     };
-  public:
-    static Napi::FunctionReference constructor;
-    static void Initialize(Napi::Env env);
-
-  public:
-    SceneBase(const Napi::CallbackInfo& info);
-
-  public: // JS
-    void SetWindow(const Napi::CallbackInfo& info);
   
-  public: // Native
+  public:
     void Prepare();
     void Update(double diff);
     void Render(double diff);

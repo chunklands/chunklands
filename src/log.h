@@ -1,9 +1,9 @@
 #ifndef __CHUNKLANDS_LOG_H__
 #define __CHUNKLANDS_LOG_H__
 
+#include <glm/vec3.hpp>
 #include <iostream>
 #include <type_traits>
-#include <glm/vec3.hpp>
 
 namespace std {
   template <typename T,

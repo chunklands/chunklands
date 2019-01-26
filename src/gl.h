@@ -1,9 +1,9 @@
 #ifndef __CHUNKLANDS_GL_H__
 #define __CHUNKLANDS_GL_H__
 
+#include <cassert>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-#include <cassert>
 
 #ifdef NDEBUG
 

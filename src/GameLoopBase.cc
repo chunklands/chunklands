@@ -1,24 +1,15 @@
 #include "GameLoopBase.h"
-#include "gl.h"
+
 #include <iostream>
+#include "gl.h"
 
 namespace chunklands {
-  Napi::FunctionReference GameLoopBase::constructor;
-
-  void GameLoopBase::Initialize(Napi::Env env) {
-    constructor = Napi::Persistent(DefineClass(env, "GameLoopBase", {
-      InstanceMethod("loop", &GameLoopBase::Loop),
-      InstanceMethod("start", &GameLoopBase::Start),
-      InstanceMethod("stop", &GameLoopBase::Stop),
-      InstanceMethod("setScene", &GameLoopBase::SetScene)
-    }));
-
-    constructor.SuppressDestruct();
-  }
-
-  GameLoopBase::GameLoopBase(const Napi::CallbackInfo& info) : Napi::ObjectWrap<GameLoopBase>(info) {
-
-  }
+  DEFINE_OBJECT_WRAP_DEFAULT_CTOR(GameLoopBase, ONE_ARG({
+    InstanceMethod("loop", &GameLoopBase::Loop),
+    InstanceMethod("start", &GameLoopBase::Start),
+    InstanceMethod("stop", &GameLoopBase::Stop),
+    InstanceMethod("setScene", &GameLoopBase::SetScene)
+  }))
 
   void GameLoopBase::Start(const Napi::CallbackInfo& info) {
     assert(!running_);

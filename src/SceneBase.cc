@@ -7,17 +7,9 @@
 #include "log.h"
 
 namespace chunklands {
-  Napi::FunctionReference SceneBase::constructor;
-
-  void SceneBase::Initialize(Napi::Env env) {
-    constructor = Napi::Persistent(
-      DefineClass(env, "SceneBase", {
-        InstanceMethod("setWindow", &SceneBase::SetWindow)
-      })
-    );
-
-    constructor.SuppressDestruct();
-  }
+  DEFINE_OBJECT_WRAP(SceneBase, ONE_ARG({
+    InstanceMethod("setWindow", &SceneBase::SetWindow)
+  }))
 
   constexpr float fovy_degree = 75.f;
 

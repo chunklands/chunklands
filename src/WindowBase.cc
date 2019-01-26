@@ -1,20 +1,11 @@
 #include "WindowBase.h"
 
 namespace chunklands {
-  
-  Napi::FunctionReference WindowBase::constructor;
-
-  void WindowBase::Initialize(Napi::Env env) {
-    constructor = Napi::Persistent(
-      DefineClass(env, "WindowBase", {
-        InstanceMethod("makeContextCurrent", &WindowBase::MakeContextCurrent),
-        InstanceAccessor("shouldClose", &WindowBase::ShouldClose, nullptr),
-        InstanceMethod("close", &WindowBase::Close)
-      })
-    );
-
-    constructor.SuppressDestruct();
-  }
+  DEFINE_OBJECT_WRAP(WindowBase, ONE_ARG({
+    InstanceMethod("makeContextCurrent", &WindowBase::MakeContextCurrent),
+    InstanceAccessor("shouldClose", &WindowBase::ShouldClose, nullptr),
+    InstanceMethod("close", &WindowBase::Close)
+  }))
 
   namespace detail {
     WindowBase* Unwrap(GLFWwindow* window) {
