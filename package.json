@@ -1,12 +1,15 @@
 {
   "name": "chunklands",
   "version": "1.0.0",
-  "description": "",
+  "description": "3D Game in NodeJS/OpenGL",
   "scripts": {
-    "native:dev": "nodemon --watch src -e h,cc --exec \"cmake-js build --debug\"",
-    "app:dev": "nodemon --delay 3 --watch src --watch build/Debug --watch resource -e js,node,glsl --exec \"node src/app.js\"",
-    "start": "concurrently --handle-input --kill-others-on-fail --names \"native,app\" -c \"bgBlue.bold,bgCyan.bold\" \"npm run native:dev\" \"npm run app:dev\"",
-    "clean": "cmake-js clean"
+    "play": "node src/app.js",
+    "preplay": "npm run _build",
+    "start": "concurrently --handle-input --kill-others-on-fail --names \"native,app\" -c \"bgBlue.bold,bgCyan.bold\" \"npm run _native:dev\" \"npm run _app:dev\"",
+    "clean": "cmake-js clean",
+    "_build": "cmake-js build --debug",
+    "_native:dev": "nodemon --watch src -e h,cc --exec \"npm run _build\"",
+    "_app:dev": "nodemon --delay 3 --watch src --watch build/Debug --watch resource -e js,node,glsl --exec \"node src/app.js\""
   },
   "keywords": [
     "game",
@@ -17,7 +20,6 @@
     "node-addon-api",
     "boost"
   ],
-  "author": "Philipp Renoth <renoth@wildoak.de>",
   "license": "MIT",
   "dependencies": {},
   "devDependencies": {
