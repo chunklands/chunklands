@@ -8,7 +8,7 @@
 
 namespace chunklands {
   DEFINE_OBJECT_WRAP(WorldBase, ONE_ARG({
-    
+    InstanceMethod("setChunkGenerator", &WorldBase::SetChunkGenerator)
   }))
 
   WorldBase::WorldBase(const Napi::CallbackInfo& info) : ObjectWrap<WorldBase>(info) {
@@ -22,6 +22,10 @@ namespace chunklands {
     Napi::Object settings = info[0].ToObject();
     vsh_src_ = settings.Get("vertexShader").ToString();
     fsh_src_ = settings.Get("fragmentShader").ToString();
+  }
+
+  void WorldBase::SetChunkGenerator(const Napi::CallbackInfo& info) {
+    chunk_generator_ = info[0].ToObject();
   }
 
   void WorldBase::Prepare() {
@@ -190,7 +194,8 @@ namespace chunklands {
           // 2. PrepareModel
           // always inside prefetch distance
           if (chunk->GetState() == kEmpty) {
-            chunk->PrepareModel();
+            chunk_generator_->Generate(*chunk);
+            chunk->SetState(kModelPrepared);
           }
 
         }

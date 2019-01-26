@@ -7,12 +7,15 @@
 #include <napi.h>
 #include <unordered_map>
 #include "Chunk.h"
+#include "ChunkGeneratorBase.h"
 #include "gl.h"
 #include "napi/object_wrap_util.h"
+#include "napi/PersistentObjectWrap.h"
 
 namespace chunklands {
   class WorldBase : public Napi::ObjectWrap<WorldBase> {
     DECLARE_OBJECT_WRAP(WorldBase)
+    DECLARE_OBJECT_WRAP_CB(void SetChunkGenerator)
 
   private:
     struct ivec3_hasher {
@@ -43,6 +46,8 @@ namespace chunklands {
   private:
     std::string vsh_src_;
     std::string fsh_src_;
+
+    NapiExt::PersistentObjectWrap<ChunkGeneratorBase> chunk_generator_;
     
     std::unordered_map<glm::ivec3, std::shared_ptr<Chunk>, ivec3_hasher> chunk_map_;
 

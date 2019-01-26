@@ -1,37 +1,9 @@
 #include "Chunk.h"
-#include <cmath>
 #include <vector>
 
 namespace chunklands {
 
-  namespace {
-    constexpr float Ax      = 12.f;
-    constexpr float omega_x = (2.f * M_PI) / 31.f;
-    constexpr float phi_x   = (2.f * M_PI) / 10.f;
-    constexpr float Az      = 9.f;
-    constexpr float omega_z = (2.f * M_PI) / 44.f;
-    constexpr float phi_z   = (2.f * M_PI) / 27.f;
-
-    bool IsGroundMountains(const glm::ivec3& pos) {
-      return pos.y < (
-          (Ax * sinf(omega_x * pos.x + phi_x))
-          + (Az * sinf(omega_z * pos.z + phi_z))
-      );
-    }
-
-    bool IsGroundFlat(const glm::ivec3& pos) {
-      return pos.y < 4;
-    }
-
-    bool IsGroundAbstract1(const glm::ivec3& pos) {
-      return pos.y * pos.y + pos.x < pos.y;
-    }
-
-    bool IsGroundSphere(const glm::ivec3& pos) {
-      return pos.x * pos.x + pos.y * pos.y + pos.z * pos.z < 30*30;
-    }
-
-  }
+  
 
   Chunk::Chunk(glm::ivec3 pos) : pos_(std::move(pos)) {
   }
@@ -89,17 +61,6 @@ namespace chunklands {
   // for now just an estimation: allocation vs. growing vector
   constexpr int estimated_block_count = Chunk::SIZE * Chunk::SIZE * Chunk::SIZE / 2;
   constexpr int estimated_floats_in_buffer = estimated_block_count * FLOATS_IN_BLOCK;
-
-  void Chunk::PrepareModel() {
-    assert(state_ == kEmpty);
-    
-    ForEachBlock([&](char& block_type, int x, int y, int z) {
-      glm::ivec3 abs_pos((int)SIZE * pos_ + glm::ivec3(x, y, z));
-      block_type = IsGroundMountains(abs_pos) ? 1 : 0;
-    });
-
-    state_ = kModelPrepared;
-  }
 
   void Chunk::PrepareView(const Chunk* neighbors[kNeighborCount]) {
     assert(state_ == kModelPrepared);

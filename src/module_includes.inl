@@ -3,3 +3,4 @@
 #include "SceneBase.h"
 #include "WindowBase.h"
 #include "WorldBase.h"
+#include "ChunkGeneratorBase.h"

@@ -39,7 +39,6 @@ namespace chunklands {
   
   public:
     void Cleanup();
-    void PrepareModel();
     void PrepareView(const Chunk* neighbors[kNeighborCount]);
     void Render();
 
@@ -52,6 +51,14 @@ namespace chunklands {
 
     ChunkState GetState() const {
       return state_;
+    }
+
+    const glm::ivec3& GetPos() const {
+      return pos_;
+    }
+
+    void SetState(ChunkState state) {
+      state_ = state;
     }
 
   private:

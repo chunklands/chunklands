@@ -1,3 +1,4 @@
+const ChunkGenerator = require('./ChunkGenerator');
 const Environment = require('./Environment');
 const GameLoop = require('./GameLoop');
 const Scene = require('./Scene');
@@ -16,7 +17,10 @@ const window = new Window({
 window.makeContextCurrent();
 Environment.loadProcs();
 
+const chunkGenerator = new ChunkGenerator();
+
 const world = new World();
+world.setChunkGenerator(chunkGenerator);
 
 const scene = new Scene();
 scene.setWindow(window);
