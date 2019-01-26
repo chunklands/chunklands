@@ -1,6 +1,7 @@
 #ifndef __CHUNKLANDS_NAPI_PERSISTENTOBJECTWRAP_H__
 #define __CHUNKLANDS_NAPI_PERSISTENTOBJECTWRAP_H__
 
+#include <cassert>
 #include <napi.h>
 
 namespace NapiExt {
@@ -23,15 +24,22 @@ namespace NapiExt {
     }
 
     operator T*() {
+      assert(object_ != nullptr);
       return object_;
     }
 
     T* operator->() {
+      assert(object_ != nullptr);
       return object_;
     }
 
     T& operator*() {
+      assert(object_ != nullptr);
       return *object_;
+    }
+
+    bool IsEmpty() const {
+      return object_ == nullptr;
     }
 
   private:
