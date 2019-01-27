@@ -1,17 +1,25 @@
 #version 330 core
 
 in vec3 vertex_normal;
+in vec2 vertex_uv;
 in float z;
 out vec3 color;
 
-vec3 light_dir = normalize(vec3(3, 10, -2));
+uniform sampler2D u_texture;
 
-vec3 ambient = vec3(0.6, 0, 0);
-vec3 diffuse = vec3(0.4, 0, 0);
+const vec3 light_dir = normalize(vec3(3, 10, -2));
+const vec3 fog_color = vec3(.2f, .2f, .2f);
+
+const float sun = .9f;
+const float ambient = .6f;
+const float diffuse = sun * (1.f - ambient);
 
 void main() {
-  float linear_fog = smoothstep(30.f, 60.f, z);
-  color = ambient
-          + (diffuse * max(dot(vertex_normal, light_dir), 0.f))
-          + (linear_fog * vec3(1.f, 1.f, 1.f));
+  
+  vec3 tex_color   = texture(u_texture, vertex_uv).rgb;
+  vec3 tex_ambient = tex_color * ambient;
+  vec3 tex_diffuse = tex_color * diffuse * max(dot(vertex_normal, light_dir), 0.f);
+  vec3 fog_amount = smoothstep(20.f, 60.f, z) * fog_color;
+
+  color = tex_ambient + tex_diffuse + fog_amount;
 }

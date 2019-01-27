@@ -16,6 +16,8 @@ namespace chunklands {
     void GenerateModel(Chunk& chunk);
     void GenerateView(Chunk& chunk, const Chunk* neighbors[kNeighborCount]);
 
+    void BindTexture();
+
   private:
     NapiExt::PersistentObjectWrap<BlockRegistrarBase> block_registrar_;
   };

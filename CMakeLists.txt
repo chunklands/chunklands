@@ -32,7 +32,6 @@ add_subdirectory("${CMAKE_SOURCE_DIR}/deps/glfw")
 set(CHUNKLANDS_INCLUDE "${CHUNKLANDS_INCLUDE}" "${CMAKE_SOURCE_DIR}/deps/glfw/deps") # glad/glad.h
 set(CHUNKLANDS_LIBRARIES "${CHUNKLANDS_LIBRARIES}" glfw)
 
-
 # GLM
 set(GLM_TEST_ENABLE OFF CACHE BOOL "" FORCE)
 add_subdirectory("${CMAKE_SOURCE_DIR}/deps/glm")
@@ -42,6 +41,9 @@ set(CHUNKLANDS_LIBRARIES "${CHUNKLANDS_LIBRARIES}" glm_static)
 # Boost
 file(GLOB BOOST_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/deps/boost/libs/*/include")
 set(CHUNKLANDS_INCLUDE "${CHUNKLANDS_INCLUDE}" ${BOOST_INCLUDE_DIRS})
+
+# STB
+set(CHUNKLANDS_INCLUDE "${CHUNKLANDS_INCLUDE}" "${CMAKE_SOURCE_DIR}/deps/stb")
 
 # BUILD
 target_include_directories(${PROJECT_NAME} PRIVATE "${CHUNKLANDS_INCLUDE}")

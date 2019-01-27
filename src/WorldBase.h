@@ -51,18 +51,20 @@ namespace chunklands {
     
     std::unordered_map<glm::ivec3, std::shared_ptr<Chunk>, ivec3_hasher> chunk_map_;
 
-    GLuint vsh_;
-    GLuint fsh_;
-    GLuint program_;
+    GLuint vsh_ = 0;
+    GLuint fsh_ = 0;
+    GLuint program_ = 0;
 
     glm::vec3 pos_ = glm::vec3(8.f, 0.7f, 60.f);
     glm::vec2 look_;
 
     glm::mat4 view_;
-    GLint view_uniform_location_;
+    GLint view_uniform_location_ = -1;
 
     glm::mat4 proj_;
-    GLint proj_uniform_location_;
+    GLint proj_uniform_location_ = -1;
+
+    GLint texture_location_ = -1;
   };
 }
 

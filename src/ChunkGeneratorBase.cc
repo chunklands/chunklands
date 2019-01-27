@@ -59,7 +59,8 @@ namespace chunklands {
   }
 
   // for now just an estimation: allocation vs. growing vector
-  constexpr int estimated_avg_floats_per_block = 100;
+  // faces * triangle_per_face * vertices_per_triangle * floats_per_vertex * 0.5 load
+  constexpr int estimated_avg_floats_per_block = (6 * 2 * 3 * 8) / 2;
   constexpr int estimated_floats_in_buffer = Chunk::SIZE * Chunk::SIZE * Chunk::SIZE * estimated_avg_floats_per_block;
 
   void ChunkGeneratorBase::GenerateView(Chunk& chunk, const Chunk* neighbors[kNeighborCount]) {
@@ -95,7 +96,7 @@ namespace chunklands {
 
       auto&& vertex_data = block_type->GetVertexData();
       
-      assert(vertex_data.size() % 6 == 0);
+      assert(vertex_data.size() % 8 == 0);
       for (int fi = 0; fi < vertex_data.size(); ) { // float index
 
         // position vertices
@@ -105,6 +106,10 @@ namespace chunklands {
 
         // normal vertices
         vertex_buffer_data.push_back(vertex_data[fi++]);
+        vertex_buffer_data.push_back(vertex_data[fi++]);
+        vertex_buffer_data.push_back(vertex_data[fi++]);
+
+        // uv vertices
         vertex_buffer_data.push_back(vertex_data[fi++]);
         vertex_buffer_data.push_back(vertex_data[fi++]);
       }
@@ -122,17 +127,27 @@ namespace chunklands {
 
     glBindVertexArray(chunk.vao_);
 
+    constexpr GLsizei stride = (3 + 3 + 2) * sizeof(GLfloat);
+
     // position attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, (void*)(0 * sizeof(GLfloat)));
     glEnableVertexAttribArray(0);
     
     // normal attribute
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(GLfloat)));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, stride, (void*)(3 * sizeof(GLfloat)));
     glEnableVertexAttribArray(1);
+
+    // uv attribute
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, stride, (void*)(6 * sizeof(GLfloat)));
+    glEnableVertexAttribArray(2);
 
     glBindVertexArray(0);
     CHECK_GL();
 
     chunk.state_ = kViewPrepared;
+  }
+
+  void ChunkGeneratorBase::BindTexture() {
+    block_registrar_->BindTexture();
   }
 }

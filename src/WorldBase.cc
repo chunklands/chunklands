@@ -87,10 +87,20 @@ namespace chunklands {
       CHECK_GL();
     }
 
-    view_uniform_location_ = glGetUniformLocation(program_, "u_view");
-    proj_uniform_location_ = glGetUniformLocation(program_, "u_proj");
+    { // matrices
+      view_uniform_location_ = glGetUniformLocation(program_, "u_view");
+      proj_uniform_location_ = glGetUniformLocation(program_, "u_proj");
+    }
 
-    glEnable(GL_DEPTH_TEST);
+    { // texture
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+      texture_location_ = glGetUniformLocation(program_, "u_texture");
+    }
+
+    { // general
+      glEnable(GL_DEPTH_TEST);
+    }
   }
 
   constexpr int RENDER_DISTANCE   = 2;
@@ -212,6 +222,10 @@ namespace chunklands {
     glUseProgram(program_);
     glUniformMatrix4fv(view_uniform_location_, 1, GL_FALSE, glm::value_ptr(view_));
     glUniformMatrix4fv(proj_uniform_location_, 1, GL_FALSE, glm::value_ptr(proj_));
+    glUniform1i(texture_location_, 0);
+
+    chunk_generator_->BindTexture();
+
     CHECK_GL();
 
     // map render all chunks

@@ -21,6 +21,7 @@ Environment.loadProcs();
 const blockRegistrar = new BlockRegistrar();
 blockRegistrar.addBlock(require('./game/blocks/air'));
 blockRegistrar.addBlock(require('./game/blocks/block'));
+blockRegistrar.loadTexture(`${__dirname}/../resource/texture.png`);
 
 const chunkGenerator = new ChunkGenerator();
 chunkGenerator.setBlockRegistrar(blockRegistrar);

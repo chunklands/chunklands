@@ -66,7 +66,7 @@ namespace chunklands {
   }
 
   void WindowBase::Clear() {
-    glClearColor(1.f, 1.f, 1.f, 1.f);
+    glClearColor(.70f, .92f, .97f, 1.f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   }
 
