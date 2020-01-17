@@ -1,4 +1,4 @@
-const cube = require('./_cube');
+const cube = require('../_base/cube');
 
 module.exports = {
   id: 'block.block',

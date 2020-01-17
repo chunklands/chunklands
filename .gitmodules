@@ -4,9 +4,78 @@
 [submodule "deps/glfw"]
 	path = deps/glfw
 	url = https://github.com/glfw/glfw.git
-[submodule "deps/boost"]
-	path = deps/boost
-	url = https://github.com/boostorg/boost.git
+[submodule "deps/boost_assert"]
+	path = deps/boost_assert
+	url = https://github.com/boostorg/assert.git
+[submodule "deps/boost_preprocessor"]
+	path = deps/boost_preprocessor
+	url = https://github.com/boostorg/preprocessor.git
+[submodule "deps/boost_signals2"]
+	path = deps/boost_signals2
+	url = https://github.com/boostorg/signals2.git
+[submodule "deps/container_hash"]
+	path = deps/boost_container_hash
+	url = https://github.com/boostorg/container_hash
 [submodule "deps/stb"]
 	path = deps/stb
 	url = https://github.com/nothings/stb.git
+[submodule "deps/boost_container_hash"]
+	path = deps/boost_container_hash
+	url = https://github.com/boostorg/container_hash
+[submodule "deps/boost_config"]
+	path = deps/boost_config
+	url = https://github.com/boostorg/config.git
+[submodule "deps/boost_smart_ptr"]
+	path = deps/boost_smart_ptr
+	url = https://github.com/boostorg/smart_ptr
+[submodule "deps/boost_core"]
+	path = deps/boost_core
+	url = https://github.com/boostorg/core
+[submodule "deps/boost_throw_exception"]
+	path = deps/boost_throw_exception
+	url = https://github.com/boostorg/throw_exception
+[submodule "deps/boost_type_traits"]
+	path = deps/boost_type_traits
+	url = https://github.com/boostorg/type_traits
+[submodule "deps/boost_static_assert"]
+	path = deps/boost_static_assert
+	url = https://github.com/boostorg/static_assert
+[submodule "deps/boost_optional"]
+	path = deps/boost_optional
+	url = https://github.com/boostorg/optional
+[submodule "deps/boost_move"]
+	path = deps/boost_move
+	url = https://github.com/boostorg/move
+[submodule "deps/boost_utility"]
+	path = deps/boost_utility
+	url = https://github.com/boostorg/utility
+[submodule "deps/boost_function"]
+	path = deps/boost_function
+	url = https://github.com/boostorg/function
+[submodule "deps/boost_integer"]
+	path = deps/boost_integer
+	url = https://github.com/boostorg/integer
+[submodule "deps/boost_type_index"]
+	path = deps/boost_type_index
+	url = https://github.com/boostorg/type_index
+[submodule "deps/boost_bind"]
+	path = deps/boost_bind
+	url = https://github.com/boostorg/bind
+[submodule "deps/boost_mpl"]
+	path = deps/boost_mpl
+	url = https://github.com/boostorg/mpl
+[submodule "deps/boost_iterator"]
+	path = deps/boost_iterator
+	url = https://github.com/boostorg/iterator
+[submodule "deps/boost_detail"]
+	path = deps/boost_detail
+	url = https://github.com/boostorg/detail
+[submodule "deps/boost_variant"]
+	path = deps/boost_variant
+	url = https://github.com/boostorg/variant
+[submodule "deps/boost_parameter"]
+	path = deps/boost_parameter
+	url = https://github.com/boostorg/parameter
+[submodule "deps/boost_mp11"]
+	path = deps/boost_mp11
+	url = https://github.com/boostorg/mp11
