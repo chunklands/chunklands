@@ -45,14 +45,21 @@ namespace chunklands {
     auto&& pos = chunk.GetPos();
 
     auto&& air_ptr = block_registrar_->Find("block.air");
-    auto&& block_ptr = block_registrar_->Find("block.block");
+    auto&& dirt_ptr = block_registrar_->Find("block.dirt");
+    auto&& grass_ptr = block_registrar_->Find("block.grass");
 
     assert(air_ptr != nullptr);
-    assert(block_ptr != nullptr);
+    assert(dirt_ptr != nullptr);
+    assert(grass_ptr != nullptr);
 
     chunk.ForEachBlock([&](Chunk::BlockType& block_type, int x, int y, int z) {
       glm::ivec3 abs_pos((int)Chunk::SIZE * pos + glm::ivec3(x, y, z));
-      block_type = IsGroundMountains(abs_pos) ? block_ptr : air_ptr;
+
+      if (IsGroundMountains(abs_pos)) {
+        block_type = IsGroundMountains(abs_pos + glm::ivec3(0, 1, 0)) ? dirt_ptr : grass_ptr;
+      } else {
+        block_type = air_ptr;
+      }
     });
 
     chunk.state_ = kModelPrepared;

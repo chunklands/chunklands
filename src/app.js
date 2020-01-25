@@ -6,49 +6,53 @@ const Scene = require('./Scene');
 const Window = require('./Window');
 const World = require('./World');
 
-Environment.initialize();
+(async () => {
 
-const window = new Window({
-  width: 640,
-  height: 480,
-  title: 'Chunklands'
-});
+  Environment.initialize();
 
-// set opengl context
-window.makeContextCurrent();
-Environment.loadProcs();
+  const window = new Window({
+    width: 640,
+    height: 480,
+    title: 'Chunklands'
+  });
 
-const blockRegistrar = new BlockRegistrar();
-blockRegistrar.addBlock(require('./game/blocks/air'));
-blockRegistrar.addBlock(require('./game/blocks/dirt'));
-blockRegistrar.loadTexture(`${__dirname}/game/texture.png`);
+  // set opengl context
+  window.makeContextCurrent();
+  Environment.loadProcs();
 
-const chunkGenerator = new ChunkGenerator();
-chunkGenerator.setBlockRegistrar(blockRegistrar);
+  const blockRegistrar = new BlockRegistrar();
+  blockRegistrar.addBlock(require('./game/blocks/air'));
+  blockRegistrar.addBlock(require('./game/blocks/dirt'));
+  blockRegistrar.addBlock(require('./game/blocks/grass'));
+  await blockRegistrar.bake();
 
-const world = new World();
-world.setChunkGenerator(chunkGenerator);
+  const chunkGenerator = new ChunkGenerator();
+  chunkGenerator.setBlockRegistrar(blockRegistrar);
 
-const scene = new Scene();
-scene.setWindow(window);
-scene.setWorld(world);
+  const world = new World();
+  world.setChunkGenerator(chunkGenerator);
 
-const gameLoop = new GameLoop();
-gameLoop.setScene(scene);
+  const scene = new Scene();
+  scene.setWindow(window);
+  scene.setWorld(world);
 
-gameLoop.start();
+  const gameLoop = new GameLoop();
+  gameLoop.setScene(scene);
 
-const loop = () => {
-  gameLoop.loop();
-  
-  if (window.shouldClose) {
-    window.close();
-    gameLoop.stop();
-    Environment.terminate();
-    return;
-  }
+  gameLoop.start();
 
-  setImmediate(loop);
-};
+  const loop = () => {
+    gameLoop.loop();
+    
+    if (window.shouldClose) {
+      window.close();
+      gameLoop.stop();
+      Environment.terminate();
+      return;
+    }
 
-loop();
+    setImmediate(loop);
+  };
+
+  loop();
+})();
