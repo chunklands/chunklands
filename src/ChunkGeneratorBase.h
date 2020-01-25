@@ -11,6 +11,7 @@ namespace chunklands {
   class ChunkGeneratorBase : public Napi::ObjectWrap<ChunkGeneratorBase> {
     DECLARE_OBJECT_WRAP(ChunkGeneratorBase)
     DECLARE_OBJECT_WRAP_CB(void SetBlockRegistrar)
+    DECLARE_OBJECT_WRAP_CB(void SetWorldGenerator)
 
   public:
     void GenerateModel(Chunk& chunk);
@@ -20,6 +21,7 @@ namespace chunklands {
 
   private:
     NapiExt::PersistentObjectWrap<BlockRegistrarBase> block_registrar_;
+    Napi::ObjectReference world_generator_;
   };
 }
 

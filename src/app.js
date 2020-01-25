@@ -1,10 +1,11 @@
-const BlockRegistrar = require('./BlockRegistrar');
-const ChunkGenerator = require('./ChunkGenerator');
-const Environment = require('./Environment');
-const GameLoop = require('./GameLoop');
-const Scene = require('./Scene');
-const Window = require('./Window');
-const World = require('./World');
+const BlockRegistrar  = require('./BlockRegistrar');
+const ChunkGenerator  = require('./ChunkGenerator');
+const Environment     = require('./Environment');
+const GameLoop        = require('./GameLoop');
+const Scene           = require('./Scene');
+const SimpleWorldGen  = require('./game/world/SimpleWorldGen');
+const Window          = require('./Window');
+const World           = require('./World');
 
 (async () => {
 
@@ -28,6 +29,9 @@ const World = require('./World');
 
   const chunkGenerator = new ChunkGenerator();
   chunkGenerator.setBlockRegistrar(blockRegistrar);
+
+  const worldGenerator = new SimpleWorldGen();
+  chunkGenerator.setWorldGenerator(worldGenerator);
 
   const world = new World();
   world.setChunkGenerator(chunkGenerator);

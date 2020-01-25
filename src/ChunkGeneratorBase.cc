@@ -4,63 +4,46 @@
 
 namespace chunklands {
   DEFINE_OBJECT_WRAP_DEFAULT_CTOR(ChunkGeneratorBase, ONE_ARG({
-    InstanceMethod("setBlockRegistrar", &ChunkGeneratorBase::SetBlockRegistrar)
+    InstanceMethod("setBlockRegistrar", &ChunkGeneratorBase::SetBlockRegistrar),
+    InstanceMethod("setWorldGenerator", &ChunkGeneratorBase::SetWorldGenerator)
   }))
 
   void ChunkGeneratorBase::SetBlockRegistrar(const Napi::CallbackInfo& info) {
     block_registrar_ = info[0].ToObject();
   }
 
-  namespace {
-    constexpr float Ax      = 12.f;
-    constexpr float omega_x = (2.f * M_PI) / 31.f;
-    constexpr float phi_x   = (2.f * M_PI) / 10.f;
-    constexpr float Az      = 9.f;
-    constexpr float omega_z = (2.f * M_PI) / 44.f;
-    constexpr float phi_z   = (2.f * M_PI) / 27.f;
-
-    bool IsGroundMountains(const glm::ivec3& pos) {
-      return pos.y < (
-          (Ax * sinf(omega_x * pos.x + phi_x))
-          + (Az * sinf(omega_z * pos.z + phi_z))
-      );
-    }
-
-    bool IsGroundFlat(const glm::ivec3& pos) {
-      return pos.y < 4;
-    }
-
-    bool IsGroundAbstract1(const glm::ivec3& pos) {
-      return pos.y * pos.y + pos.x < pos.y;
-    }
-
-    bool IsGroundSphere(const glm::ivec3& pos) {
-      return pos.x * pos.x + pos.y * pos.y + pos.z * pos.z < 30*30;
-    }
-
+  void ChunkGeneratorBase::SetWorldGenerator(const Napi::CallbackInfo& info) {
+    world_generator_ = Napi::Persistent(info[0].ToObject());
   }
 
   void ChunkGeneratorBase::GenerateModel(Chunk& chunk) {
     assert(chunk.GetState() == kEmpty);
+
     auto&& pos = chunk.GetPos();
+    {
+      Napi::Env env = world_generator_.Env();
+      Napi::HandleScope scope(env);
+      auto&& result = world_generator_.Get("generateChunk").As<Napi::Function>().Call({
+        Napi::Number::New(env, pos.x),
+        Napi::Number::New(env, pos.y),
+        Napi::Number::New(env, pos.z),
+        Napi::Number::New(env, Chunk::SIZE),
+      });
 
-    auto&& air_ptr = block_registrar_->Find("block.air");
-    auto&& dirt_ptr = block_registrar_->Find("block.dirt");
-    auto&& grass_ptr = block_registrar_->Find("block.grass");
+      assert(result.IsArray());
+      Napi::Array chunk_blocks = result.As<Napi::Array>();
 
-    assert(air_ptr != nullptr);
-    assert(dirt_ptr != nullptr);
-    assert(grass_ptr != nullptr);
+      assert(chunk_blocks.Length() == Chunk::BLOCK_COUNT);
 
-    chunk.ForEachBlock([&](Chunk::BlockType& block_type, int x, int y, int z) {
-      glm::ivec3 abs_pos((int)Chunk::SIZE * pos + glm::ivec3(x, y, z));
+      int i = 0;
+      chunk.ForEachBlock([&](Chunk::BlockType& block_type, int x, int y, int z) {
+        auto&& block_name = chunk_blocks.Get(i);
+        assert(block_name.IsString());
 
-      if (IsGroundMountains(abs_pos)) {
-        block_type = IsGroundMountains(abs_pos + glm::ivec3(0, 1, 0)) ? dirt_ptr : grass_ptr;
-      } else {
-        block_type = air_ptr;
-      }
-    });
+        block_type = block_registrar_->Find(chunk_blocks.Get(i).As<Napi::String>().Utf8Value());
+        i++;
+      });
+    }
 
     chunk.state_ = kModelPrepared;
   }
