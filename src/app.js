@@ -25,6 +25,8 @@ const World           = require('./World');
   blockRegistrar.addBlock(require('./game/blocks/air'));
   blockRegistrar.addBlock(require('./game/blocks/dirt'));
   blockRegistrar.addBlock(require('./game/blocks/grass'));
+  blockRegistrar.addBlock(require('./game/blocks/water'));
+  blockRegistrar.addBlock(require('./game/blocks/sand'));
   await blockRegistrar.bake();
 
   const chunkGenerator = new ChunkGenerator();

@@ -17,5 +17,5 @@ module.exports = {
     0.0, 0.0, 0.0,  0.0, -1.0, 0.0,  0.5, 0.0,  1.0, 0.0, 1.0,  0.0, -1.0, 0.0,  1.0, 0.5,  1.0, 0.0, 0.0,  0.0, -1.0, 0.0,  1.0, 0.0, // bottom
   ],
   opaque: true,
-  texture: `${__dirname}/texture.png`
+  texture: `${__dirname}/grass.png`
 };

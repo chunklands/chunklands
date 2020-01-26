@@ -16,8 +16,14 @@ module.exports = class SimpleWorldGen {
           const ay = py + ly;
           const az = pz + lz;
 
-          if (isGroundMountains(ax, ay, az)) {
-            chunk[i] = isGroundMountains(ax, ay+1, az) ? 'block.dirt' : 'block.grass';
+          if (ay <= 10) {
+            chunk[i] = 'block.water';
+          } else if (isGroundMountains(ax, ay, az)) {
+            if (ay <= 12) {
+              chunk[i] = 'block.sand';
+            } else {
+              chunk[i] = isGroundMountains(ax, ay+1, az) ? 'block.dirt' : 'block.grass';
+            }
           } else {
             chunk[i] = 'block.air';
           }

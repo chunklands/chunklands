@@ -1,6 +1,6 @@
 
 module.exports = {
-  id: 'block.dirt',
+  id: 'block.sand',
   vertexData: [
     // VERTEX1      NORMAL1          UV1        VERTEX2         NORMAL2          UV2        VERTEX3         NORMAL3          UV3
     0.0, 1.0, 0.0,  0.0, 0.0, -1.0,  0.0, 1.0,  0.0, 0.0, 0.0,  0.0, 0.0, -1.0,  0.0, 0.0,  1.0, 0.0, 0.0,  0.0, 0.0, -1.0,  1.0, 0.0, // front
@@ -17,5 +17,5 @@ module.exports = {
     0.0, 0.0, 0.0,  0.0, -1.0, 0.0,  0.0, 1.0,  1.0, 0.0, 1.0,  0.0, -1.0, 0.0,  1.0, 0.0,  1.0, 0.0, 0.0,  0.0, -1.0, 0.0,  1.0, 1.0, // bottom
   ],
   opaque: true,
-  texture: `${__dirname}/dirt.png`
+  texture: `${__dirname}/sand.png`
 };
