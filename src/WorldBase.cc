@@ -110,8 +110,8 @@ namespace chunklands {
     }
   }
 
-  constexpr int RENDER_DISTANCE   = 2;
-  constexpr int PREFETCH_DISTANCE = 3;
+  constexpr int RENDER_DISTANCE   = 5;
+  constexpr int PREFETCH_DISTANCE = RENDER_DISTANCE + 1;
   static_assert(PREFETCH_DISTANCE > RENDER_DISTANCE, "PREFETCH_DISTANCE must be bigger than RENDER_DISTANCE");
 
   void WorldBase::Update(double diff) {
