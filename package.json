@@ -4,11 +4,11 @@
   "description": "3D Game in NodeJS/OpenGL",
   "scripts": {
     "play": "node src/app.js",
-    "preplay": "npm run _build",
+    "preplay": "cmake-js build",
     "start": "concurrently --handle-input --kill-others-on-fail --names \"native,app\" -c \"bgBlue.bold,bgCyan.bold\" \"npm run _native:dev\" \"npm run _app:dev\"",
     "clean": "cmake-js clean",
-    "_build": "cmake-js build --debug",
-    "_native:dev": "nodemon --watch src -e h,cc --exec \"npm run _build\"",
+    "_build:dev": "cmake-js build --debug",
+    "_native:dev": "nodemon --watch src -e h,cc --exec \"npm run _build:dev\"",
     "_app:dev": "nodemon --delay 3 --watch src --watch build/Debug --watch resource -e js,node,glsl --exec \"node src/app.js\""
   },
   "keywords": [
