@@ -110,9 +110,11 @@ namespace chunklands {
     }
   }
 
-  constexpr int RENDER_DISTANCE   = 3;
+  constexpr int RENDER_DISTANCE   = 8;
   constexpr int PREFETCH_DISTANCE = RENDER_DISTANCE + 1;
   static_assert(PREFETCH_DISTANCE > RENDER_DISTANCE, "PREFETCH_DISTANCE must be bigger than RENDER_DISTANCE");
+
+  constexpr unsigned MAX_CHUNK_UPDATES = 6;
 
   void WorldBase::Update(double diff) {
 
@@ -149,6 +151,8 @@ namespace chunklands {
       }
     }
 
+    unsigned chunk_updates = 0;
+
     // map update: insert/update chunks
     for (int cx = prefetch_from.x; cx <= prefetch_to.x; cx++) {
       for (int cy = prefetch_from.y; cy <= prefetch_to.y; cy++) {
@@ -171,6 +175,7 @@ namespace chunklands {
 
           // 1. GenerateView
           if ( // check chunk inside render distance
+            chunk_updates < MAX_CHUNK_UPDATES &&
             chunk->GetState() == kModelPrepared &&
             glm::all(glm::lessThanEqual(render_from, pos)) &&
             glm::all(glm::lessThanEqual(pos, render_to))
@@ -204,13 +209,15 @@ namespace chunklands {
                 &*back_chunk_it->second
               };
               
+              chunk_updates++;
               chunk_generator_->GenerateView(*chunk, neighbors);
             } while (0);
           }
 
           // 2. GenerateModel
           // always inside prefetch distance
-          if (chunk->GetState() == kEmpty) {
+          if (chunk_updates < MAX_CHUNK_UPDATES && chunk->GetState() == kEmpty) {
+            chunk_updates++;
             chunk_generator_->GenerateModel(chunk);
           }
 
@@ -256,8 +263,7 @@ namespace chunklands {
   void WorldBase::UpdateViewportRatio(int width, int height) {
     constexpr float fovy_degree = 75.f;
     
-    proj_ = glm::perspective(glm::radians(fovy_degree), (float)width / height, 0.1f, 100.0f);
-    CHECK_GL();
+    proj_ = glm::perspective(glm::radians(fovy_degree), (float)width / height, 0.1f, 1000.0f);
   }
 
   void WorldBase::AddLook(float yaw_rad, float pitch_rad) {

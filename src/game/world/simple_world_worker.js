@@ -46,11 +46,11 @@ function generateChunk(chunkPos, chunkDim) {
   return chunk;
 }
 
-const Ax      = 12;
-const omega_x = (2 * Math.PI) / 31;
-const phi_x   = (2 * Math.PI) / 10;
-const Az      = 9;
-const omega_z = (2 * Math.PI) / 44;
+const Ax      = 24;
+const omega_x = (2 * Math.PI) / 51;
+const phi_x   = (2 * Math.PI) / 37;
+const Az      = 37;
+const omega_z = (2 * Math.PI) / 33;
 const phi_z   = (2 * Math.PI) / 27;
 
 function isGroundMountains(x, y, z) {
