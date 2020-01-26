@@ -71,37 +71,51 @@ namespace chunklands {
     chunk.ForEachBlock([&](const Chunk::BlockType& block_type, int x, int y, int z) {
       assert(block_type != nullptr);
 
-      // for all sides of the block, test if adjacent block is opaque
-      if (
-      //                                          << inside of chunk || check neighbor >>
-        ((x >= 1            && chunk.blocks_[z][y][x-1]->IsOpaque()) || (x == 0             && neighbors[kLeft  ]->blocks_[z][y][Chunk::SIZE-1]->IsOpaque())) && // left
-        ((x < Chunk::SIZE-1 && chunk.blocks_[z][y][x+1]->IsOpaque()) || (x == Chunk::SIZE-1 && neighbors[kRight ]->blocks_[z][y][0]            ->IsOpaque())) && // right
-        ((y >= 1            && chunk.blocks_[z][y-1][x]->IsOpaque()) || (y == 0             && neighbors[kBottom]->blocks_[z][Chunk::SIZE-1][x]->IsOpaque())) && // bottom
-        ((y < Chunk::SIZE-1 && chunk.blocks_[z][y+1][x]->IsOpaque()) || (y == Chunk::SIZE-1 && neighbors[kTop   ]->blocks_[z][0][x]            ->IsOpaque())) && // top
-        ((z >= 1            && chunk.blocks_[z-1][y][x]->IsOpaque()) || (z == 0             && neighbors[kFront ]->blocks_[Chunk::SIZE-1][y][x]->IsOpaque())) && // front
-        ((z < Chunk::SIZE-1 && chunk.blocks_[z+1][y][x]->IsOpaque()) || (z == Chunk::SIZE-1 && neighbors[kBack  ]->blocks_[0][y][x]            ->IsOpaque())))   // back
-      {
+      //                                                              << inside of chunk || check neighbor >>
+      bool isLeftOpaque   = ((x >= 1            && chunk.blocks_[z][y][x-1]->IsOpaque()) || (x == 0             && neighbors[kLeft  ]->blocks_[z][y][Chunk::SIZE-1]->IsOpaque()));
+      bool isRightOpaque  = ((x < Chunk::SIZE-1 && chunk.blocks_[z][y][x+1]->IsOpaque()) || (x == Chunk::SIZE-1 && neighbors[kRight ]->blocks_[z][y][0]            ->IsOpaque()));
+      bool isBottomOpaque = ((y >= 1            && chunk.blocks_[z][y-1][x]->IsOpaque()) || (y == 0             && neighbors[kBottom]->blocks_[z][Chunk::SIZE-1][x]->IsOpaque()));
+      bool isTopOpaque    = ((y < Chunk::SIZE-1 && chunk.blocks_[z][y+1][x]->IsOpaque()) || (y == Chunk::SIZE-1 && neighbors[kTop   ]->blocks_[z][0][x]            ->IsOpaque()));
+      bool isFrontOpaque  = ((z >= 1            && chunk.blocks_[z-1][y][x]->IsOpaque()) || (z == 0             && neighbors[kFront ]->blocks_[Chunk::SIZE-1][y][x]->IsOpaque()));
+      bool isBackOpaque   = ((z < Chunk::SIZE-1 && chunk.blocks_[z+1][y][x]->IsOpaque()) || (z == Chunk::SIZE-1 && neighbors[kBack  ]->blocks_[0][y][x]            ->IsOpaque()));
+
+      if (isLeftOpaque && isRightOpaque && isBottomOpaque && isTopOpaque && isFrontOpaque && isBackOpaque) {
+        // optimization: block is fully hidden
         return;
       }
 
-      auto&& vertex_data = block_type->GetVertexData();
-      
-      assert(vertex_data.size() % 8 == 0);
-      for (int fi = 0; fi < vertex_data.size(); ) { // float index
+      auto&& vertex_data = block_type->GetFacesVertexData();
+      for (auto &&it = vertex_data.cbegin(); it != vertex_data.cend(); it++) {
+        if (
+          (it->first == "left"   && isLeftOpaque  ) ||
+          (it->first == "right"  && isRightOpaque ) ||
+          (it->first == "top"    && isTopOpaque   ) ||
+          (it->first == "bottom" && isBottomOpaque) ||
+          (it->first == "front"  && isFrontOpaque ) ||
+          (it->first == "back"   && isBackOpaque )
+        ) {
+          // optimization: face is hidden
+          continue;
+        }
 
-        // position vertices
-        vertex_buffer_data.push_back(vertex_data[fi++] + (GLfloat)x + chunk_offset.x);
-        vertex_buffer_data.push_back(vertex_data[fi++] + (GLfloat)y + chunk_offset.y);
-        vertex_buffer_data.push_back(vertex_data[fi++] + (GLfloat)z + chunk_offset.z);
+        auto&& vertex_data = it->second;
+        assert(vertex_data.size() % 8 == 0);
+        for (int fi = 0; fi < vertex_data.size(); ) { // float index
 
-        // normal vertices
-        vertex_buffer_data.push_back(vertex_data[fi++]);
-        vertex_buffer_data.push_back(vertex_data[fi++]);
-        vertex_buffer_data.push_back(vertex_data[fi++]);
+          // position vertices
+          vertex_buffer_data.push_back(vertex_data[fi++] + (GLfloat)x + chunk_offset.x);
+          vertex_buffer_data.push_back(vertex_data[fi++] + (GLfloat)y + chunk_offset.y);
+          vertex_buffer_data.push_back(vertex_data[fi++] + (GLfloat)z + chunk_offset.z);
 
-        // uv vertices
-        vertex_buffer_data.push_back(vertex_data[fi++]);
-        vertex_buffer_data.push_back(vertex_data[fi++]);
+          // normal vertices
+          vertex_buffer_data.push_back(vertex_data[fi++]);
+          vertex_buffer_data.push_back(vertex_data[fi++]);
+          vertex_buffer_data.push_back(vertex_data[fi++]);
+
+          // uv vertices
+          vertex_buffer_data.push_back(vertex_data[fi++]);
+          vertex_buffer_data.push_back(vertex_data[fi++]);
+        }
       }
     });
 
@@ -139,5 +153,10 @@ namespace chunklands {
 
   void ChunkGeneratorBase::BindTexture() {
     block_registrar_->BindTexture();
+  }
+
+
+  void copy_vertices(std::vector<GLfloat>& vertex_buffer_data, const std::vector<GLfloat>& vertex_data, const glm::ivec3& chunk_offset, int x, int y, int z) {
+    
   }
 }

@@ -51,13 +51,16 @@ module.exports = class BlockRegistrar extends BlockRegistrarBase {
         image.blit(texture, area.x, area.y);
 
         const uvCorrectedBlock = {...block};
-        const vertexData = uvCorrectedBlock.vertexData = [...uvCorrectedBlock.vertexData];
-        for (let v = 0; v < vertexData.length / 8; v++) {
-          const uIndex = v * 8 + 6;
-          const vIndex = uIndex + 1;
+        const vertexData = uvCorrectedBlock.vertexData = {...uvCorrectedBlock.vertexData};
+        for (const face of Object.keys(vertexData)) {
+          const faceVertexData = vertexData[face] = [...vertexData[face]];
+          for (let v = 0; v < faceVertexData.length / 8; v++) {
+            const uIndex = v * 8 + 6;
+            const vIndex = uIndex + 1;
 
-          vertexData[uIndex] = (area.x + (vertexData[uIndex] * area.w)) / textureDim;
-          vertexData[vIndex] = (area.y + (vertexData[vIndex] * area.h)) / textureDim;
+            faceVertexData[uIndex] = (area.x + (faceVertexData[uIndex] * area.w)) / textureDim;
+            faceVertexData[vIndex] = (area.y + (faceVertexData[vIndex] * area.h)) / textureDim;
+          }
         }
 
         super.addBlock(uvCorrectedBlock);

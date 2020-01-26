@@ -99,7 +99,14 @@ namespace chunklands {
     }
 
     { // general
+
+      // depth test
       glEnable(GL_DEPTH_TEST);
+
+      // culling
+      glEnable(GL_CULL_FACE);
+      glCullFace(GL_FRONT);
+      glFrontFace(GL_CCW);
     }
   }
 
