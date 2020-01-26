@@ -14,7 +14,7 @@ namespace chunklands {
     DECLARE_OBJECT_WRAP_CB(void SetWorldGenerator)
 
   public:
-    void GenerateModel(Chunk& chunk);
+    void GenerateModel(std::shared_ptr<Chunk>& chunk);
     void GenerateView(Chunk& chunk, const Chunk* neighbors[kNeighborCount]);
 
     void BindTexture();

@@ -9,6 +9,7 @@
 namespace chunklands {
   enum ChunkState {
     kEmpty,
+    kModelIsPreparing,
     kModelPrepared,
     kViewPrepared
   };

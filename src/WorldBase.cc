@@ -110,7 +110,7 @@ namespace chunklands {
     }
   }
 
-  constexpr int RENDER_DISTANCE   = 5;
+  constexpr int RENDER_DISTANCE   = 3;
   constexpr int PREFETCH_DISTANCE = RENDER_DISTANCE + 1;
   static_assert(PREFETCH_DISTANCE > RENDER_DISTANCE, "PREFETCH_DISTANCE must be bigger than RENDER_DISTANCE");
 
@@ -211,7 +211,7 @@ namespace chunklands {
           // 2. GenerateModel
           // always inside prefetch distance
           if (chunk->GetState() == kEmpty) {
-            chunk_generator_->GenerateModel(*chunk);
+            chunk_generator_->GenerateModel(chunk);
           }
 
         }

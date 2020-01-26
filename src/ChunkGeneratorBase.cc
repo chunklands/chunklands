@@ -2,6 +2,8 @@
 
 #include <cmath>
 
+#include "napi/flow.h"
+
 namespace chunklands {
   DEFINE_OBJECT_WRAP_DEFAULT_CTOR(ChunkGeneratorBase, ONE_ARG({
     InstanceMethod("setBlockRegistrar", &ChunkGeneratorBase::SetBlockRegistrar),
@@ -16,36 +18,57 @@ namespace chunklands {
     world_generator_ = Napi::Persistent(info[0].ToObject());
   }
 
-  void ChunkGeneratorBase::GenerateModel(Chunk& chunk) {
-    assert(chunk.GetState() == kEmpty);
+  struct generate_model_callback_data {
+    ChunkGeneratorBase *generator;
+    std::shared_ptr<Chunk> chunk;
+  };
 
-    auto&& pos = chunk.GetPos();
+  void ChunkGeneratorBase::GenerateModel(std::shared_ptr<Chunk>& chunk) {
+    assert(chunk->GetState() == kEmpty);
+
+    auto&& pos = chunk->GetPos();
     {
       Napi::Env env = world_generator_.Env();
       Napi::HandleScope scope(env);
-      auto&& result = world_generator_.Get("generateChunk").As<Napi::Function>().Call({
+
+      chunk->state_ = kModelIsPreparing;
+      
+      world_generator_.Get("generateChunk").As<Napi::Function>().Call(world_generator_.Value(), {
         Napi::Number::New(env, pos.x),
         Napi::Number::New(env, pos.y),
         Napi::Number::New(env, pos.z),
         Napi::Number::New(env, Chunk::SIZE),
-      });
+        Napi::Function::New(env, [](const Napi::CallbackInfo& info) {
+          std::unique_ptr<generate_model_callback_data> data(static_cast<generate_model_callback_data *>(info.Data()));
+          
+          auto&& js_err = info[0];
+          auto&& js_chunk = info[1];
 
-      assert(result.IsArray());
-      Napi::Array chunk_blocks = result.As<Napi::Array>();
+          if (!js_err.IsUndefined() && !js_err.IsNull()) {
+            js_err.As<Napi::Error>().ThrowAsJavaScriptException();
+            return;
+          }
 
-      assert(chunk_blocks.Length() == Chunk::BLOCK_COUNT);
+          assert(js_chunk.IsArray());
+          auto&& js_chunk_arr = js_chunk.As<Napi::Array>();
 
-      int i = 0;
-      chunk.ForEachBlock([&](Chunk::BlockType& block_type, int x, int y, int z) {
-        auto&& block_name = chunk_blocks.Get(i);
-        assert(block_name.IsString());
+          assert(js_chunk_arr.Length() == Chunk::BLOCK_COUNT);
 
-        block_type = block_registrar_->Find(chunk_blocks.Get(i).As<Napi::String>().Utf8Value());
-        i++;
+          auto&& block_registrar = data->generator->block_registrar_;
+
+          int i = 0;
+          data->chunk->ForEachBlock([&](Chunk::BlockType& block_type, int x, int y, int z) {
+            auto&& block_name = js_chunk_arr.Get(i);
+            assert(block_name.IsString());
+
+            block_type = block_registrar->Find(js_chunk_arr.Get(i).As<Napi::String>().Utf8Value());
+            i++;
+          });
+
+          data->chunk->state_ = kModelPrepared;
+        }, nullptr, new generate_model_callback_data{.generator = this, .chunk = chunk})
       });
     }
-
-    chunk.state_ = kModelPrepared;
   }
 
   // for now just an estimation: allocation vs. growing vector
@@ -153,10 +176,5 @@ namespace chunklands {
 
   void ChunkGeneratorBase::BindTexture() {
     block_registrar_->BindTexture();
-  }
-
-
-  void copy_vertices(std::vector<GLfloat>& vertex_buffer_data, const std::vector<GLfloat>& vertex_data, const glm::ivec3& chunk_offset, int x, int y, int z) {
-    
   }
 }
