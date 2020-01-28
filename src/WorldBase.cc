@@ -110,9 +110,12 @@ namespace chunklands {
     }
   }
 
-  constexpr int RENDER_DISTANCE   = 8;
+  constexpr int RENDER_DISTANCE   = 4;
   constexpr int PREFETCH_DISTANCE = RENDER_DISTANCE + 1;
-  static_assert(PREFETCH_DISTANCE > RENDER_DISTANCE, "PREFETCH_DISTANCE must be bigger than RENDER_DISTANCE");
+  constexpr int RETAIN_DISTANCE   = RENDER_DISTANCE + 2;
+
+  static_assert(PREFETCH_DISTANCE > RENDER_DISTANCE);
+  static_assert(RETAIN_DISTANCE >= PREFETCH_DISTANCE);
 
   constexpr unsigned MAX_CHUNK_UPDATES = 6;
 
@@ -136,18 +139,22 @@ namespace chunklands {
     glm::ivec3 prefetch_from = center_chunk_pos - prefetch_distance;
     glm::ivec3 prefetch_to   = center_chunk_pos + prefetch_distance;
 
+    glm::ivec3 retain_distance(RETAIN_DISTANCE, RETAIN_DISTANCE, RETAIN_DISTANCE);
+    glm::ivec3 retain_from   = center_chunk_pos - retain_distance;
+    glm::ivec3 retain_to     = center_chunk_pos + retain_distance;
+
     // map cleanup: remove chunks outside prefetch distance
     for (auto&& it = chunk_map_.begin(); it != chunk_map_.end(); ) {
       auto&& pos = it->first;
 
-      if ( // check chunk inside prefetch distance
-        glm::all(glm::lessThanEqual(prefetch_from, pos)) &&
-        glm::all(glm::lessThanEqual(pos, prefetch_to))
+      if ( // check chunk inside retain distance
+        glm::all(glm::lessThanEqual(retain_from, pos)) &&
+        glm::all(glm::lessThanEqual(pos, retain_to))
       ) {
         it++; // goto next chunk
       } else {
         // remove chunk
-        it = chunk_map_.erase(it);
+        it = chunk_map_.erase(it); // next it
       }
     }
 
