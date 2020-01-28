@@ -5,7 +5,9 @@
 #include <glm/vec3.hpp>
 #include <boost/functional/hash.hpp>
 #include <napi.h>
+#include <queue>
 #include <unordered_map>
+#include <vector>
 #include "Chunk.h"
 #include "ChunkGeneratorBase.h"
 #include "gl.h"
@@ -13,6 +15,10 @@
 #include "napi/PersistentObjectWrap.h"
 
 namespace chunklands {
+  namespace detail {
+    struct ivec3_origin_distance_less_compare;
+  }
+
   class WorldBase : public Napi::ObjectWrap<WorldBase> {
     DECLARE_OBJECT_WRAP(WorldBase)
     DECLARE_OBJECT_WRAP_CB(void SetChunkGenerator)
@@ -65,7 +71,19 @@ namespace chunklands {
     GLint proj_uniform_location_ = -1;
 
     GLint texture_location_ = -1;
+
+    std::vector<glm::ivec3> nearest_chunks_;
   };
+
+  namespace detail {
+    struct ivec3_origin_distance_less_compare {
+      bool operator()(const glm::ivec3& a, const glm::ivec3& b) const {
+        return glm::length(glm::vec3(a)) < glm::length(glm::vec3(b));
+      }
+    };
+  }
 }
+
+
 
 #endif

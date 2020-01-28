@@ -4,9 +4,20 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/vector_relational.hpp>
 
+#include "container_open_prio_queue.h"
 #include "log.h"
 
 namespace chunklands {
+
+  constexpr int RENDER_DISTANCE   = 4;
+  constexpr int PREFETCH_DISTANCE = RENDER_DISTANCE + 1;
+  constexpr int RETAIN_DISTANCE   = RENDER_DISTANCE + 2;
+
+  static_assert(PREFETCH_DISTANCE > RENDER_DISTANCE);
+  static_assert(RETAIN_DISTANCE >= PREFETCH_DISTANCE);
+
+  constexpr unsigned MAX_CHUNK_UPDATES = 8;
+
   DEFINE_OBJECT_WRAP(WorldBase, ONE_ARG({
     InstanceMethod("setChunkGenerator", &WorldBase::SetChunkGenerator)
   }))
@@ -108,16 +119,23 @@ namespace chunklands {
       glCullFace(GL_FRONT);
       glFrontFace(GL_CCW);
     }
+
+    { // calculate nearest chunks
+      container_open_prio_queue<glm::ivec3, std::vector<glm::ivec3>, detail::ivec3_origin_distance_less_compare> nearest_chunks_prio;
+      nearest_chunks_prio.container().reserve((2 * PREFETCH_DISTANCE + 1) * (2 * PREFETCH_DISTANCE + 1) * (2 * PREFETCH_DISTANCE + 1));
+
+      for (int cx = -PREFETCH_DISTANCE; cx <= PREFETCH_DISTANCE; cx++) {
+        for (int cy = -PREFETCH_DISTANCE; cy <= PREFETCH_DISTANCE; cy++) {
+          for (int cz = -PREFETCH_DISTANCE; cz <= PREFETCH_DISTANCE; cz++) {
+            nearest_chunks_prio.push(glm::ivec3(cx, cy, cz));
+          }
+        }
+      }
+
+      nearest_chunks_ = std::move(nearest_chunks_prio.container());
+    }
   }
 
-  constexpr int RENDER_DISTANCE   = 4;
-  constexpr int PREFETCH_DISTANCE = RENDER_DISTANCE + 1;
-  constexpr int RETAIN_DISTANCE   = RENDER_DISTANCE + 2;
-
-  static_assert(PREFETCH_DISTANCE > RENDER_DISTANCE);
-  static_assert(RETAIN_DISTANCE >= PREFETCH_DISTANCE);
-
-  constexpr unsigned MAX_CHUNK_UPDATES = 6;
 
   void WorldBase::Update(double diff) {
 
@@ -161,75 +179,71 @@ namespace chunklands {
     unsigned chunk_updates = 0;
 
     // map update: insert/update chunks
-    for (int cx = prefetch_from.x; cx <= prefetch_to.x; cx++) {
-      for (int cy = prefetch_from.y; cy <= prefetch_to.y; cy++) {
-        for (int cz = prefetch_from.z; cz <= prefetch_to.z; cz++) {
-          glm::ivec3 pos(cx, cy, cz);
+    for (auto&& nearest_chunk_it = nearest_chunks_.cbegin(); nearest_chunk_it != nearest_chunks_.cend(); nearest_chunk_it++) {
+      glm::ivec3 pos(*nearest_chunk_it + center_chunk_pos);
 
-          // find or create chunk
-          auto&& it = chunk_map_.find(pos);
-          if (it == chunk_map_.end()) {
-            auto&& insert_it = chunk_map_.insert(std::make_pair(pos,
-                                                                std::make_shared<Chunk>(pos)));
-            it = insert_it.first;
-          }
-
-          assert(it != chunk_map_.end());
-          assert(it->first == pos);
-          auto&& chunk = it->second;
-
-          // we will call `Generate*` in reverse order to not update too much in one iteration
-
-          // 1. GenerateView
-          if ( // check chunk inside render distance
-            chunk_updates < MAX_CHUNK_UPDATES &&
-            chunk->GetState() == kModelPrepared &&
-            glm::all(glm::lessThanEqual(render_from, pos)) &&
-            glm::all(glm::lessThanEqual(pos, render_to))
-          ) {
-            do { // to call "break;"
-              auto&& left_chunk_it = chunk_map_.find(glm::ivec3(pos.x-1, pos.y, pos.z));
-              if (left_chunk_it == chunk_map_.end() ||
-                  left_chunk_it->second->GetState() < kModelPrepared) { break; }
-              auto&& right_chunk_it = chunk_map_.find(glm::ivec3(pos.x+1, pos.y, pos.z));
-              if (right_chunk_it == chunk_map_.end() ||
-                  right_chunk_it->second->GetState() < kModelPrepared) { break; }
-              auto&& top_chunk_it = chunk_map_.find(glm::ivec3(pos.x, pos.y+1, pos.z));
-              if (top_chunk_it == chunk_map_.end() ||
-                  top_chunk_it->second->GetState() < kModelPrepared) { break; }
-              auto&& bottom_chunk_it = chunk_map_.find(glm::ivec3(pos.x, pos.y-1, pos.z));
-              if (bottom_chunk_it == chunk_map_.end() ||
-                  bottom_chunk_it->second->GetState() < kModelPrepared) { break; }
-              auto&& front_chunk_it = chunk_map_.find(glm::ivec3(pos.x, pos.y, pos.z-1));
-              if (front_chunk_it == chunk_map_.end() ||
-                  front_chunk_it->second->GetState() < kModelPrepared) { break; }
-              auto&& back_chunk_it = chunk_map_.find(glm::ivec3(pos.x, pos.y, pos.z+1));
-              if (back_chunk_it == chunk_map_.end() ||
-                  back_chunk_it->second->GetState() < kModelPrepared) { break; }
-              
-              const Chunk* neighbors[kNeighborCount] = {
-                &*left_chunk_it->second,
-                &*right_chunk_it->second,
-                &*top_chunk_it->second,
-                &*bottom_chunk_it->second,
-                &*front_chunk_it->second,
-                &*back_chunk_it->second
-              };
-              
-              chunk_updates++;
-              chunk_generator_->GenerateView(*chunk, neighbors);
-            } while (0);
-          }
-
-          // 2. GenerateModel
-          // always inside prefetch distance
-          if (chunk_updates < MAX_CHUNK_UPDATES && chunk->GetState() == kEmpty) {
-            chunk_updates++;
-            chunk_generator_->GenerateModel(chunk);
-          }
-
-        }
+      // find or create chunk
+      auto&& chunk_it = chunk_map_.find(pos);
+      if (chunk_it == chunk_map_.end()) {
+        auto&& insert_it = chunk_map_.insert(std::make_pair(pos,
+                                                            std::make_shared<Chunk>(pos)));
+        chunk_it = insert_it.first;
       }
+
+      assert(chunk_it != chunk_map_.end());
+      assert(chunk_it->first == pos);
+      auto&& chunk = chunk_it->second;
+
+      // we will call `Generate*` in reverse order to not update too much in one iteration
+
+      // 1. GenerateView
+      if ( // check chunk inside render distance
+        chunk_updates < MAX_CHUNK_UPDATES &&
+        chunk->GetState() == kModelPrepared &&
+        glm::all(glm::lessThanEqual(render_from, pos)) &&
+        glm::all(glm::lessThanEqual(pos, render_to))
+      ) {
+        do { // to call "break;"
+          auto&& left_chunk_it = chunk_map_.find(glm::ivec3(pos.x-1, pos.y, pos.z));
+          if (left_chunk_it == chunk_map_.end() ||
+              left_chunk_it->second->GetState() < kModelPrepared) { break; }
+          auto&& right_chunk_it = chunk_map_.find(glm::ivec3(pos.x+1, pos.y, pos.z));
+          if (right_chunk_it == chunk_map_.end() ||
+              right_chunk_it->second->GetState() < kModelPrepared) { break; }
+          auto&& top_chunk_it = chunk_map_.find(glm::ivec3(pos.x, pos.y+1, pos.z));
+          if (top_chunk_it == chunk_map_.end() ||
+              top_chunk_it->second->GetState() < kModelPrepared) { break; }
+          auto&& bottom_chunk_it = chunk_map_.find(glm::ivec3(pos.x, pos.y-1, pos.z));
+          if (bottom_chunk_it == chunk_map_.end() ||
+              bottom_chunk_it->second->GetState() < kModelPrepared) { break; }
+          auto&& front_chunk_it = chunk_map_.find(glm::ivec3(pos.x, pos.y, pos.z-1));
+          if (front_chunk_it == chunk_map_.end() ||
+              front_chunk_it->second->GetState() < kModelPrepared) { break; }
+          auto&& back_chunk_it = chunk_map_.find(glm::ivec3(pos.x, pos.y, pos.z+1));
+          if (back_chunk_it == chunk_map_.end() ||
+              back_chunk_it->second->GetState() < kModelPrepared) { break; }
+          
+          const Chunk* neighbors[kNeighborCount] = {
+            &*left_chunk_it->second,
+            &*right_chunk_it->second,
+            &*top_chunk_it->second,
+            &*bottom_chunk_it->second,
+            &*front_chunk_it->second,
+            &*back_chunk_it->second
+          };
+          
+          chunk_updates++;
+          chunk_generator_->GenerateView(*chunk, neighbors);
+        } while (0);
+      }
+
+      // 2. GenerateModel
+      // always inside prefetch distance
+      if (chunk_updates < MAX_CHUNK_UPDATES && chunk->GetState() == kEmpty) {
+        chunk_updates++;
+        chunk_generator_->GenerateModel(chunk);
+      }
+
     }
     
     

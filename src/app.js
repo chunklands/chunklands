@@ -54,6 +54,7 @@ const World           = require('./World');
       window.close();
       gameLoop.stop();
       Environment.terminate();
+      process.exit(0);
       return;
     }
 
