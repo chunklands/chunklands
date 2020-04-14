@@ -1,22 +1,23 @@
 #include "WorldBase.h"
 
+#include <algorithm>
+
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/vector_relational.hpp>
 
-#include "container_open_prio_queue.h"
 #include "log.h"
 
 namespace chunklands {
 
-  constexpr int RENDER_DISTANCE   = 4;
-  constexpr int PREFETCH_DISTANCE = RENDER_DISTANCE + 1;
-  constexpr int RETAIN_DISTANCE   = RENDER_DISTANCE + 2;
+  constexpr int RENDER_DISTANCE   = 6;
+  constexpr int PREFETCH_DISTANCE = RENDER_DISTANCE + 2;
+  constexpr int RETAIN_DISTANCE   = RENDER_DISTANCE + 4;
 
-  static_assert(PREFETCH_DISTANCE > RENDER_DISTANCE);
-  static_assert(RETAIN_DISTANCE >= PREFETCH_DISTANCE);
-
-  constexpr unsigned MAX_CHUNK_UPDATES = 8;
+  static_assert(PREFETCH_DISTANCE > RENDER_DISTANCE, "damn");
+  static_assert(RETAIN_DISTANCE >= PREFETCH_DISTANCE, "damn");
+  
+  constexpr unsigned MAX_CHUNK_UPDATES = 12;
 
   DEFINE_OBJECT_WRAP(WorldBase, ONE_ARG({
     InstanceMethod("setChunkGenerator", &WorldBase::SetChunkGenerator)
@@ -121,18 +122,20 @@ namespace chunklands {
     }
 
     { // calculate nearest chunks
-      container_open_prio_queue<glm::ivec3, std::vector<glm::ivec3>, detail::ivec3_origin_distance_less_compare> nearest_chunks_prio;
-      nearest_chunks_prio.container().reserve((2 * PREFETCH_DISTANCE + 1) * (2 * PREFETCH_DISTANCE + 1) * (2 * PREFETCH_DISTANCE + 1));
+      nearest_chunks_.clear();
+      nearest_chunks_.reserve((2 * PREFETCH_DISTANCE + 1) * (2 * PREFETCH_DISTANCE + 1) * (2 * PREFETCH_DISTANCE + 1));
 
       for (int cx = -PREFETCH_DISTANCE; cx <= PREFETCH_DISTANCE; cx++) {
         for (int cy = -PREFETCH_DISTANCE; cy <= PREFETCH_DISTANCE; cy++) {
           for (int cz = -PREFETCH_DISTANCE; cz <= PREFETCH_DISTANCE; cz++) {
-            nearest_chunks_prio.push(glm::ivec3(cx, cy, cz));
+            nearest_chunks_.push_back(glm::ivec3(cx, cy, cz));
           }
         }
       }
 
-      nearest_chunks_ = std::move(nearest_chunks_prio.container());
+      std::sort_heap(nearest_chunks_.begin(), nearest_chunks_.end(), [](const glm::ivec3& a, const glm::ivec3& b) {
+        return glm::length(glm::vec3(a)) < glm::length(glm::vec3(b));
+      });
     }
   }
 

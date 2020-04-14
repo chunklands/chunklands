@@ -58,7 +58,7 @@ const World           = require('./World');
       return;
     }
 
-    setImmediate(loop);
+    setTimeout(loop, 0);
   };
 
   loop();
