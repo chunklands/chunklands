@@ -72,6 +72,8 @@ namespace chunklands {
 
     GLint texture_location_ = -1;
 
+    GLint y_location_ = -1;
+
     std::vector<glm::ivec3> nearest_chunks_;
   };
 

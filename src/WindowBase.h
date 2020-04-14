@@ -17,7 +17,6 @@ namespace chunklands {
 
   public:
     void SwapBuffers();
-    void Clear();
 
     int GetKey(int key);
     int GetMouseButton(int button);

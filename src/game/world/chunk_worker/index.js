@@ -1,15 +1,21 @@
-const cave = require('./cave');
-const mountain = require('./mountain');
+const world = require('./world');
 const noise = require('../../../noise');
 noise.seed(94832281);
 
 const { parentPort } = require('worker_threads');
 
-parentPort.on('message', ({x, y, z, chunkDim}) => {
+parentPort.on('message', onMessage);
+
+/**
+ * 
+ * @param {{x: number, y: number, z: number, chunkDim: number, sendPort: MessagePort}} param0 
+ */
+function onMessage({x, y, z, chunkDim, sendPort}) {
   const chunk = generateChunk(x, y, z, chunkDim);
   
-  parentPort.postMessage({x, y, z, chunk});
-});
+  sendPort.postMessage(chunk);
+  sendPort.close();
+}
 
 
 function generateChunk(x, y, z, chunkDim) {
@@ -32,7 +38,7 @@ function generateChunk(x, y, z, chunkDim) {
         // } else
         if (isGround(ax, ay, az)) {
           if (ay < 0) {
-            chunk[i] = 'block.sand';
+            chunk[i] = 'block.stone';
           } else {
             chunk[i] = isGround(ax, ay+1, az) ? 'block.dirt' : 'block.grass';
           }
@@ -51,22 +57,5 @@ function generateChunk(x, y, z, chunkDim) {
 
 
 function isGround(x, y, z) {
-  // if (y > 0) {
-  //   return isMountainsGround(x, y, z);
-  // }
-
-  // if (y > -20) {
-  //   // 0; -20
-  //   const mountainsFactor = 1 - (y / -20);
-  //   const caveFactor = 1 - mountainsFactor;
-
-  //   const m = isMountainsGround(x, y, z) ? 1 : 0;
-  //   const c = isCaveGround(x, y, z) ? 1 : 0
-
-  //   return (m * mountainsFactor + c * caveFactor) > 0.5;
-  // }
-
-  return cave.isGround(x, y, z);
+  return world.isGround(x, y, z);
 }
-
-

@@ -22,11 +22,17 @@ const World           = require('./World');
   Environment.loadProcs();
 
   const blockRegistrar = new BlockRegistrar();
-  blockRegistrar.addBlock(require('./game/blocks/air'));
+  blockRegistrar.addBlock(require('./game/blocks/coal'));
+  blockRegistrar.addBlock(require('./game/blocks/cobblestone'));
   blockRegistrar.addBlock(require('./game/blocks/dirt'));
+  blockRegistrar.addBlock(require('./game/blocks/gold'));
   blockRegistrar.addBlock(require('./game/blocks/grass'));
-  blockRegistrar.addBlock(require('./game/blocks/water'));
+  blockRegistrar.addBlock(require('./game/blocks/iron'));
   blockRegistrar.addBlock(require('./game/blocks/sand'));
+  blockRegistrar.addBlock(require('./game/blocks/stone'));
+  blockRegistrar.addBlock(require('./game/blocks/water'));
+  blockRegistrar.addBlock(require('./game/blocks/wood'));
+  blockRegistrar.addBlock(require('./game/blocks/air'));
   await blockRegistrar.bake();
 
   const chunkGenerator = new ChunkGenerator();

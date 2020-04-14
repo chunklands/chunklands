@@ -65,11 +65,6 @@ namespace chunklands {
     glfwSwapBuffers(window_);
   }
 
-  void WindowBase::Clear() {
-    glClearColor(.70f, .92f, .97f, 1.f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  }
-
   int WindowBase::GetKey(int key) {
     return glfwGetKey(window_, key);
   }

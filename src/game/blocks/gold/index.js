@@ -1,7 +1,7 @@
 
 module.exports = {
-  id: 'block.sand',
+  id: 'block.gold',
   vertexData: require('../_geometry/cube-one-texture'),
   opaque: true,
-  texture: `${__dirname}/sand.png`
+  texture: `${__dirname}/gold.png`
 };

@@ -83,7 +83,6 @@ namespace chunklands {
   }
 
   void SceneBase::Render(double diff) {
-    window_->Clear();
     world_->Render(diff);    
     window_->SwapBuffers();
   }

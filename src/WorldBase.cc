@@ -110,6 +110,10 @@ namespace chunklands {
       texture_location_ = glGetUniformLocation(program_, "u_texture");
     }
 
+    { // positional
+      y_location_ = glGetUniformLocation(program_, "u_y");
+    }
+
     { // general
 
       // depth test
@@ -257,12 +261,16 @@ namespace chunklands {
   }
 
   void WorldBase::Render(double diff) {
+    glClearColor(.70f, .92f, .97f, 1.f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
     glUseProgram(program_);
     glUniformMatrix4fv(view_uniform_location_, 1, GL_FALSE, glm::value_ptr(view_));
     glUniformMatrix4fv(proj_uniform_location_, 1, GL_FALSE, glm::value_ptr(proj_));
     glUniform1i(texture_location_, 0);
 
     chunk_generator_->BindTexture();
+    glUniform1f(y_location_, pos_.y);
 
     CHECK_GL();
 
