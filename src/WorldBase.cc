@@ -111,7 +111,7 @@ namespace chunklands {
     }
 
     { // positional
-      y_location_ = glGetUniformLocation(program_, "u_y");
+      render_distance_location_ = glGetUniformLocation(program_, "u_render_distance");
     }
 
     { // general
@@ -261,8 +261,15 @@ namespace chunklands {
   }
 
   void WorldBase::Render(double diff) {
-    glClearColor(.70f, .92f, .97f, 1.f);
+    glm::vec3 sky_color(.70f, .92f, .97f);
+    glm::vec3 underground_color(0.f, 0.f, 0.f);
+    glm::vec3 clear_color = glm::mix(underground_color, sky_color, glm::smoothstep(-30.f, 0.f, pos_.y));
+    
+    glClearColor(clear_color.r, clear_color.g, clear_color.b, 1.f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     glUseProgram(program_);
     glUniformMatrix4fv(view_uniform_location_, 1, GL_FALSE, glm::value_ptr(view_));
@@ -270,7 +277,7 @@ namespace chunklands {
     glUniform1i(texture_location_, 0);
 
     chunk_generator_->BindTexture();
-    glUniform1f(y_location_, pos_.y);
+    glUniform1f(render_distance_location_, ((float)RENDER_DISTANCE - 0.5f) * Chunk::SIZE);
 
     CHECK_GL();
 

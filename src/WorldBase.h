@@ -15,9 +15,6 @@
 #include "napi/PersistentObjectWrap.h"
 
 namespace chunklands {
-  namespace detail {
-    struct ivec3_origin_distance_less_compare;
-  }
 
   class WorldBase : public Napi::ObjectWrap<WorldBase> {
     DECLARE_OBJECT_WRAP(WorldBase)
@@ -72,18 +69,10 @@ namespace chunklands {
 
     GLint texture_location_ = -1;
 
-    GLint y_location_ = -1;
+    GLint render_distance_location_ = -1;
 
     std::vector<glm::ivec3> nearest_chunks_;
   };
-
-  namespace detail {
-    struct ivec3_origin_distance_less_compare {
-      bool operator()(const glm::ivec3& a, const glm::ivec3& b) const {
-        return glm::length(glm::vec3(a)) < glm::length(glm::vec3(b));
-      }
-    };
-  }
 }
 
 
