@@ -19,99 +19,35 @@ namespace chunklands {
   
   constexpr unsigned MAX_CHUNK_UPDATES = 12;
 
-  DEFINE_OBJECT_WRAP(WorldBase, ONE_ARG({
-    InstanceMethod("setChunkGenerator", &WorldBase::SetChunkGenerator)
+  DEFINE_OBJECT_WRAP_DEFAULT_CTOR(WorldBase, ONE_ARG({
+    InstanceMethod("setChunkGenerator", &WorldBase::SetChunkGenerator),
+    InstanceMethod("setShader", &WorldBase::SetShader)
   }))
-
-  WorldBase::WorldBase(const Napi::CallbackInfo& info) : ObjectWrap<WorldBase>(info) {
-    Napi::HandleScope scope(info.Env());
-    
-    if (!info[0].IsObject()) {
-      Napi::Error::New(Env(), "expect object {vertexShader: ..., fragmentShader: ...}").ThrowAsJavaScriptException();
-      return;
-    }
-
-    Napi::Object settings = info[0].ToObject();
-    vsh_src_ = settings.Get("vertexShader").ToString();
-    fsh_src_ = settings.Get("fragmentShader").ToString();
-  }
 
   void WorldBase::SetChunkGenerator(const Napi::CallbackInfo& info) {
     chunk_generator_ = info[0].ToObject();
   }
 
+  void WorldBase::SetShader(const Napi::CallbackInfo& info) {
+    scene_ = info[0].ToObject();
+  }
+
   void WorldBase::Prepare() {
-    { // vertex shader (duplicated code)
-      vsh_ = glCreateShader(GL_VERTEX_SHADER);
-      const char* src = vsh_src_.c_str();
-      glShaderSource(vsh_, 1, &src, nullptr);
-      glCompileShader(vsh_);
-      GLint result = GL_FALSE;
-      glGetShaderiv(vsh_, GL_COMPILE_STATUS, &result);
-      if (result != GL_TRUE) {
-        GLint length = 0;
-        glGetShaderiv(vsh_, GL_INFO_LOG_LENGTH, &length);
-        std::vector<char> message(length + 1);
-        glGetShaderInfoLog(vsh_, length, nullptr, message.data());
-        Napi::Error::New(Env(), message.data()).ThrowAsJavaScriptException();
-        return;
-      }
-
-      CHECK_GL();
-    }
-
-    { // fragment shader (duplicated code)
-      fsh_ = glCreateShader(GL_FRAGMENT_SHADER);
-      const char* src = fsh_src_.c_str();
-      glShaderSource(fsh_, 1, &src, nullptr);
-      glCompileShader(fsh_);
-      GLint result = GL_FALSE;
-      glGetShaderiv(fsh_, GL_COMPILE_STATUS, &result);
-      if (result != GL_TRUE) {
-        GLint length = 0;
-        glGetShaderiv(fsh_, GL_INFO_LOG_LENGTH, &length);
-        std::vector<char> message(length + 1);
-        glGetShaderInfoLog(fsh_, length, nullptr, message.data());
-        Napi::Error::New(Env(), message.data()).ThrowAsJavaScriptException();
-        return;
-      }
-
-      CHECK_GL();
-    }
-
-    { // program
-      program_ = glCreateProgram();
-      glAttachShader(program_, vsh_);
-      glAttachShader(program_, fsh_);
-      glLinkProgram(program_);
-
-      GLint result = GL_FALSE;
-      glGetProgramiv(program_, GL_LINK_STATUS, &result);
-      if (result != GL_TRUE) {
-        GLint length = 0;
-        glGetProgramiv(program_, GL_INFO_LOG_LENGTH, &length);
-        std::vector<char> message(length + 1);
-        glGetProgramInfoLog(program_, length, nullptr, message.data());
-        Napi::Error::New(Env(), message.data()).ThrowAsJavaScriptException();
-        return;
-      }
-
-      CHECK_GL();
-    }
+    
 
     { // matrices
-      view_uniform_location_ = glGetUniformLocation(program_, "u_view");
-      proj_uniform_location_ = glGetUniformLocation(program_, "u_proj");
+      view_uniform_location_ = scene_->GetUniformLocation("u_view");
+      proj_uniform_location_ = scene_->GetUniformLocation("u_proj");
     }
 
     { // texture
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-      texture_location_ = glGetUniformLocation(program_, "u_texture");
+      texture_location_ = scene_->GetUniformLocation("u_texture");
     }
 
     { // positional
-      render_distance_location_ = glGetUniformLocation(program_, "u_render_distance");
+      render_distance_location_ = scene_->GetUniformLocation("u_render_distance");
     }
 
     { // general
@@ -271,7 +207,7 @@ namespace chunklands {
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    glUseProgram(program_);
+    scene_->Use();
     glUniformMatrix4fv(view_uniform_location_, 1, GL_FALSE, glm::value_ptr(view_));
     glUniformMatrix4fv(proj_uniform_location_, 1, GL_FALSE, glm::value_ptr(proj_));
     glUniform1i(texture_location_, 0);

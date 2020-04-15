@@ -5,3 +5,4 @@
 #include "WorldBase.h"
 #include "ChunkGeneratorBase.h"
 #include "BlockRegistrarBase.h"
+#include "GLProgramBase.h"

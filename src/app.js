@@ -2,6 +2,7 @@ const BlockRegistrar  = require('./BlockRegistrar');
 const ChunkGenerator  = require('./ChunkGenerator');
 const Environment     = require('./Environment');
 const GameLoop        = require('./GameLoop');
+const GLProgram       = require('./GLProgram');
 const Scene           = require('./Scene');
 const SimpleWorldGen  = require('./game/world/SimpleWorldGen');
 const Window          = require('./Window');
@@ -43,6 +44,12 @@ const World           = require('./World');
 
   const world = new World();
   world.setChunkGenerator(chunkGenerator);
+
+  const sceneShader = await GLProgram.create({
+    vertexShader: `${__dirname}/game/shader/scene.vsh.glsl`,
+    fragmentShader: `${__dirname}/game/shader/scene.fsh.glsl`
+  });
+  world.setShader(sceneShader);
 
   const scene = new Scene();
   scene.setWindow(window);

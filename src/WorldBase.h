@@ -13,12 +13,14 @@
 #include "gl.h"
 #include "napi/object_wrap_util.h"
 #include "napi/PersistentObjectWrap.h"
+#include "GLProgramBase.h"
 
 namespace chunklands {
 
   class WorldBase : public Napi::ObjectWrap<WorldBase> {
     DECLARE_OBJECT_WRAP(WorldBase)
     DECLARE_OBJECT_WRAP_CB(void SetChunkGenerator)
+    DECLARE_OBJECT_WRAP_CB(void SetShader)
 
   private:
     struct ivec3_hasher {
@@ -54,9 +56,7 @@ namespace chunklands {
     
     std::unordered_map<glm::ivec3, std::shared_ptr<Chunk>, ivec3_hasher> chunk_map_;
 
-    GLuint vsh_ = 0;
-    GLuint fsh_ = 0;
-    GLuint program_ = 0;
+    NapiExt::PersistentObjectWrap<GLProgramBase> scene_;
 
     glm::vec3 pos_ = glm::vec3(8.f, 0.7f, 60.f);
     glm::vec2 look_;

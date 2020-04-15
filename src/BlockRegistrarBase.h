@@ -12,8 +12,6 @@ namespace chunklands {
   class BlockRegistrarBase : public Napi::ObjectWrap<BlockRegistrarBase> {
     DECLARE_OBJECT_WRAP(BlockRegistrarBase)
     DECLARE_OBJECT_WRAP_CB(void AddBlock)
-    // Currently looks strange that `BlockRegistrarBase` has `LoadTexture`.
-    // Later each block has a texture and those have to be merged
     DECLARE_OBJECT_WRAP_CB(void LoadTexture)
 
   public:
