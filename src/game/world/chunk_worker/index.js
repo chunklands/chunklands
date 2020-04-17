@@ -2,7 +2,18 @@ const world = require('./world');
 const noise = require('../../../noise');
 noise.seed(94832281);
 
-const { parentPort } = require('worker_threads');
+const { parentPort, workerData } = require('worker_threads');
+
+const {
+  'block.stone': BLOCK_STONE,
+  'block.grass': BLOCK_GRASS,
+  'block.dirt': BLOCK_DIRT,
+  'block.air': BLOCK_AIR
+} = workerData;
+
+if (BLOCK_STONE === undefined || BLOCK_GRASS === undefined || BLOCK_DIRT === undefined || BLOCK_AIR === undefined) {
+  throw new TypeError(`bad workerData: ${JSON.stringify(workerData)}`);
+}
 
 parentPort.on('message', onMessage);
 
@@ -19,6 +30,7 @@ function onMessage({x, y, z, chunkDim, sendPort}) {
 
 
 function generateChunk(x, y, z, chunkDim) {
+  
   const chunk = new Array(chunkDim * chunkDim * chunkDim);
 
   const px = x * chunkDim;
@@ -38,12 +50,12 @@ function generateChunk(x, y, z, chunkDim) {
         // } else
         if (isGround(ax, ay, az)) {
           if (ay < 0) {
-            chunk[i] = 'block.stone';
+            chunk[i] = BLOCK_STONE;
           } else {
-            chunk[i] = isGround(ax, ay+1, az) ? 'block.dirt' : 'block.grass';
+            chunk[i] = isGround(ax, ay+1, az) ? BLOCK_DIRT : BLOCK_GRASS;
           }
         } else {
-          chunk[i] = 'block.air';
+          chunk[i] = BLOCK_AIR;
         }
 
         i++;

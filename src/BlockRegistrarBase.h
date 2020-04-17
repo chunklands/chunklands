@@ -3,7 +3,7 @@
 
 #include <memory>
 #include <napi.h>
-#include <unordered_map>
+#include <vector>
 #include "BlockDefinition.h"
 #include "gl.h"
 #include "napi/object_wrap_util.h"
@@ -13,13 +13,14 @@ namespace chunklands {
     DECLARE_OBJECT_WRAP(BlockRegistrarBase)
     DECLARE_OBJECT_WRAP_CB(void AddBlock)
     DECLARE_OBJECT_WRAP_CB(void LoadTexture)
+    DECLARE_OBJECT_WRAP_CB(Napi::Value GetBlockIds)
 
   public:
-    BlockDefinition* Find(const std::string& block_id);
+    BlockDefinition* GetByIndex(int index);
     void BindTexture();
 
   private:
-    std::unordered_map<std::string, std::unique_ptr<BlockDefinition>> block_definitions_;
+    std::vector<std::unique_ptr<BlockDefinition>> block_definitions_;
 
     GLuint texture_ = 0;
   };

@@ -7,6 +7,7 @@ namespace chunklands {
   DEFINE_OBJECT_WRAP_DEFAULT_CTOR(BlockRegistrarBase, ONE_ARG({
     InstanceMethod("addBlock", &BlockRegistrarBase::AddBlock),
     InstanceMethod("loadTexture", &BlockRegistrarBase::LoadTexture),
+    InstanceMethod("getBlockIds", &BlockRegistrarBase::GetBlockIds),
   }))
 
   void BlockRegistrarBase::AddBlock(const Napi::CallbackInfo& info) {
@@ -68,7 +69,18 @@ namespace chunklands {
                                                                 opaque,
                                                                 std::move(faces));
 
-    block_definitions_.insert(std::make_pair(id, std::move(block_definition)));
+    block_definitions_.push_back(std::move(block_definition));
+  }
+
+  Napi::Value BlockRegistrarBase::GetBlockIds(const Napi::CallbackInfo& info) {
+    auto&& js_block_ids = Napi::Object::New(info.Env());
+
+    for (int i = 0; i < block_definitions_.size(); i++) {
+      auto&& block_definition = block_definitions_[i];
+      js_block_ids.Set(block_definition->GetId(), Napi::Number::New(info.Env(), i));
+    }
+
+    return js_block_ids;
   }
 
   void BlockRegistrarBase::LoadTexture(const Napi::CallbackInfo& info) {
@@ -105,13 +117,8 @@ namespace chunklands {
     stbi_image_free(data);
   }
 
-  BlockDefinition* BlockRegistrarBase::Find(const std::string& block_id) {
-    auto&& it = block_definitions_.find(block_id);
-    if (it == block_definitions_.end()) {
-      return nullptr;
-    }
-
-    return it->second.get();
+  BlockDefinition* BlockRegistrarBase::GetByIndex(int index) {
+    return block_definitions_[index].get();
   }
 
   void BlockRegistrarBase::BindTexture() {

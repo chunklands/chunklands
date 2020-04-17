@@ -3,6 +3,7 @@ const ChunkGenerator  = require('./ChunkGenerator');
 const Environment     = require('./Environment');
 const GameLoop        = require('./GameLoop');
 const GLProgram       = require('./GLProgram');
+const Profiler        = require('./Profiler');
 const Scene           = require('./Scene');
 const SimpleWorldGen  = require('./game/world/SimpleWorldGen');
 const Window          = require('./Window');
@@ -39,7 +40,7 @@ const World           = require('./World');
   const chunkGenerator = new ChunkGenerator();
   chunkGenerator.setBlockRegistrar(blockRegistrar);
 
-  const worldGenerator = new SimpleWorldGen();
+  const worldGenerator = new SimpleWorldGen(blockRegistrar.getBlockIds());
   chunkGenerator.setWorldGenerator(worldGenerator);
 
   const world = new World();
@@ -75,4 +76,10 @@ const World           = require('./World');
   };
 
   loop();
+
+  const profiler = new Profiler();
+
+  setInterval(() => {
+    console.log(profiler.getMeassurements());
+  }, 1000);
 })();

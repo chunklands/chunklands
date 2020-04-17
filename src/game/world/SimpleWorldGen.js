@@ -1,10 +1,10 @@
 const { Worker, MessageChannel } = require('worker_threads');
 
 module.exports = class SimpleWorldGen {
-  constructor() {
-    this._worker = new Worker(`${__dirname}/chunk_worker/index.js`, {resourceLimits: {
-
-    }});
+  constructor(blockIds) {
+    this._worker = new Worker(`${__dirname}/chunk_worker/index.js`, {
+      workerData: blockIds
+    });
     this._worker.on('error', err => {
       console.error(err);
       process.exit(1);

@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include "gl.h"
+#include "prof.h"
 
 namespace chunklands {
   DEFINE_OBJECT_WRAP_DEFAULT_CTOR(GameLoopBase, ONE_ARG({
@@ -33,14 +34,10 @@ namespace chunklands {
 
     const double time = glfwGetTime();
 
-    std::cout << "loop: ";
-
     { // update
       double update_diff = time - last_update_;
       while (update_diff >= update_threshold) {
         update_diff -= update_threshold;
-
-        std::cout << "[update " << (int)(update_threshold*1000.0) << "ms] ";
         scene_->Update(update_threshold);
       }
 
@@ -50,8 +47,6 @@ namespace chunklands {
     { // render
       const double render_diff = time - last_render_;
       last_render_ = time;
-
-      std::cout << "[render " << (int)(render_diff*1000.0) << "ms] " << std::endl;
       scene_->Render(render_diff);
     }
   }

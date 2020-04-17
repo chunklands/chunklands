@@ -1,8 +1,10 @@
 #include "ChunkGeneratorBase.h"
 
 #include <cmath>
+#include <iostream>
 
 #include "napi/flow.h"
+#include "prof.h"
 
 namespace chunklands {
   DEFINE_OBJECT_WRAP_DEFAULT_CTOR(ChunkGeneratorBase, ONE_ARG({
@@ -21,9 +23,12 @@ namespace chunklands {
   struct generate_model_callback_data {
     ChunkGeneratorBase *generator;
     std::shared_ptr<Chunk> chunk;
+    prof profiler;
   };
 
   void ChunkGeneratorBase::GenerateModel(std::shared_ptr<Chunk>& chunk) {
+    PROF_NAME("generate chunk model");
+
     assert(chunk->GetState() == kEmpty);
 
     auto&& pos = chunk->GetPos();
@@ -39,36 +44,61 @@ namespace chunklands {
         Napi::Number::New(env, pos.z),
         Napi::Number::New(env, Chunk::SIZE),
         Napi::Function::New(env, [](const Napi::CallbackInfo& info) {
-          std::unique_ptr<generate_model_callback_data> data(static_cast<generate_model_callback_data *>(info.Data()));
-          
-          auto&& js_err = info[0];
-          auto&& js_chunk = info[1];
+            std::unique_ptr<generate_model_callback_data> data(static_cast<generate_model_callback_data *>(info.Data()));
+            
+            auto&& js_err = info[0];
+            auto&& js_chunk = info[1];
 
-          if (!js_err.IsUndefined() && !js_err.IsNull()) {
-            js_err.As<Napi::Error>().ThrowAsJavaScriptException();
-            return;
+            if (!js_err.IsUndefined() && !js_err.IsNull()) {
+              js_err.As<Napi::Error>().ThrowAsJavaScriptException();
+              return;
+            }
+
+            assert(js_chunk.IsArray());
+            auto&& js_chunk_arr = js_chunk.As<Napi::Array>();
+
+            assert(js_chunk_arr.Length() == Chunk::BLOCK_COUNT);
+            data->generator->loaded_chunks_.push({
+              .chunk = data->chunk,
+              .js_chunk_data = Napi::Persistent(js_chunk_arr.ToObject())
+            });
+
+          },
+          "generateChunkCb",
+          new generate_model_callback_data{
+            .generator = this,
+            .chunk = chunk,
+            .profiler = PROF_MOVE()
           }
-
-          assert(js_chunk.IsArray());
-          auto&& js_chunk_arr = js_chunk.As<Napi::Array>();
-
-          assert(js_chunk_arr.Length() == Chunk::BLOCK_COUNT);
-
-          auto&& block_registrar = data->generator->block_registrar_;
-
-          int i = 0;
-          data->chunk->ForEachBlock([&](Chunk::BlockType& block_type, int x, int y, int z) {
-            auto&& block_name = js_chunk_arr.Get(i);
-            assert(block_name.IsString());
-
-            block_type = block_registrar->Find(js_chunk_arr.Get(i).As<Napi::String>().Utf8Value());
-            i++;
-          });
-
-          data->chunk->state_ = kModelPrepared;
-        }, nullptr, new generate_model_callback_data{.generator = this, .chunk = chunk})
+        )
       });
     }
+  }
+
+  bool ChunkGeneratorBase::ProcessNextModel() {
+    if (loaded_chunks_.empty()) {
+      return false;
+    }
+
+    PROF();
+
+    auto&& item = loaded_chunks_.front();
+
+    int i = 0;
+    item.chunk->ForEachBlock([&](Chunk::BlockType& block_type, int x, int y, int z) {
+      auto&& block_id = item.js_chunk_data.Get(i);
+      assert(block_id.IsNumber());
+
+      block_type = block_registrar_->GetByIndex(block_id.ToNumber().Int32Value());
+      i++;
+    });
+
+    item.chunk->state_ = kModelPrepared;
+    loaded_chunks_.pop();
+
+    std::cout << "models queue: " << loaded_chunks_.size() << " items.";
+
+    return !loaded_chunks_.empty();
   }
 
   // for now just an estimation: allocation vs. growing vector
@@ -77,6 +107,8 @@ namespace chunklands {
   constexpr int estimated_floats_in_buffer = Chunk::SIZE * Chunk::SIZE * Chunk::SIZE * estimated_avg_floats_per_block;
 
   void ChunkGeneratorBase::GenerateView(Chunk& chunk, const Chunk* neighbors[kNeighborCount]) {
+    PROF();
+
     assert(chunk.GetState() == kModelPrepared);
     assert(neighbors[kLeft  ] != nullptr && neighbors[kLeft  ]->GetState() >= kModelPrepared);
     assert(neighbors[kRight ] != nullptr && neighbors[kRight ]->GetState() >= kModelPrepared);

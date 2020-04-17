@@ -6,3 +6,4 @@
 #include "ChunkGeneratorBase.h"
 #include "BlockRegistrarBase.h"
 #include "GLProgramBase.h"
+#include "ProfilerBase.h"

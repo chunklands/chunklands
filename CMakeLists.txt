@@ -5,7 +5,7 @@ include(ExternalProject)
 
 project (chunklands)
 
-file(GLOB SOURCE_FILES "${CMAKE_SOURCE_DIR}/src/*.cc" "${CMAKE_SOURCE_DIR}/deps/glfw/deps/glad.c")
+file(GLOB SOURCE_FILES "${CMAKE_SOURCE_DIR}/src/*.cc" "${CMAKE_SOURCE_DIR}/deps/glfw/deps/glad.c" "${CMAKE_SOURCE_DIR}/deps/boost_chrono/src/*.cpp")
 add_library(${PROJECT_NAME} SHARED ${SOURCE_FILES})
 
 set(CHUNKLANDS_LIBRARIES "")
