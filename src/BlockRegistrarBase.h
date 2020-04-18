@@ -5,8 +5,8 @@
 #include <napi.h>
 #include <vector>
 #include "BlockDefinition.h"
-#include "gl.h"
 #include "napi/object_wrap_util.h"
+#include "GLTexture.h"
 
 namespace chunklands {
   class BlockRegistrarBase : public Napi::ObjectWrap<BlockRegistrarBase> {
@@ -22,7 +22,7 @@ namespace chunklands {
   private:
     std::vector<std::unique_ptr<BlockDefinition>> block_definitions_;
 
-    GLuint texture_ = 0;
+    GLTexture texture_;
   };
 }
 

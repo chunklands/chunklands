@@ -26,6 +26,7 @@ namespace chunklands {
     InstanceMethod("setChunkGenerator", &WorldBase::SetChunkGenerator),
     InstanceMethod("setGBufferShader", &WorldBase::SetGBufferShader),
     InstanceMethod("setLightingShader", &WorldBase::SetLightingShader),
+    InstanceMethod("setSkyboxShader", &WorldBase::SetSkyboxShader),
   }))
 
   void WorldBase::SetChunkGenerator(const Napi::CallbackInfo& info) {
@@ -40,33 +41,48 @@ namespace chunklands {
     lighting_shader_ = info[0].ToObject();
   }
 
+  void WorldBase::SetSkyboxShader(const Napi::CallbackInfo& info) {
+    skybox_shader_ = info[0].ToObject();
+  }
+
   void WorldBase::Prepare() {
     PROF();
 
     { // gBuffer
-      view_uniform_location_ = g_buffer_shader_->GetUniformLocation("u_view");
-      assert(view_uniform_location_ != -1);
+      g_buffer_uniforms_.view = g_buffer_shader_->GetUniformLocation("u_view");
+      assert(g_buffer_uniforms_.view != -1);
 
-      proj_uniform_location_ = g_buffer_shader_->GetUniformLocation("u_proj");
-      assert(proj_uniform_location_ != -1);
+      g_buffer_uniforms_.proj = g_buffer_shader_->GetUniformLocation("u_proj");
+      assert(g_buffer_uniforms_.proj != -1);
 
-      texture_location_ = g_buffer_shader_->GetUniformLocation("u_texture");
-      assert(texture_location_ != -1);
+      g_buffer_uniforms_.texture = g_buffer_shader_->GetUniformLocation("u_texture");
+      assert(g_buffer_uniforms_.texture != -1);
     }
 
     { // lighting
       
-      position_location_ = lighting_shader_->GetUniformLocation("u_position_texture");
-      assert(position_location_ != -1);
+      lighting_uniforms_.position = lighting_shader_->GetUniformLocation("u_position_texture");
+      assert(lighting_uniforms_.position != -1);
 
-      normal_location_ = lighting_shader_->GetUniformLocation("u_normal_texture");
-      assert(normal_location_ != -1);
+      lighting_uniforms_.normal = lighting_shader_->GetUniformLocation("u_normal_texture");
+      assert(lighting_uniforms_.normal != -1);
 
-      color_location_ = lighting_shader_->GetUniformLocation("u_color_texture");\
-      assert(color_location_ != -1);
+      lighting_uniforms_.color = lighting_shader_->GetUniformLocation("u_color_texture");\
+      assert(lighting_uniforms_.color != -1);
 
-      render_distance_location_ = lighting_shader_->GetUniformLocation("u_render_distance");
-      assert(render_distance_location_ != -1);
+      lighting_uniforms_.render_distance = lighting_shader_->GetUniformLocation("u_render_distance");
+      assert(lighting_uniforms_.render_distance != -1);
+    }
+
+    { // skybox
+      // skybox_uniforms_.proj = skybox_shader_->GetUniformLocation("u_proj");
+      // assert(skybox_uniforms_.proj != -1);
+
+      // skybox_uniforms_.view = skybox_shader_->GetUniformLocation("u_view");
+      // assert(skybox_uniforms_.view != -1);
+
+      // skybox_uniforms_.skybox = skybox_shader_->GetUniformLocation("u_skybox");
+      // assert(skybox_uniforms_.skybox != -1);
     }
 
     { // general
@@ -220,12 +236,26 @@ namespace chunklands {
     view_ = glm::lookAt(pos_, pos_ + look_center, glm::vec3(0.f, 1.f, 0.f));
   }
 
+  void WorldBase::RenderSkybox(double diff) {
+    PROF();
+
+    glDepthFunc(GL_LEQUAL);
+    skybox_shader_->Use();
+
+    glUniformMatrix4fv(skybox_uniforms_.proj, 1, GL_FALSE, glm::value_ptr(proj_));
+    glUniformMatrix4fv(skybox_uniforms_.view, 1, GL_FALSE, glm::value_ptr(view_));
+    glUniform1i(skybox_uniforms_.skybox, 0);
+
+    // skybox->Render();
+
+    glDepthFunc(GL_LESS);
+  }
+
   void WorldBase::RenderGBufferPass(double diff) {
     PROF();
 
     glClearColor(0.f, 0.f, 0.f, 1.f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
 
     glm::ivec3 center_chunk_pos = glm::ivec3(pos_.x >= 0 ? pos_.x : pos_.x - Chunk::SIZE,
                                              pos_.y >= 0 ? pos_.y : pos_.y - Chunk::SIZE,
@@ -233,9 +263,9 @@ namespace chunklands {
                                             ) / (int)Chunk::SIZE;
 
     g_buffer_shader_->Use();
-    glUniformMatrix4fv(view_uniform_location_, 1, GL_FALSE, glm::value_ptr(view_));
-    glUniformMatrix4fv(proj_uniform_location_, 1, GL_FALSE, glm::value_ptr(proj_));
-    glUniform1i(texture_location_, 0);
+    glUniformMatrix4fv(g_buffer_uniforms_.proj, 1, GL_FALSE, glm::value_ptr(proj_));
+    glUniformMatrix4fv(g_buffer_uniforms_.view, 1, GL_FALSE, glm::value_ptr(view_));
+    glUniform1i(g_buffer_uniforms_.texture, 0);
 
     chunk_generator_->BindTexture();
 
@@ -291,10 +321,10 @@ namespace chunklands {
     glActiveTexture(GL_TEXTURE2);
     glBindTexture(GL_TEXTURE_2D, color_texture);
 
-    glUniform1i(position_location_, 0);
-    glUniform1i(normal_location_, 1);
-    glUniform1i(color_location_, 2);
-    glUniform1f(render_distance_location_, ((float)RENDER_DISTANCE - 0.5f) * Chunk::SIZE);
+    glUniform1i(lighting_uniforms_.position, 0);
+    glUniform1i(lighting_uniforms_.normal, 1);
+    glUniform1i(lighting_uniforms_.color, 2);
+    glUniform1f(lighting_uniforms_.render_distance, ((float)RENDER_DISTANCE - 0.5f) * Chunk::SIZE);
 
     CHECK_GL();
 

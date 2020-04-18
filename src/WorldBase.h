@@ -23,6 +23,7 @@ namespace chunklands {
     DECLARE_OBJECT_WRAP_CB(void SetChunkGenerator)
     DECLARE_OBJECT_WRAP_CB(void SetGBufferShader)
     DECLARE_OBJECT_WRAP_CB(void SetLightingShader)
+    DECLARE_OBJECT_WRAP_CB(void SetSkyboxShader)
 
   private:
     struct ivec3_hasher {
@@ -39,6 +40,7 @@ namespace chunklands {
   public:
     void Prepare();
     void Update(double diff);
+    void RenderSkybox(double diff);
     void RenderGBufferPass(double diff);
     void RenderDeferredLightingPass(double diff, GLuint position_texture, GLuint normal_texture, GLuint color_texture);
 
@@ -56,6 +58,7 @@ namespace chunklands {
     NapiExt::PersistentObjectWrap<ChunkGeneratorBase> chunk_generator_;
     NapiExt::PersistentObjectWrap<GLProgramBase> g_buffer_shader_;
     NapiExt::PersistentObjectWrap<GLProgramBase> lighting_shader_;
+    NapiExt::PersistentObjectWrap<GLProgramBase> skybox_shader_;
 
     std::unordered_map<glm::ivec3, std::shared_ptr<Chunk>, ivec3_hasher> chunk_map_;
 
@@ -63,19 +66,28 @@ namespace chunklands {
     glm::vec2 look_;
 
     glm::mat4 view_;
-    GLint view_uniform_location_ = -1;
-
     glm::mat4 proj_;
-    GLint proj_uniform_location_ = -1;
-
-    GLint texture_location_ = -1;
-    GLint position_location_ = -1;
-    GLint normal_location_ = -1;
-    GLint color_location_ = -1;
-
-    GLint render_distance_location_ = -1;
 
     std::vector<glm::ivec3> nearest_chunks_;
+
+    struct {
+      GLint view    = -1;
+      GLint proj    = -1;
+      GLint texture = -1;
+    } g_buffer_uniforms_;
+
+    struct {
+      GLint position        = -1;
+      GLint normal          = -1;
+      GLint color           = -1;
+      GLint render_distance = -1;
+    } lighting_uniforms_;
+
+    struct {
+      GLint view   = -1;
+      GLint proj   = -1;
+      GLint skybox = -1;
+    } skybox_uniforms_;
 
     std::unique_ptr<RenderQuad> render_quad_;
   };

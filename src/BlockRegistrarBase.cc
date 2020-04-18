@@ -1,7 +1,6 @@
 #include "BlockRegistrarBase.h"
 
 #include "napi/flow.h"
-#include "stb.h"
 
 namespace chunklands {
   DEFINE_OBJECT_WRAP_DEFAULT_CTOR(BlockRegistrarBase, ONE_ARG({
@@ -88,35 +87,10 @@ namespace chunklands {
       THROW_MSG(info.Env(), "expected string as arg");
     }
 
-    std::string filePath = info[0].ToString();
-    int width, height, comp;
-    auto&& data = stbi_load(filePath.c_str(), &width, &height, &comp, 0);
-    if (!data) {
-      THROW_MSG(info.Env(), "could not load texture");
-    }
-
-    GLenum format;
-    switch (comp) {
-    case 3: {
-      format = GL_RGB;
-      break;
-    }
-    case 4: {
-      format = GL_RGBA;
-      break;
-    }
-    default: {
-      THROW_MSG(info.Env(), "only support 3 or 4 channels");
-    }
-    }
-
-    glGenTextures(1, &texture_);
-    glBindTexture(GL_TEXTURE_2D, texture_);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+    auto&& filepath = info[0].ToString().Utf8Value();
+    texture_.LoadTexture(filepath.c_str());
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-    stbi_image_free(data);
   }
 
   BlockDefinition* BlockRegistrarBase::GetByIndex(int index) {
@@ -124,7 +98,6 @@ namespace chunklands {
   }
 
   void BlockRegistrarBase::BindTexture() {
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, texture_);
+    texture_.ActiveAndBind(GL_TEXTURE0);
   }
 }
