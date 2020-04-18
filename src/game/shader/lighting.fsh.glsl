@@ -10,12 +10,12 @@ uniform sampler2D u_normal_texture;
 uniform sampler2D u_color_texture;
 uniform float     u_render_distance;
 
-const vec3  light_dir         = normalize(vec3(3, 10, -2));
+const vec3  light_dir         = normalize(vec3(-5, 2, 5));
 const vec3  fog_color         = vec3(.2f, .2f, .2f);
 const float darkness_division = .1f;
 
 const float sun = .9f;
-const float ambient = .6f;
+const float ambient = .3f;
 const float diffuse = sun * (1.f - ambient);
 
 void luminate(vec3 normal) {
