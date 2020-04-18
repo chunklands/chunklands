@@ -14,13 +14,15 @@
 #include "napi/object_wrap_util.h"
 #include "napi/PersistentObjectWrap.h"
 #include "GLProgramBase.h"
+#include "RenderQuad.h"
 
 namespace chunklands {
 
   class WorldBase : public Napi::ObjectWrap<WorldBase> {
     DECLARE_OBJECT_WRAP(WorldBase)
     DECLARE_OBJECT_WRAP_CB(void SetChunkGenerator)
-    DECLARE_OBJECT_WRAP_CB(void SetShader)
+    DECLARE_OBJECT_WRAP_CB(void SetGBufferShader)
+    DECLARE_OBJECT_WRAP_CB(void SetLightingShader)
 
   private:
     struct ivec3_hasher {
@@ -37,7 +39,8 @@ namespace chunklands {
   public:
     void Prepare();
     void Update(double diff);
-    void Render(double diff);
+    void RenderGBufferPass(double diff);
+    void RenderDeferredLightingPass(double diff, GLuint position_texture, GLuint normal_texture, GLuint color_texture);
 
     void UpdateViewportRatio(int width, int height);
 
@@ -49,14 +52,12 @@ namespace chunklands {
     }
 
   private:
-    std::string vsh_src_;
-    std::string fsh_src_;
 
     NapiExt::PersistentObjectWrap<ChunkGeneratorBase> chunk_generator_;
-    
-    std::unordered_map<glm::ivec3, std::shared_ptr<Chunk>, ivec3_hasher> chunk_map_;
+    NapiExt::PersistentObjectWrap<GLProgramBase> g_buffer_shader_;
+    NapiExt::PersistentObjectWrap<GLProgramBase> lighting_shader_;
 
-    NapiExt::PersistentObjectWrap<GLProgramBase> scene_;
+    std::unordered_map<glm::ivec3, std::shared_ptr<Chunk>, ivec3_hasher> chunk_map_;
 
     glm::vec3 pos_ = glm::vec3(8.f, 0.7f, 60.f);
     glm::vec2 look_;
@@ -68,10 +69,15 @@ namespace chunklands {
     GLint proj_uniform_location_ = -1;
 
     GLint texture_location_ = -1;
+    GLint position_location_ = -1;
+    GLint normal_location_ = -1;
+    GLint color_location_ = -1;
 
     GLint render_distance_location_ = -1;
 
     std::vector<glm::ivec3> nearest_chunks_;
+
+    std::unique_ptr<RenderQuad> render_quad_;
   };
 }
 

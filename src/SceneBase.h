@@ -13,6 +13,9 @@ namespace chunklands {
     DECLARE_OBJECT_WRAP(SceneBase)
     DECLARE_OBJECT_WRAP_CB(void SetWindow)
     DECLARE_OBJECT_WRAP_CB(void SetWorld)
+
+  public:
+    virtual ~SceneBase();
   
   public:
     void Prepare();
@@ -23,12 +26,24 @@ namespace chunklands {
     void UpdateViewport(int width, int height);
 
   private:
+    void InitializeGLBuffers(int width, int height);
+    void DeleteGLBuffers();
+
+  private:
     NapiExt::PersistentObjectWrap<WindowBase> window_;
     boost::signals2::scoped_connection window_on_resize_conn_;
     boost::signals2::scoped_connection window_on_cursor_move_conn_;
     glm::ivec2 last_cursor_pos_;
 
     NapiExt::PersistentObjectWrap<WorldBase> world_;
+
+    GLuint renderbuffer_;
+    GLuint framebuffer_;
+    GLuint position_texture_;
+    GLuint normal_texture_;
+    GLuint color_texture_;
+
+    glm::ivec2 buffer_size_;
   };
 }
 

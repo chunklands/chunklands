@@ -46,11 +46,17 @@ const World           = require('./World');
   const world = new World();
   world.setChunkGenerator(chunkGenerator);
 
-  const sceneShader = await GLProgram.create({
-    vertexShader: `${__dirname}/game/shader/scene.vsh.glsl`,
-    fragmentShader: `${__dirname}/game/shader/scene.fsh.glsl`
+  const gBufferShader = await GLProgram.create({
+    vertexShader: `${__dirname}/game/shader/gbuffer.vsh.glsl`,
+    fragmentShader: `${__dirname}/game/shader/gbuffer.fsh.glsl`
   });
-  world.setShader(sceneShader);
+  world.setGBufferShader(gBufferShader);
+
+  const lightingShader = await GLProgram.create({
+    vertexShader: `${__dirname}/game/shader/lighting.vsh.glsl`,
+    fragmentShader: `${__dirname}/game/shader/lighting.fsh.glsl`
+  });
+  world.setLightingShader(lightingShader);
 
   const scene = new Scene();
   scene.setWindow(window);

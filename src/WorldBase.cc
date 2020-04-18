@@ -24,33 +24,49 @@ namespace chunklands {
 
   DEFINE_OBJECT_WRAP_DEFAULT_CTOR(WorldBase, ONE_ARG({
     InstanceMethod("setChunkGenerator", &WorldBase::SetChunkGenerator),
-    InstanceMethod("setShader", &WorldBase::SetShader)
+    InstanceMethod("setGBufferShader", &WorldBase::SetGBufferShader),
+    InstanceMethod("setLightingShader", &WorldBase::SetLightingShader),
   }))
 
   void WorldBase::SetChunkGenerator(const Napi::CallbackInfo& info) {
     chunk_generator_ = info[0].ToObject();
   }
 
-  void WorldBase::SetShader(const Napi::CallbackInfo& info) {
-    scene_ = info[0].ToObject();
+  void WorldBase::SetGBufferShader(const Napi::CallbackInfo& info) {
+    g_buffer_shader_ = info[0].ToObject();
+  }
+
+  void WorldBase::SetLightingShader(const Napi::CallbackInfo& info) {
+    lighting_shader_ = info[0].ToObject();
   }
 
   void WorldBase::Prepare() {
     PROF();
 
-    { // matrices
-      view_uniform_location_ = scene_->GetUniformLocation("u_view");
-      proj_uniform_location_ = scene_->GetUniformLocation("u_proj");
+    { // gBuffer
+      view_uniform_location_ = g_buffer_shader_->GetUniformLocation("u_view");
+      assert(view_uniform_location_ != -1);
+
+      proj_uniform_location_ = g_buffer_shader_->GetUniformLocation("u_proj");
+      assert(proj_uniform_location_ != -1);
+
+      texture_location_ = g_buffer_shader_->GetUniformLocation("u_texture");
+      assert(texture_location_ != -1);
     }
 
-    { // texture
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-      texture_location_ = scene_->GetUniformLocation("u_texture");
-    }
+    { // lighting
+      
+      position_location_ = lighting_shader_->GetUniformLocation("u_position_texture");
+      assert(position_location_ != -1);
 
-    { // positional
-      render_distance_location_ = scene_->GetUniformLocation("u_render_distance");
+      normal_location_ = lighting_shader_->GetUniformLocation("u_normal_texture");
+      assert(normal_location_ != -1);
+
+      color_location_ = lighting_shader_->GetUniformLocation("u_color_texture");\
+      assert(color_location_ != -1);
+
+      render_distance_location_ = lighting_shader_->GetUniformLocation("u_render_distance");
+      assert(render_distance_location_ != -1);
     }
 
     { // general
@@ -89,6 +105,10 @@ namespace chunklands {
 
         return glm::length(af) < glm::length(bf);
       });
+    }
+
+    { // render quad
+      render_quad_ = std::make_unique<RenderQuad>();
     }
   }
 
@@ -200,31 +220,24 @@ namespace chunklands {
     view_ = glm::lookAt(pos_, pos_ + look_center, glm::vec3(0.f, 1.f, 0.f));
   }
 
-  void WorldBase::Render(double diff) {
+  void WorldBase::RenderGBufferPass(double diff) {
     PROF();
+
+    glClearColor(0.f, 0.f, 0.f, 1.f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
 
     glm::ivec3 center_chunk_pos = glm::ivec3(pos_.x >= 0 ? pos_.x : pos_.x - Chunk::SIZE,
                                              pos_.y >= 0 ? pos_.y : pos_.y - Chunk::SIZE,
                                              pos_.z >= 0 ? pos_.z : pos_.z - Chunk::SIZE
                                             ) / (int)Chunk::SIZE;
 
-    glm::vec3 sky_color(.70f, .92f, .97f);
-    glm::vec3 underground_color(0.f, 0.f, 0.f);
-    glm::vec3 clear_color = glm::mix(underground_color, sky_color, glm::smoothstep(-30.f, 0.f, pos_.y));
-    
-    glClearColor(clear_color.r, clear_color.g, clear_color.b, 1.f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-    scene_->Use();
+    g_buffer_shader_->Use();
     glUniformMatrix4fv(view_uniform_location_, 1, GL_FALSE, glm::value_ptr(view_));
     glUniformMatrix4fv(proj_uniform_location_, 1, GL_FALSE, glm::value_ptr(proj_));
     glUniform1i(texture_location_, 0);
 
     chunk_generator_->BindTexture();
-    glUniform1f(render_distance_location_, ((float)RENDER_DISTANCE - 0.5f) * Chunk::SIZE);
 
     CHECK_GL();
 
@@ -250,6 +263,45 @@ namespace chunklands {
     std::cout << "Rendered index count: " << rendered_index_count << ", chunk count: " << rendered_chunk_count << std::endl;
 
     glUseProgram(0);
+  }
+
+  void WorldBase::RenderDeferredLightingPass(double diff, GLuint position_texture, GLuint normal_texture, GLuint color_texture) {
+    PROF();
+
+    glm::vec3 sky_color(.70f, .92f, .97f);
+    glm::vec3 underground_color(0.f, 0.f, 0.f);
+    glm::vec3 clear_color = glm::mix(underground_color, sky_color, glm::smoothstep(-30.f, 0.f, pos_.y));
+    
+    // glClearColor(clear_color.r, clear_color.g, clear_color.b, 1.f);
+    // glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glClearColor(0.f, 0.f, 0.f, 1.f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    // glEnable(GL_BLEND);
+    // glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    lighting_shader_->Use();
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, position_texture);
+
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, normal_texture);
+
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_2D, color_texture);
+
+    glUniform1i(position_location_, 0);
+    glUniform1i(normal_location_, 1);
+    glUniform1i(color_location_, 2);
+    glUniform1f(render_distance_location_, ((float)RENDER_DISTANCE - 0.5f) * Chunk::SIZE);
+
+    CHECK_GL();
+
+    render_quad_->Render();
+    glUseProgram(0);
+
+    CHECK_GL();
   }
 
   void WorldBase::UpdateViewportRatio(int width, int height) {
