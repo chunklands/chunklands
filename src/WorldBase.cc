@@ -27,6 +27,7 @@ namespace chunklands {
     InstanceMethod("setGBufferShader", &WorldBase::SetGBufferShader),
     InstanceMethod("setLightingShader", &WorldBase::SetLightingShader),
     InstanceMethod("setSkyboxShader", &WorldBase::SetSkyboxShader),
+    InstanceMethod("setSkybox", &WorldBase::SetSkybox),
   }))
 
   void WorldBase::SetChunkGenerator(const Napi::CallbackInfo& info) {
@@ -43,6 +44,10 @@ namespace chunklands {
 
   void WorldBase::SetSkyboxShader(const Napi::CallbackInfo& info) {
     skybox_shader_ = info[0].ToObject();
+  }
+
+  void WorldBase::SetSkybox(const Napi::CallbackInfo& info) {
+    skybox_ = info[0].ToObject();
   }
 
   void WorldBase::Prepare() {
@@ -75,14 +80,14 @@ namespace chunklands {
     }
 
     { // skybox
-      // skybox_uniforms_.proj = skybox_shader_->GetUniformLocation("u_proj");
-      // assert(skybox_uniforms_.proj != -1);
+      skybox_uniforms_.proj = skybox_shader_->GetUniformLocation("u_proj");
+      assert(skybox_uniforms_.proj != -1);
 
-      // skybox_uniforms_.view = skybox_shader_->GetUniformLocation("u_view");
-      // assert(skybox_uniforms_.view != -1);
+      skybox_uniforms_.view = skybox_shader_->GetUniformLocation("u_view");
+      assert(skybox_uniforms_.view != -1);
 
-      // skybox_uniforms_.skybox = skybox_shader_->GetUniformLocation("u_skybox");
-      // assert(skybox_uniforms_.skybox != -1);
+      skybox_uniforms_.skybox = skybox_shader_->GetUniformLocation("u_skybox");
+      assert(skybox_uniforms_.skybox != -1);
     }
 
     { // general
@@ -233,26 +238,40 @@ namespace chunklands {
     glm::vec3 look_center(-sinf(look_.x) * cosf(look_.y),
                           sinf(look_.y),
                           -cosf(look_.x) * cosf(look_.y));
-    view_ = glm::lookAt(pos_, pos_ + look_center, glm::vec3(0.f, 1.f, 0.f));
+
+    view_        = glm::lookAt(pos_, pos_ + look_center, glm::vec3(0.f, 1.f, 0.f));
+    view_skybox_ = glm::lookAt(glm::vec3(0, 0, 0), look_center, glm::vec3(0.f, 1.f, 0.f));
   }
 
   void WorldBase::RenderSkybox(double diff) {
     PROF();
+    CHECK_GL();
+
+    glDisable(GL_CULL_FACE);
 
     glDepthFunc(GL_LEQUAL);
+    CHECK_GL_HERE();
     skybox_shader_->Use();
 
+    CHECK_GL_HERE();
     glUniformMatrix4fv(skybox_uniforms_.proj, 1, GL_FALSE, glm::value_ptr(proj_));
-    glUniformMatrix4fv(skybox_uniforms_.view, 1, GL_FALSE, glm::value_ptr(view_));
+    CHECK_GL_HERE();
+    glUniformMatrix4fv(skybox_uniforms_.view, 1, GL_FALSE, glm::value_ptr(view_skybox_));
+    CHECK_GL_HERE();
     glUniform1i(skybox_uniforms_.skybox, 0);
-
-    // skybox->Render();
-
+    CHECK_GL_HERE();
+    skybox_->Render();
+    CHECK_GL_HERE();
+    glUseProgram(0);
+    CHECK_GL_HERE();
     glDepthFunc(GL_LESS);
+    CHECK_GL_HERE();
+    glEnable(GL_CULL_FACE);
   }
 
   void WorldBase::RenderGBufferPass(double diff) {
     PROF();
+    CHECK_GL();
 
     glClearColor(0.f, 0.f, 0.f, 1.f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -268,8 +287,6 @@ namespace chunklands {
     glUniform1i(g_buffer_uniforms_.texture, 0);
 
     chunk_generator_->BindTexture();
-
-    CHECK_GL();
 
     // map render all chunks
     unsigned rendered_index_count = 0;
@@ -302,36 +319,40 @@ namespace chunklands {
     glm::vec3 underground_color(0.f, 0.f, 0.f);
     glm::vec3 clear_color = glm::mix(underground_color, sky_color, glm::smoothstep(-30.f, 0.f, pos_.y));
     
-    // glClearColor(clear_color.r, clear_color.g, clear_color.b, 1.f);
-    // glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glClearColor(0.f, 0.f, 0.f, 1.f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    {
+      CHECK_GL();
 
-    // glEnable(GL_BLEND);
-    // glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+      // glClearColor(clear_color.r, clear_color.g, clear_color.b, 1.f);
+      // glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+      glClearColor(0.f, 0.f, 0.f, 1.f);
+      glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    lighting_shader_->Use();
+      // glEnable(GL_BLEND);
+      // glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, position_texture);
+      lighting_shader_->Use();
 
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, normal_texture);
+      glActiveTexture(GL_TEXTURE0);
+      glBindTexture(GL_TEXTURE_2D, position_texture);
 
-    glActiveTexture(GL_TEXTURE2);
-    glBindTexture(GL_TEXTURE_2D, color_texture);
+      glActiveTexture(GL_TEXTURE1);
+      glBindTexture(GL_TEXTURE_2D, normal_texture);
 
-    glUniform1i(lighting_uniforms_.position, 0);
-    glUniform1i(lighting_uniforms_.normal, 1);
-    glUniform1i(lighting_uniforms_.color, 2);
-    glUniform1f(lighting_uniforms_.render_distance, ((float)RENDER_DISTANCE - 0.5f) * Chunk::SIZE);
+      glActiveTexture(GL_TEXTURE2);
+      glBindTexture(GL_TEXTURE_2D, color_texture);
 
-    CHECK_GL();
+      glUniform1i(lighting_uniforms_.position, 0);
+      glUniform1i(lighting_uniforms_.normal, 1);
+      glUniform1i(lighting_uniforms_.color, 2);
+      glUniform1f(lighting_uniforms_.render_distance, ((float)RENDER_DISTANCE - 0.5f) * Chunk::SIZE);
+    }
+    
+    {
+      CHECK_GL();
+      render_quad_->Render();
+      glUseProgram(0);
+    }
 
-    render_quad_->Render();
-    glUseProgram(0);
-
-    CHECK_GL();
   }
 
   void WorldBase::UpdateViewportRatio(int width, int height) {

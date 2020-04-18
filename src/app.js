@@ -8,6 +8,7 @@ const Scene           = require('./Scene');
 const SimpleWorldGen  = require('./game/world/SimpleWorldGen');
 const Window          = require('./Window');
 const World           = require('./World');
+const Skybox          = require('./Skybox');
 
 (async () => {
 
@@ -57,6 +58,16 @@ const World           = require('./World');
     fragmentShader: `${__dirname}/game/shader/lighting.fsh.glsl`
   });
   world.setLightingShader(lightingShader);
+
+  const skyboxShader = await GLProgram.create({
+    vertexShader: `${__dirname}/game/shader/skybox.vsh.glsl`,
+    fragmentShader: `${__dirname}/game/shader/skybox.fsh.glsl`
+  });
+  world.setSkyboxShader(skyboxShader);
+
+  const skybox = new Skybox();
+  skybox.initialize(`${__dirname}/game/skyboxes/skyboxsun5deg2/`);
+  world.setSkybox(skybox);
 
   const scene = new Scene();
   scene.setWindow(window);

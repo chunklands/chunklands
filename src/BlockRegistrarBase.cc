@@ -89,8 +89,6 @@ namespace chunklands {
 
     auto&& filepath = info[0].ToString().Utf8Value();
     texture_.LoadTexture(filepath.c_str());
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
   }
 
   BlockDefinition* BlockRegistrarBase::GetByIndex(int index) {

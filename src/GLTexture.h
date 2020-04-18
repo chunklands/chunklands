@@ -2,8 +2,11 @@
 #define __CHUNKLANDS_GLTEXTURE_H__
 
 #include <string>
+#include <memory>
 
 #include "gl.h"
+#include "stb.h"
+
 
 namespace chunklands {
   class GLTexture {

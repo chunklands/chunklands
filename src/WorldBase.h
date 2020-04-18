@@ -15,6 +15,7 @@
 #include "napi/PersistentObjectWrap.h"
 #include "GLProgramBase.h"
 #include "RenderQuad.h"
+#include "SkyboxBase.h"
 
 namespace chunklands {
 
@@ -24,6 +25,7 @@ namespace chunklands {
     DECLARE_OBJECT_WRAP_CB(void SetGBufferShader)
     DECLARE_OBJECT_WRAP_CB(void SetLightingShader)
     DECLARE_OBJECT_WRAP_CB(void SetSkyboxShader)
+    DECLARE_OBJECT_WRAP_CB(void SetSkybox)
 
   private:
     struct ivec3_hasher {
@@ -60,6 +62,8 @@ namespace chunklands {
     NapiExt::PersistentObjectWrap<GLProgramBase> lighting_shader_;
     NapiExt::PersistentObjectWrap<GLProgramBase> skybox_shader_;
 
+    NapiExt::PersistentObjectWrap<SkyboxBase> skybox_;
+
     std::unordered_map<glm::ivec3, std::shared_ptr<Chunk>, ivec3_hasher> chunk_map_;
 
     glm::vec3 pos_ = glm::vec3(8.f, 0.7f, 60.f);
@@ -67,6 +71,8 @@ namespace chunklands {
 
     glm::mat4 view_;
     glm::mat4 proj_;
+
+    glm::mat4 view_skybox_;
 
     std::vector<glm::ivec3> nearest_chunks_;
 

@@ -77,11 +77,7 @@ namespace chunklands {
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (void *)0);
 
     assert(info[0].IsString());
-
-    auto&& filepath = info[0].ToString().Utf8Value();
-    texture_.LoadTexture(filepath.c_str());
-
-    // TODO FILTER
+    texture_.LoadTexture(info[0].ToString().Utf8Value());
   }
 
   void SkyboxBase::Render() {

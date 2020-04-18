@@ -101,6 +101,10 @@ namespace chunklands {
       world_->RenderDeferredLightingPass(diff, position_texture_, normal_texture_, color_texture_);
     }
 
+    { // skybox
+      world_->RenderSkybox(diff);
+    }
+
     glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer_);
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 

@@ -9,6 +9,8 @@ namespace chunklands {
     std::string vsh_src = info[0].ToString();
     std::string fsh_src = info[1].ToString();
 
+    CHECK_GL();
+
     { // vertex shader
       vsh_ = glCreateShader(GL_VERTEX_SHADER);
       const char* src = vsh_src.c_str();

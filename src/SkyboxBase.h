@@ -5,7 +5,7 @@
 #include "napi/object_wrap_util.h"
 
 #include "gl.h"
-#include "GLTexture.h"
+#include "GLSkyboxTexture.h"
 
 namespace chunklands {
   class SkyboxBase : public Napi::ObjectWrap<SkyboxBase> {
@@ -22,7 +22,7 @@ namespace chunklands {
     GLuint vao_ = 0;
     GLuint vbo_ = 0;
 
-    GLTexture texture_;
+    GLSkyboxTexture texture_;
   };
 }
 

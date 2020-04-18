@@ -97,3 +97,9 @@
 [submodule "deps/boost_system"]
 	path = deps/boost_system
 	url = https://github.com/boostorg/system
+[submodule "deps/boost_stacktrace"]
+	path = deps/boost_stacktrace
+	url = https://github.com/boostorg/stacktrace
+[submodule "deps/boost_array"]
+	path = deps/boost_array
+	url = https://github.com/boostorg/array

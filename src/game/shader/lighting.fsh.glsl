@@ -40,6 +40,11 @@ void main() {
   vec3 g_normal   = texture(u_normal_texture, frag_uv).xyz;
   vec4 g_color    = texture(u_color_texture, frag_uv);
 
+  if (g_normal == vec3(0, 0, 0)) {
+    discard;
+    return;
+  }
+
   color = g_color + 0.0000000000001 * u_render_distance;
 
   luminate(g_normal);
