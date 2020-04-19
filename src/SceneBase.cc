@@ -1,5 +1,8 @@
 #include "SceneBase.h"
 
+#include <random>
+#include <glm/geometric.hpp>
+
 namespace chunklands {
   DEFINE_OBJECT_WRAP_DEFAULT_CTOR(SceneBase, ONE_ARG({
     InstanceMethod("setWindow", &SceneBase::SetWindow),
@@ -87,29 +90,40 @@ namespace chunklands {
   }
 
   void SceneBase::Render(double diff) {
+    CHECK_GL();
 
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     { // g-buffer pass
-      glBindFramebuffer(GL_FRAMEBUFFER, framebuffer_);
+      CHECK_GL_HERE();
+      glBindFramebuffer(GL_FRAMEBUFFER, g_buffer_.framebuffer);
       world_->RenderGBufferPass(diff);
       glBindFramebuffer(GL_FRAMEBUFFER, 0);
+      CHECK_GL_HERE();
+    }
+
+    {
+      CHECK_GL_HERE();
+      glBindFramebuffer(GL_FRAMEBUFFER, ssao_.framebuffer);
+      world_->RenderSSAOPass(diff, g_buffer_.position_texture, g_buffer_.normal_texture, ssao_.noise_texture);
+      glBindFramebuffer(GL_FRAMEBUFFER, 0);
+      CHECK_GL_HERE();
     }
 
     { // deferred lighting pass
-      world_->RenderDeferredLightingPass(diff, position_texture_, normal_texture_, color_texture_);
+      world_->RenderDeferredLightingPass(diff, g_buffer_.position_texture, g_buffer_.normal_texture, g_buffer_.color_texture, ssao_.color_texture);
     }
 
     { // skybox
       world_->RenderSkybox(diff);
     }
 
-    glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer_);
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+    // glBindFramebuffer(GL_READ_FRAMEBUFFER, g_buffer_.framebuffer);
+    // glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 
-    glBlitFramebuffer(0, 0, buffer_size_.x, buffer_size_.y, 0, 0, buffer_size_.x, buffer_size_.y, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    // glBlitFramebuffer(0, 0, buffer_size_.x, buffer_size_.y, 0, 0, buffer_size_.x, buffer_size_.y, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+    // glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     window_->SwapBuffers();
   }
@@ -134,71 +148,110 @@ namespace chunklands {
   }
   
   void SceneBase::InitializeGLBuffers(int width, int height) {
-
+    
     buffer_size_.x = width;
     buffer_size_.y = height;
 
-    glGenFramebuffers(1, &framebuffer_);
-    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer_);
+    { // gBuffer
+      glGenFramebuffers(1, &g_buffer_.framebuffer);
+      glBindFramebuffer(GL_FRAMEBUFFER, g_buffer_.framebuffer);
 
-    glGenTextures(1, &position_texture_);
-    glBindTexture(GL_TEXTURE_2D, position_texture_);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, width, height, 0, GL_RGB, GL_FLOAT, nullptr);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, position_texture_, 0);
+      glGenTextures(1, &g_buffer_.position_texture);
+      glBindTexture(GL_TEXTURE_2D, g_buffer_.position_texture);
+      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, width, height, 0, GL_RGB, GL_FLOAT, nullptr);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+      glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, g_buffer_.position_texture, 0);
 
-    glGenTextures(1, &normal_texture_);
-    glBindTexture(GL_TEXTURE_2D, normal_texture_);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, width, height, 0, GL_RGB, GL_FLOAT, nullptr);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, normal_texture_, 0);
+      glGenTextures(1, &g_buffer_.normal_texture);
+      glBindTexture(GL_TEXTURE_2D, g_buffer_.normal_texture);
+      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, width, height, 0, GL_RGB, GL_FLOAT, nullptr);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+      glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, g_buffer_.normal_texture, 0);
 
-    glGenTextures(1, &color_texture_);
-    glBindTexture(GL_TEXTURE_2D, color_texture_);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, color_texture_, 0);
+      glGenTextures(1, &g_buffer_.color_texture);
+      glBindTexture(GL_TEXTURE_2D, g_buffer_.color_texture);
+      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+      glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, g_buffer_.color_texture, 0);
 
-    const GLuint attachments[3] = {
-      GL_COLOR_ATTACHMENT0,
-      GL_COLOR_ATTACHMENT1,
-      GL_COLOR_ATTACHMENT2
-    };
+      const GLuint attachments[3] = {
+        GL_COLOR_ATTACHMENT0,
+        GL_COLOR_ATTACHMENT1,
+        GL_COLOR_ATTACHMENT2
+      };
 
-    glDrawBuffers(3, attachments);
+      glDrawBuffers(3, attachments);
 
-    glGenRenderbuffers(1, &renderbuffer_);
-    glBindRenderbuffer(GL_RENDERBUFFER, renderbuffer_);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width, height);
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, renderbuffer_);
+      glGenRenderbuffers(1, &g_buffer_.renderbuffer);
+      glBindRenderbuffer(GL_RENDERBUFFER, g_buffer_.renderbuffer);
+      glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width, height);
+      glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, g_buffer_.renderbuffer);
 
-    assert(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE);
+      assert(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE);
 
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+      glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    }
+
+    { // initialize SSAO
+      glGenFramebuffers(1, &ssao_.framebuffer);
+      glBindFramebuffer(GL_FRAMEBUFFER, ssao_.framebuffer);
+
+      glGenTextures(1, &ssao_.color_texture);
+      glBindTexture(GL_TEXTURE_2D, ssao_.color_texture);
+      glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, width, height, 0, GL_RED, GL_FLOAT, nullptr);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+      glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ssao_.color_texture, 0);
+      
+      assert(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE);
+
+      glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+      std::uniform_real_distribution<GLfloat> random_floats(0.f, 1.f);
+      std::default_random_engine generator;
+
+      std::array<glm::vec3, 16> ssao_noise;
+      for (int i = 0; i < 16; i++) {
+        glm::vec3 noise(
+          random_floats(generator) * 2.f - 1.f,
+          random_floats(generator) * 2.f - 1.f,
+          0.f
+        );
+        ssao_noise[i] = std::move(noise);
+      }
+
+      glGenTextures(1, &ssao_.noise_texture);
+      glBindTexture(GL_TEXTURE_2D, ssao_.noise_texture);
+      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, 4, 4, 0, GL_RGB, GL_FLOAT, ssao_noise.data());
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    }
   }
 
   void SceneBase::DeleteGLBuffers() {
-    if (position_texture_ != 0) {
-      glDeleteTextures(1, &position_texture_);
-      position_texture_ = 0;
+    if (g_buffer_.position_texture != 0) {
+      glDeleteTextures(1, &g_buffer_.position_texture);
+      g_buffer_.position_texture = 0;
     }
 
-    if (normal_texture_ != 0) {
-      glDeleteTextures(1, &normal_texture_);
-      normal_texture_ = 0;
+    if (g_buffer_.normal_texture != 0) {
+      glDeleteTextures(1, &g_buffer_.normal_texture);
+      g_buffer_.normal_texture = 0;
     }
 
-    if (color_texture_ != 0) {
-      glDeleteTextures(1, &color_texture_);
-      color_texture_ = 0;
+    if (g_buffer_.color_texture != 0) {
+      glDeleteTextures(1, &g_buffer_.color_texture);
+      g_buffer_.color_texture = 0;
     }
 
-    if (framebuffer_ != 0) {
-      glDeleteFramebuffers(1, &framebuffer_);
-      framebuffer_ = 0;
+    if (g_buffer_.framebuffer != 0) {
+      glDeleteFramebuffers(1, &g_buffer_.framebuffer);
+      g_buffer_.framebuffer = 0;
     }
   }
 }

@@ -1,10 +1,14 @@
 #include "WorldBase.h"
 
 #include <algorithm>
+#include <random>
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/vector_relational.hpp>
+
+#define  GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/compatibility.hpp>
 
 #include "log.h"
 #include "prof.h"
@@ -25,6 +29,7 @@ namespace chunklands {
   DEFINE_OBJECT_WRAP_DEFAULT_CTOR(WorldBase, ONE_ARG({
     InstanceMethod("setChunkGenerator", &WorldBase::SetChunkGenerator),
     InstanceMethod("setGBufferShader", &WorldBase::SetGBufferShader),
+    InstanceMethod("setSSAOShader", &WorldBase::SetSSAOShader),
     InstanceMethod("setLightingShader", &WorldBase::SetLightingShader),
     InstanceMethod("setSkyboxShader", &WorldBase::SetSkyboxShader),
     InstanceMethod("setSkybox", &WorldBase::SetSkybox),
@@ -36,6 +41,10 @@ namespace chunklands {
 
   void WorldBase::SetGBufferShader(const Napi::CallbackInfo& info) {
     g_buffer_shader_ = info[0].ToObject();
+  }
+
+  void WorldBase::SetSSAOShader(const Napi::CallbackInfo& info) {
+    ssao_shader_ = info[0].ToObject();
   }
 
   void WorldBase::SetLightingShader(const Napi::CallbackInfo& info) {
@@ -52,6 +61,7 @@ namespace chunklands {
 
   void WorldBase::Prepare() {
     PROF();
+    CHECK_GL();
 
     { // gBuffer
       g_buffer_uniforms_.view = g_buffer_shader_->GetUniformLocation("u_view");
@@ -64,6 +74,52 @@ namespace chunklands {
       assert(g_buffer_uniforms_.texture != -1);
     }
 
+    CHECK_GL_HERE();
+
+    { // ssao
+
+      ssao_uniforms_.proj     = ssao_shader_->GetUniformLocation("u_proj");
+      assert(ssao_uniforms_.proj != -1);
+
+      ssao_uniforms_.position = ssao_shader_->GetUniformLocation("u_position");
+      assert(ssao_uniforms_.position != -1);
+
+      ssao_uniforms_.normal   = ssao_shader_->GetUniformLocation("u_normal");
+      assert(ssao_uniforms_.normal != -1);
+
+      ssao_uniforms_.noise    = ssao_shader_->GetUniformLocation("u_noise");
+      assert(ssao_uniforms_.noise != -1);
+
+      ssao_shader_->Use();
+
+      std::uniform_real_distribution<GLfloat> random_floats(0.f, 1.f);
+      std::default_random_engine generator;
+      for (int i = 0; i < 64; i++) {
+        glm::vec3 sample(
+          random_floats(generator) * 2.f - 1.f,
+          random_floats(generator) * 2.f - 1.f,
+          random_floats(generator)
+        );
+
+        sample = glm::normalize(sample);
+        sample *= random_floats(generator);
+        float scale = float(i) / 64.f;
+
+        scale = glm::lerp(.1f, 1.f, scale * scale);
+        sample *= scale;
+
+        std::string uniform = std::string("u_samples[") + std::to_string(i) + "]";
+        std::cout << "uniform: " << uniform << std::endl;
+        GLint location = ssao_shader_->GetUniformLocation(uniform.c_str());
+        assert(location != -1);
+        glUniform3fv(location, 1, glm::value_ptr(sample));
+      }
+
+      glUseProgram(0);
+    }
+
+    CHECK_GL_HERE();
+
     { // lighting
       
       lighting_uniforms_.position = lighting_shader_->GetUniformLocation("u_position_texture");
@@ -72,12 +128,20 @@ namespace chunklands {
       lighting_uniforms_.normal = lighting_shader_->GetUniformLocation("u_normal_texture");
       assert(lighting_uniforms_.normal != -1);
 
-      lighting_uniforms_.color = lighting_shader_->GetUniformLocation("u_color_texture");\
+      lighting_uniforms_.color = lighting_shader_->GetUniformLocation("u_color_texture");
       assert(lighting_uniforms_.color != -1);
+
+      lighting_uniforms_.ssao = lighting_shader_->GetUniformLocation("u_ssao_texture");
+      assert(lighting_uniforms_.ssao != -1);
 
       lighting_uniforms_.render_distance = lighting_shader_->GetUniformLocation("u_render_distance");
       assert(lighting_uniforms_.render_distance != -1);
+
+      lighting_uniforms_.sun_position = lighting_shader_->GetUniformLocation("u_sun_position");
+      assert(lighting_uniforms_.sun_position != -1);
     }
+
+    CHECK_GL_HERE();
 
     { // skybox
       skybox_uniforms_.proj = skybox_shader_->GetUniformLocation("u_proj");
@@ -90,6 +154,8 @@ namespace chunklands {
       assert(skybox_uniforms_.skybox != -1);
     }
 
+    CHECK_GL_HERE();
+
     { // general
 
       // depth test
@@ -100,6 +166,8 @@ namespace chunklands {
       glCullFace(GL_FRONT);
       glFrontFace(GL_CCW);
     }
+
+    CHECK_GL_HERE();
 
     { // calculate nearest chunks
       nearest_chunks_.clear();
@@ -312,7 +380,33 @@ namespace chunklands {
     glUseProgram(0);
   }
 
-  void WorldBase::RenderDeferredLightingPass(double diff, GLuint position_texture, GLuint normal_texture, GLuint color_texture) {
+  void WorldBase::RenderSSAOPass(double diff, GLuint position_texture, GLuint normal_texture, GLuint noise_texture) {
+    PROF();
+    CHECK_GL();
+
+    glClearColor(0.f, 0.f, 0.f, 1.0);
+    glClear(GL_COLOR_BUFFER_BIT);
+    ssao_shader_->Use();
+    glUniformMatrix4fv(ssao_uniforms_.proj, 1, GL_FALSE, glm::value_ptr(proj_));
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, position_texture);
+    glUniform1i(ssao_uniforms_.position, 0);
+
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, normal_texture);
+    glUniform1i(ssao_uniforms_.normal, 1);
+
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_2D, noise_texture);
+    glUniform1i(ssao_uniforms_.noise, 2);
+    
+    render_quad_->Render();
+
+    glUseProgram(0);
+  }
+
+  void WorldBase::RenderDeferredLightingPass(double diff, GLuint position_texture, GLuint normal_texture, GLuint color_texture, GLuint ssao_texture) {
     PROF();
 
     glm::vec3 sky_color(.70f, .92f, .97f);
@@ -341,10 +435,17 @@ namespace chunklands {
       glActiveTexture(GL_TEXTURE2);
       glBindTexture(GL_TEXTURE_2D, color_texture);
 
+      glActiveTexture(GL_TEXTURE3);
+      glBindTexture(GL_TEXTURE_2D, ssao_texture);
+
       glUniform1i(lighting_uniforms_.position, 0);
       glUniform1i(lighting_uniforms_.normal, 1);
       glUniform1i(lighting_uniforms_.color, 2);
+      glUniform1i(lighting_uniforms_.ssao, 3);
       glUniform1f(lighting_uniforms_.render_distance, ((float)RENDER_DISTANCE - 0.5f) * Chunk::SIZE);
+
+      glm::vec3 sun_position = glm::normalize(glm::mat3(view_) * glm::vec3(-3, 1, 3));
+      glUniform3fv(lighting_uniforms_.sun_position, 1, glm::value_ptr(sun_position));
     }
     
     {

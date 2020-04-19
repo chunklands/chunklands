@@ -37,13 +37,21 @@ namespace chunklands {
 
     NapiExt::PersistentObjectWrap<WorldBase> world_;
 
-    GLuint renderbuffer_;
-    GLuint framebuffer_;
-    GLuint position_texture_;
-    GLuint normal_texture_;
-    GLuint color_texture_;
-
     glm::ivec2 buffer_size_;
+
+    struct {
+      GLuint renderbuffer     = 0;
+      GLuint framebuffer      = 0;
+      GLuint position_texture = 0;
+      GLuint normal_texture   = 0;
+      GLuint color_texture    = 0;
+    } g_buffer_;
+
+    struct {
+      GLuint framebuffer   = 0;
+      GLuint color_texture = 0;
+      GLuint noise_texture = 0;
+    } ssao_;
   };
 }
 

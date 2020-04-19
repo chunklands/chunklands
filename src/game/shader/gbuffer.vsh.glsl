@@ -12,11 +12,12 @@ layout (location = 2) in  vec2 uv;
 uniform mat4 u_view;
 uniform mat4 u_proj;
 
-void main()
-{
-  frag_position = position;
-  frag_normal = normal;
+void main() {
+  vec4 pos = u_view * vec4(position, 1.f);
+  frag_position = pos.xyz;
   frag_uv = uv;
 
-  gl_Position = u_proj * u_view * vec4(position, 1);
+  mat3 normal_matrix = transpose(inverse(mat3(u_view)));
+  frag_normal = normal_matrix * normal;
+  gl_Position = u_proj * pos;
 }

@@ -53,6 +53,12 @@ const Skybox          = require('./Skybox');
   });
   world.setGBufferShader(gBufferShader);
 
+  const ssaoShader = await GLProgram.create({
+    vertexShader: `${__dirname}/game/shader/ssao.vsh.glsl`,
+    fragmentShader: `${__dirname}/game/shader/ssao.fsh.glsl`
+  });
+  world.setSSAOShader(ssaoShader);
+
   const lightingShader = await GLProgram.create({
     vertexShader: `${__dirname}/game/shader/lighting.vsh.glsl`,
     fragmentShader: `${__dirname}/game/shader/lighting.fsh.glsl`

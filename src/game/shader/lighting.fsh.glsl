@@ -8,19 +8,20 @@ in  vec2 frag_uv;
 uniform sampler2D u_position_texture;
 uniform sampler2D u_normal_texture;
 uniform sampler2D u_color_texture;
+uniform sampler2D u_ssao_texture;
 uniform float     u_render_distance;
+uniform vec3      u_sun_position;
 
-const vec3  light_dir         = normalize(vec3(-5, 2, 5));
 const vec3  fog_color         = vec3(.2f, .2f, .2f);
 const float darkness_division = .1f;
 
 const float sun = .9f;
-const float ambient = .3f;
+const float ambient = .6f;
 const float diffuse = sun * (1.f - ambient);
 
-void luminate(vec3 normal) {
-  vec4 tex_ambient = color * ambient;
-  vec4 tex_diffuse = color * diffuse * max(dot(normal, light_dir), 0.f);
+void luminate(vec3 normal, float occlusion) {
+  vec4 tex_ambient = color * ambient * occlusion * occlusion;
+  vec4 tex_diffuse = color * diffuse * max(dot(normal, u_sun_position), 0.f);
 
   color = tex_ambient + tex_diffuse;
 }
@@ -39,15 +40,18 @@ void main() {
   vec3 g_position = texture(u_position_texture, frag_uv).xyz;
   vec3 g_normal   = texture(u_normal_texture, frag_uv).xyz;
   vec4 g_color    = texture(u_color_texture, frag_uv);
+  float ssao_occlusion = texture(u_ssao_texture, frag_uv).r;
 
   if (g_normal == vec3(0, 0, 0)) {
     discard;
     return;
   }
 
-  color = g_color + 0.0000000000001 * u_render_distance;
+  color = vec4(g_position, 1) * 0.00000000001 + g_color + 0.0000000000001 * u_render_distance;
 
-  luminate(g_normal);
-  add_fog(g_position);
-  add_darkness(g_position);
+  luminate(g_normal, ssao_occlusion);
+  // add_fog(g_position);
+  // add_darkness(g_position);
+
+  // color = vec4(vec3(ssao_occlusion), 1.f) + 0.0000000000000001 * color;
 }

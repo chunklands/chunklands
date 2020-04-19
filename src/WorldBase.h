@@ -23,6 +23,7 @@ namespace chunklands {
     DECLARE_OBJECT_WRAP(WorldBase)
     DECLARE_OBJECT_WRAP_CB(void SetChunkGenerator)
     DECLARE_OBJECT_WRAP_CB(void SetGBufferShader)
+    DECLARE_OBJECT_WRAP_CB(void SetSSAOShader)
     DECLARE_OBJECT_WRAP_CB(void SetLightingShader)
     DECLARE_OBJECT_WRAP_CB(void SetSkyboxShader)
     DECLARE_OBJECT_WRAP_CB(void SetSkybox)
@@ -42,9 +43,10 @@ namespace chunklands {
   public:
     void Prepare();
     void Update(double diff);
-    void RenderSkybox(double diff);
     void RenderGBufferPass(double diff);
-    void RenderDeferredLightingPass(double diff, GLuint position_texture, GLuint normal_texture, GLuint color_texture);
+    void RenderSSAOPass(double diff, GLuint position_texture, GLuint normal_texture, GLuint noise_texture);
+    void RenderDeferredLightingPass(double diff, GLuint position_texture, GLuint normal_texture, GLuint color_texture, GLuint ssao_texture);
+    void RenderSkybox(double diff);
 
     void UpdateViewportRatio(int width, int height);
 
@@ -59,6 +61,7 @@ namespace chunklands {
 
     NapiExt::PersistentObjectWrap<ChunkGeneratorBase> chunk_generator_;
     NapiExt::PersistentObjectWrap<GLProgramBase> g_buffer_shader_;
+    NapiExt::PersistentObjectWrap<GLProgramBase> ssao_shader_;
     NapiExt::PersistentObjectWrap<GLProgramBase> lighting_shader_;
     NapiExt::PersistentObjectWrap<GLProgramBase> skybox_shader_;
 
@@ -83,10 +86,19 @@ namespace chunklands {
     } g_buffer_uniforms_;
 
     struct {
+      GLint proj     = -1;
+      GLint position = -1;
+      GLint normal   = -1;
+      GLint noise    = -1;
+    } ssao_uniforms_;
+
+    struct {
       GLint position        = -1;
       GLint normal          = -1;
       GLint color           = -1;
+      GLint ssao            = -1;
       GLint render_distance = -1;
+      GLint sun_position    = -1;
     } lighting_uniforms_;
 
     struct {
