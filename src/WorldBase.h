@@ -16,6 +16,7 @@
 #include "GLProgramBase.h"
 #include "RenderQuad.h"
 #include "SkyboxBase.h"
+#include "GBufferPass.h"
 
 namespace chunklands {
 
@@ -62,7 +63,7 @@ namespace chunklands {
   private:
 
     NapiExt::PersistentObjectWrap<ChunkGeneratorBase> chunk_generator_;
-    NapiExt::PersistentObjectWrap<GLProgramBase> g_buffer_shader_;
+    GBufferPass g_buffer_pass;
     NapiExt::PersistentObjectWrap<GLProgramBase> ssao_shader_;
     NapiExt::PersistentObjectWrap<GLProgramBase> lighting_shader_;
     NapiExt::PersistentObjectWrap<GLProgramBase> skybox_shader_;

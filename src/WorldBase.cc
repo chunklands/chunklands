@@ -28,12 +28,12 @@ namespace chunklands {
 
   DEFINE_OBJECT_WRAP_DEFAULT_CTOR(WorldBase, ONE_ARG({
     InstanceMethod("setChunkGenerator", &WorldBase::SetChunkGenerator),
-    InstanceMethod("setGBufferShader", &WorldBase::SetGBufferShader),
-    InstanceMethod("setSSAOShader", &WorldBase::SetSSAOShader),
+    InstanceMethod("setGBufferShader",  &WorldBase::SetGBufferShader),
+    InstanceMethod("setSSAOShader",     &WorldBase::SetSSAOShader),
     InstanceMethod("setSSAOBlurShader", &WorldBase::SetSSAOBlurShader),
     InstanceMethod("setLightingShader", &WorldBase::SetLightingShader),
-    InstanceMethod("setSkyboxShader", &WorldBase::SetSkyboxShader),
-    InstanceMethod("setSkybox", &WorldBase::SetSkybox),
+    InstanceMethod("setSkyboxShader",   &WorldBase::SetSkyboxShader),
+    InstanceMethod("setSkybox",         &WorldBase::SetSkybox),
   }))
 
   void WorldBase::SetChunkGenerator(const Napi::CallbackInfo& info) {
@@ -41,7 +41,7 @@ namespace chunklands {
   }
 
   void WorldBase::SetGBufferShader(const Napi::CallbackInfo& info) {
-    g_buffer_shader_ = info[0].ToObject();
+    g_buffer_pass.SetProgram(info[0]);
   }
 
   void WorldBase::SetSSAOShader(const Napi::CallbackInfo& info) {
@@ -67,14 +67,6 @@ namespace chunklands {
   void WorldBase::Prepare() {
     PROF();
     CHECK_GL();
-
-    { // gBuffer
-      g_buffer_uniforms_.view    = g_buffer_shader_->GetUniformLocation("u_view");
-      g_buffer_uniforms_.proj    = g_buffer_shader_->GetUniformLocation("u_proj");
-      g_buffer_uniforms_.texture = g_buffer_shader_->GetUniformLocation("u_texture");
-    }
-
-    CHECK_GL_HERE();
 
     { // ssao
 
@@ -324,11 +316,12 @@ namespace chunklands {
                                              pos_.z >= 0 ? pos_.z : pos_.z - Chunk::SIZE
                                             ) / (int)Chunk::SIZE;
 
-    g_buffer_shader_->Use();
-    glUniformMatrix4fv(g_buffer_uniforms_.proj, 1, GL_FALSE, glm::value_ptr(proj_));
-    glUniformMatrix4fv(g_buffer_uniforms_.view, 1, GL_FALSE, glm::value_ptr(view_));
-    glUniform1i(g_buffer_uniforms_.texture, 0);
+    g_buffer_pass.Begin();
 
+    g_buffer_pass.UpdateProjection(proj_);
+    g_buffer_pass.UpdateView(view_);
+
+    // TODO(daaitch): should be set by g_buffer_pass
     chunk_generator_->BindTexture();
 
     // map render all chunks
@@ -352,7 +345,7 @@ namespace chunklands {
 
     std::cout << "Rendered index count: " << rendered_index_count << ", chunk count: " << rendered_chunk_count << std::endl;
 
-    g_buffer_shader_->Unuse();
+    g_buffer_pass.End();
   }
 
   void WorldBase::RenderSSAOPass(double diff, GLuint position_texture, GLuint normal_texture, GLuint noise_texture) {
