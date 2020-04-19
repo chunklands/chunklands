@@ -13,11 +13,12 @@ namespace chunklands {
 
   public:
     void Use() const;
+    void Unuse() const;
+
     GLint GetUniformLocation(const GLchar* name) const;
+    
 
   private:
-    GLuint vsh_ = 0;
-    GLuint fsh_ = 0;
     GLuint program_ = 0;
   };
 }

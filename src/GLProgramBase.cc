@@ -1,58 +1,62 @@
 #include "GLProgramBase.h"
 
+#include "check.h"
+
 namespace chunklands {
   DEFINE_OBJECT_WRAP_DEFAULT_CTOR(GLProgramBase, ONE_ARG({
     InstanceMethod("_compile", &GLProgramBase::Compile)
   }))
 
   void GLProgramBase::Compile(const Napi::CallbackInfo& info) {
-    std::string vsh_src = info[0].ToString();
-    std::string fsh_src = info[1].ToString();
+    std::string vsh_src = info[0].ToString(),
+                fsh_src = info[1].ToString();
 
-    CHECK_GL();
+    GLuint vsh, fsh;
 
     { // vertex shader
-      vsh_ = glCreateShader(GL_VERTEX_SHADER);
+      CHECK_GL();
+
+      vsh = glCreateShader(GL_VERTEX_SHADER);
       const char* src = vsh_src.c_str();
-      glShaderSource(vsh_, 1, &src, nullptr);
-      glCompileShader(vsh_);
+      glShaderSource(vsh, 1, &src, nullptr);
+      glCompileShader(vsh);
       GLint result = GL_FALSE;
-      glGetShaderiv(vsh_, GL_COMPILE_STATUS, &result);
+      glGetShaderiv(vsh, GL_COMPILE_STATUS, &result);
       if (result != GL_TRUE) {
         GLint length = 0;
-        glGetShaderiv(vsh_, GL_INFO_LOG_LENGTH, &length);
+        glGetShaderiv(vsh, GL_INFO_LOG_LENGTH, &length);
         std::vector<char> message(length + 1);
-        glGetShaderInfoLog(vsh_, length, nullptr, message.data());
+        glGetShaderInfoLog(vsh, length, nullptr, message.data());
         Napi::Error::New(Env(), message.data()).ThrowAsJavaScriptException();
         return;
       }
-
-      CHECK_GL();
     }
 
     { // fragment shader
-      fsh_ = glCreateShader(GL_FRAGMENT_SHADER);
+      CHECK_GL();
+
+      fsh = glCreateShader(GL_FRAGMENT_SHADER);
       const char* src = fsh_src.c_str();
-      glShaderSource(fsh_, 1, &src, nullptr);
-      glCompileShader(fsh_);
+      glShaderSource(fsh, 1, &src, nullptr);
+      glCompileShader(fsh);
       GLint result = GL_FALSE;
-      glGetShaderiv(fsh_, GL_COMPILE_STATUS, &result);
+      glGetShaderiv(fsh, GL_COMPILE_STATUS, &result);
       if (result != GL_TRUE) {
         GLint length = 0;
-        glGetShaderiv(fsh_, GL_INFO_LOG_LENGTH, &length);
+        glGetShaderiv(fsh, GL_INFO_LOG_LENGTH, &length);
         std::vector<char> message(length + 1);
-        glGetShaderInfoLog(fsh_, length, nullptr, message.data());
+        glGetShaderInfoLog(fsh, length, nullptr, message.data());
         Napi::Error::New(Env(), message.data()).ThrowAsJavaScriptException();
         return;
       }
-
-      CHECK_GL();
     }
 
     { // program
+      CHECK_GL();
+
       program_ = glCreateProgram();
-      glAttachShader(program_, vsh_);
-      glAttachShader(program_, fsh_);
+      glAttachShader(program_, vsh);
+      glAttachShader(program_, fsh);
       glLinkProgram(program_);
 
       GLint result = GL_FALSE;
@@ -66,15 +70,25 @@ namespace chunklands {
         return;
       }
 
-      CHECK_GL();
+      glDeleteShader(vsh);
+      vsh = 0;
+      glDeleteShader(fsh);
+      fsh = 0;
     }
   }
 
   GLint GLProgramBase::GetUniformLocation(const GLchar* name) const {
-    return glGetUniformLocation(program_, name);
+    GLint location = glGetUniformLocation(program_, name);
+    CHECK(location != -1);
+
+    return location;
   }
 
   void GLProgramBase::Use() const {
     glUseProgram(program_);
+  }
+
+  void GLProgramBase::Unuse() const {
+    glUseProgram(0);
   }
 }

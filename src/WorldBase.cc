@@ -69,14 +69,9 @@ namespace chunklands {
     CHECK_GL();
 
     { // gBuffer
-      g_buffer_uniforms_.view = g_buffer_shader_->GetUniformLocation("u_view");
-      assert(g_buffer_uniforms_.view != -1);
-
-      g_buffer_uniforms_.proj = g_buffer_shader_->GetUniformLocation("u_proj");
-      assert(g_buffer_uniforms_.proj != -1);
-
+      g_buffer_uniforms_.view    = g_buffer_shader_->GetUniformLocation("u_view");
+      g_buffer_uniforms_.proj    = g_buffer_shader_->GetUniformLocation("u_proj");
       g_buffer_uniforms_.texture = g_buffer_shader_->GetUniformLocation("u_texture");
-      assert(g_buffer_uniforms_.texture != -1);
     }
 
     CHECK_GL_HERE();
@@ -84,16 +79,9 @@ namespace chunklands {
     { // ssao
 
       ssao_uniforms_.proj     = ssao_shader_->GetUniformLocation("u_proj");
-      assert(ssao_uniforms_.proj != -1);
-
       ssao_uniforms_.position = ssao_shader_->GetUniformLocation("u_position");
-      assert(ssao_uniforms_.position != -1);
-
       ssao_uniforms_.normal   = ssao_shader_->GetUniformLocation("u_normal");
-      assert(ssao_uniforms_.normal != -1);
-
       ssao_uniforms_.noise    = ssao_shader_->GetUniformLocation("u_noise");
-      assert(ssao_uniforms_.noise != -1);
 
       // needed for glUniform
       ssao_shader_->Use();
@@ -117,11 +105,10 @@ namespace chunklands {
         std::string uniform = std::string("u_samples[") + std::to_string(i) + "]";
         std::cout << "uniform: " << uniform << std::endl;
         GLint location = ssao_shader_->GetUniformLocation(uniform.c_str());
-        assert(location != -1);
         glUniform3fv(location, 1, glm::value_ptr(sample));
       }
 
-      glUseProgram(0);
+      ssao_shader_->Unuse();
     }
 
     CHECK_GL_HERE();
@@ -329,24 +316,16 @@ namespace chunklands {
     CHECK_GL();
 
     glDisable(GL_CULL_FACE);
-
     glDepthFunc(GL_LEQUAL);
-    CHECK_GL_HERE();
+
     skybox_shader_->Use();
 
-    CHECK_GL_HERE();
     glUniformMatrix4fv(skybox_uniforms_.proj, 1, GL_FALSE, glm::value_ptr(proj_));
-    CHECK_GL_HERE();
     glUniformMatrix4fv(skybox_uniforms_.view, 1, GL_FALSE, glm::value_ptr(view_skybox_));
-    CHECK_GL_HERE();
     glUniform1i(skybox_uniforms_.skybox, 0);
-    CHECK_GL_HERE();
     skybox_->Render();
-    CHECK_GL_HERE();
-    glUseProgram(0);
-    CHECK_GL_HERE();
+    skybox_shader_->Unuse();
     glDepthFunc(GL_LESS);
-    CHECK_GL_HERE();
     glEnable(GL_CULL_FACE);
   }
 
@@ -390,7 +369,7 @@ namespace chunklands {
 
     std::cout << "Rendered index count: " << rendered_index_count << ", chunk count: " << rendered_chunk_count << std::endl;
 
-    glUseProgram(0);
+    g_buffer_shader_->Unuse();
   }
 
   void WorldBase::RenderSSAOPass(double diff, GLuint position_texture, GLuint normal_texture, GLuint noise_texture) {
@@ -416,7 +395,7 @@ namespace chunklands {
     
     render_quad_->Render();
 
-    glUseProgram(0);
+    ssao_shader_->Unuse();
   }
 
   void WorldBase::RenderSSAOBlurPass(double diff, GLuint ssao_texture) {
@@ -432,7 +411,7 @@ namespace chunklands {
 
     render_quad_->Render();
 
-    glUseProgram(0);
+    ssao_blur_shader_->Unuse();
   }
 
   void WorldBase::RenderDeferredLightingPass(double diff, GLuint position_texture, GLuint normal_texture, GLuint color_texture, GLuint ssao_texture) {
@@ -480,7 +459,7 @@ namespace chunklands {
     {
       CHECK_GL();
       render_quad_->Render();
-      glUseProgram(0);
+      lighting_shader_->Unuse();
     }
 
   }
