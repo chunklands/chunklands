@@ -17,6 +17,7 @@
 #include "RenderQuad.h"
 #include "SkyboxBase.h"
 #include "GBufferPass.h"
+#include "SSAOPass.h"
 
 namespace chunklands {
 
@@ -64,7 +65,7 @@ namespace chunklands {
 
     NapiExt::PersistentObjectWrap<ChunkGeneratorBase> chunk_generator_;
     GBufferPass g_buffer_pass;
-    NapiExt::PersistentObjectWrap<GLProgramBase> ssao_shader_;
+    SSAOPass ssao_pass;
     NapiExt::PersistentObjectWrap<GLProgramBase> lighting_shader_;
     NapiExt::PersistentObjectWrap<GLProgramBase> skybox_shader_;
     NapiExt::PersistentObjectWrap<GLProgramBase> ssao_blur_shader_;
@@ -82,19 +83,6 @@ namespace chunklands {
     glm::mat4 view_skybox_;
 
     std::vector<glm::ivec3> nearest_chunks_;
-
-    struct {
-      GLint view    = -1;
-      GLint proj    = -1;
-      GLint texture = -1;
-    } g_buffer_uniforms_;
-
-    struct {
-      GLint proj     = -1;
-      GLint position = -1;
-      GLint normal   = -1;
-      GLint noise    = -1;
-    } ssao_uniforms_;
 
     struct {
       GLint ssao = -1;

@@ -15,6 +15,7 @@ int kernelSize = 64;
 float radius = 0.5;
 float bias = 0.025;
 
+// TODO(daaitch): update screen size
 const vec2 noise_scale = vec2(1280.0 / 4.0, 720.0 / 4.0);
 
 void main() {

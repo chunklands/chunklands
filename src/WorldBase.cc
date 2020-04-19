@@ -1,14 +1,10 @@
 #include "WorldBase.h"
 
 #include <algorithm>
-#include <random>
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/vector_relational.hpp>
-
-#define  GLM_ENABLE_EXPERIMENTAL
-#include <glm/gtx/compatibility.hpp>
 
 #include "log.h"
 #include "prof.h"
@@ -45,7 +41,7 @@ namespace chunklands {
   }
 
   void WorldBase::SetSSAOShader(const Napi::CallbackInfo& info) {
-    ssao_shader_ = info[0].ToObject();
+    ssao_pass.SetProgram(info[0]);
   }
 
   void WorldBase::SetLightingShader(const Napi::CallbackInfo& info) {
@@ -67,43 +63,6 @@ namespace chunklands {
   void WorldBase::Prepare() {
     PROF();
     CHECK_GL();
-
-    { // ssao
-
-      ssao_uniforms_.proj     = ssao_shader_->GetUniformLocation("u_proj");
-      ssao_uniforms_.position = ssao_shader_->GetUniformLocation("u_position");
-      ssao_uniforms_.normal   = ssao_shader_->GetUniformLocation("u_normal");
-      ssao_uniforms_.noise    = ssao_shader_->GetUniformLocation("u_noise");
-
-      // needed for glUniform
-      ssao_shader_->Use();
-
-      std::uniform_real_distribution<GLfloat> random_floats(0.f, 1.f);
-      std::default_random_engine generator;
-      for (int i = 0; i < 64; i++) {
-        glm::vec3 sample(
-          random_floats(generator) * 2.f - 1.f,
-          random_floats(generator) * 2.f - 1.f,
-          random_floats(generator)
-        );
-
-        sample = glm::normalize(sample);
-        sample *= random_floats(generator);
-        float scale = float(i) / 64.f;
-
-        scale = glm::lerp(.1f, 1.f, scale * scale);
-        sample *= scale;
-
-        std::string uniform = std::string("u_samples[") + std::to_string(i) + "]";
-        std::cout << "uniform: " << uniform << std::endl;
-        GLint location = ssao_shader_->GetUniformLocation(uniform.c_str());
-        glUniform3fv(location, 1, glm::value_ptr(sample));
-      }
-
-      ssao_shader_->Unuse();
-    }
-
-    CHECK_GL_HERE();
 
     { // SSAO blur
       ssao_blur_uniforms_.ssao = ssao_blur_shader_->GetUniformLocation("u_ssao");
@@ -354,24 +313,17 @@ namespace chunklands {
 
     glClearColor(0.f, 0.f, 0.f, 1.0);
     glClear(GL_COLOR_BUFFER_BIT);
-    ssao_shader_->Use();
-    glUniformMatrix4fv(ssao_uniforms_.proj, 1, GL_FALSE, glm::value_ptr(proj_));
 
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, position_texture);
-    glUniform1i(ssao_uniforms_.position, 0);
+    ssao_pass.Begin();
 
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, normal_texture);
-    glUniform1i(ssao_uniforms_.normal, 1);
-
-    glActiveTexture(GL_TEXTURE2);
-    glBindTexture(GL_TEXTURE_2D, noise_texture);
-    glUniform1i(ssao_uniforms_.noise, 2);
+    ssao_pass.UpdateProjection(proj_);
+    ssao_pass.BindPositionTexture(position_texture);
+    ssao_pass.BindNormalTexture(normal_texture);
+    ssao_pass.BindNoiseTexture(noise_texture);
     
     render_quad_->Render();
 
-    ssao_shader_->Unuse();
+    ssao_pass.End();
   }
 
   void WorldBase::RenderSSAOBlurPass(double diff, GLuint ssao_texture) {

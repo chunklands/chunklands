@@ -6,7 +6,6 @@
 #include "RenderPass.h"
 
 namespace chunklands {
-
   class GBufferPass : public RenderPass {
   public:
     void UpdateProjection(const glm::mat4& proj);
