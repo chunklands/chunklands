@@ -30,6 +30,7 @@ namespace chunklands {
     InstanceMethod("setChunkGenerator", &WorldBase::SetChunkGenerator),
     InstanceMethod("setGBufferShader", &WorldBase::SetGBufferShader),
     InstanceMethod("setSSAOShader", &WorldBase::SetSSAOShader),
+    InstanceMethod("setSSAOBlurShader", &WorldBase::SetSSAOBlurShader),
     InstanceMethod("setLightingShader", &WorldBase::SetLightingShader),
     InstanceMethod("setSkyboxShader", &WorldBase::SetSkyboxShader),
     InstanceMethod("setSkybox", &WorldBase::SetSkybox),
@@ -57,6 +58,10 @@ namespace chunklands {
 
   void WorldBase::SetSkybox(const Napi::CallbackInfo& info) {
     skybox_ = info[0].ToObject();
+  }
+
+  void WorldBase::SetSSAOBlurShader(const Napi::CallbackInfo& info) {
+    ssao_blur_shader_ = info[0].ToObject();
   }
 
   void WorldBase::Prepare() {
@@ -90,6 +95,7 @@ namespace chunklands {
       ssao_uniforms_.noise    = ssao_shader_->GetUniformLocation("u_noise");
       assert(ssao_uniforms_.noise != -1);
 
+      // needed for glUniform
       ssao_shader_->Use();
 
       std::uniform_real_distribution<GLfloat> random_floats(0.f, 1.f);
@@ -116,6 +122,13 @@ namespace chunklands {
       }
 
       glUseProgram(0);
+    }
+
+    CHECK_GL_HERE();
+
+    { // SSAO blur
+      ssao_blur_uniforms_.ssao = ssao_blur_shader_->GetUniformLocation("u_ssao");
+      assert(ssao_blur_uniforms_.ssao != -1);
     }
 
     CHECK_GL_HERE();
@@ -401,6 +414,22 @@ namespace chunklands {
     glBindTexture(GL_TEXTURE_2D, noise_texture);
     glUniform1i(ssao_uniforms_.noise, 2);
     
+    render_quad_->Render();
+
+    glUseProgram(0);
+  }
+
+  void WorldBase::RenderSSAOBlurPass(double diff, GLuint ssao_texture) {
+    PROF();
+    CHECK_GL();
+
+    glClear(GL_COLOR_BUFFER_BIT);
+    ssao_blur_shader_->Use();
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, ssao_texture);
+    glUniform1i(ssao_blur_uniforms_.ssao, 0);
+
     render_quad_->Render();
 
     glUseProgram(0);

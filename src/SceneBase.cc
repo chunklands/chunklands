@@ -103,7 +103,7 @@ namespace chunklands {
       CHECK_GL_HERE();
     }
 
-    {
+    { // SSAO
       CHECK_GL_HERE();
       glBindFramebuffer(GL_FRAMEBUFFER, ssao_.framebuffer);
       world_->RenderSSAOPass(diff, g_buffer_.position_texture, g_buffer_.normal_texture, ssao_.noise_texture);
@@ -111,8 +111,16 @@ namespace chunklands {
       CHECK_GL_HERE();
     }
 
+    { // SSAO blur
+      CHECK_GL_HERE();
+      glBindFramebuffer(GL_FRAMEBUFFER, ssao_blur_.framebuffer);
+      world_->RenderSSAOBlurPass(diff, ssao_.color_texture);
+      glBindFramebuffer(GL_FRAMEBUFFER, 0);
+      CHECK_GL_HERE();
+    }
+
     { // deferred lighting pass
-      world_->RenderDeferredLightingPass(diff, g_buffer_.position_texture, g_buffer_.normal_texture, g_buffer_.color_texture, ssao_.color_texture);
+      world_->RenderDeferredLightingPass(diff, g_buffer_.position_texture, g_buffer_.normal_texture, g_buffer_.color_texture, ssao_blur_.color_texture);
     }
 
     { // skybox
@@ -231,6 +239,21 @@ namespace chunklands {
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     }
+
+    { // initialize SSAO blur
+      glGenFramebuffers(1, &ssao_blur_.framebuffer);
+      glBindFramebuffer(GL_FRAMEBUFFER, ssao_blur_.framebuffer);
+      glGenTextures(1, &ssao_blur_.color_texture);
+      glBindTexture(GL_TEXTURE_2D, ssao_blur_.color_texture);
+      glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, width, height, 0, GL_RED, GL_FLOAT, nullptr);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+      glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ssao_blur_.color_texture, 0);
+
+      assert(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE);
+      
+      glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    }
   }
 
   void SceneBase::DeleteGLBuffers() {
@@ -253,5 +276,7 @@ namespace chunklands {
       glDeleteFramebuffers(1, &g_buffer_.framebuffer);
       g_buffer_.framebuffer = 0;
     }
+
+    // TODO(daaitch): cleanups missing? ssao, ssao-blur
   }
 }

@@ -24,6 +24,7 @@ namespace chunklands {
     DECLARE_OBJECT_WRAP_CB(void SetChunkGenerator)
     DECLARE_OBJECT_WRAP_CB(void SetGBufferShader)
     DECLARE_OBJECT_WRAP_CB(void SetSSAOShader)
+    DECLARE_OBJECT_WRAP_CB(void SetSSAOBlurShader)
     DECLARE_OBJECT_WRAP_CB(void SetLightingShader)
     DECLARE_OBJECT_WRAP_CB(void SetSkyboxShader)
     DECLARE_OBJECT_WRAP_CB(void SetSkybox)
@@ -45,6 +46,7 @@ namespace chunklands {
     void Update(double diff);
     void RenderGBufferPass(double diff);
     void RenderSSAOPass(double diff, GLuint position_texture, GLuint normal_texture, GLuint noise_texture);
+    void RenderSSAOBlurPass(double diff, GLuint ssao_texture);
     void RenderDeferredLightingPass(double diff, GLuint position_texture, GLuint normal_texture, GLuint color_texture, GLuint ssao_texture);
     void RenderSkybox(double diff);
 
@@ -64,6 +66,7 @@ namespace chunklands {
     NapiExt::PersistentObjectWrap<GLProgramBase> ssao_shader_;
     NapiExt::PersistentObjectWrap<GLProgramBase> lighting_shader_;
     NapiExt::PersistentObjectWrap<GLProgramBase> skybox_shader_;
+    NapiExt::PersistentObjectWrap<GLProgramBase> ssao_blur_shader_;
 
     NapiExt::PersistentObjectWrap<SkyboxBase> skybox_;
 
@@ -91,6 +94,10 @@ namespace chunklands {
       GLint normal   = -1;
       GLint noise    = -1;
     } ssao_uniforms_;
+
+    struct {
+      GLint ssao = -1;
+    } ssao_blur_uniforms_;
 
     struct {
       GLint position        = -1;

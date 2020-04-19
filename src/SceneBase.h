@@ -52,6 +52,11 @@ namespace chunklands {
       GLuint color_texture = 0;
       GLuint noise_texture = 0;
     } ssao_;
+
+    struct {
+      GLuint framebuffer   = 0;
+      GLuint color_texture = 0;
+    } ssao_blur_;
   };
 }
 
