@@ -57,18 +57,12 @@ namespace chunklands {
   }
 
   void WorldBase::SetSSAOBlurShader(const Napi::CallbackInfo& info) {
-    ssao_blur_shader_ = info[0].ToObject();
+    ssao_blur_pass.SetProgram(info[0]);
   }
 
   void WorldBase::Prepare() {
     PROF();
     CHECK_GL();
-
-    { // SSAO blur
-      ssao_blur_uniforms_.ssao = ssao_blur_shader_->GetUniformLocation("u_ssao");
-    }
-
-    CHECK_GL_HERE();
 
     { // lighting
       
@@ -331,15 +325,12 @@ namespace chunklands {
     CHECK_GL();
 
     glClear(GL_COLOR_BUFFER_BIT);
-    ssao_blur_shader_->Use();
-
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, ssao_texture);
-    glUniform1i(ssao_blur_uniforms_.ssao, 0);
-
+    ssao_blur_pass.Begin();
+    ssao_blur_pass.BindSSAOTexture(ssao_texture);
+    
     render_quad_->Render();
 
-    ssao_blur_shader_->Unuse();
+    ssao_blur_pass.End();
   }
 
   void WorldBase::RenderDeferredLightingPass(double diff, GLuint position_texture, GLuint normal_texture, GLuint color_texture, GLuint ssao_texture) {
@@ -352,13 +343,8 @@ namespace chunklands {
     {
       CHECK_GL();
 
-      // glClearColor(clear_color.r, clear_color.g, clear_color.b, 1.f);
-      // glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
       glClearColor(0.f, 0.f, 0.f, 1.f);
       glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-      // glEnable(GL_BLEND);
-      // glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
       lighting_shader_->Use();
 
