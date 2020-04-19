@@ -19,8 +19,8 @@ namespace chunklands {
   constexpr int PREFETCH_DISTANCE = RENDER_DISTANCE + 2;
   constexpr int RETAIN_DISTANCE   = RENDER_DISTANCE + 4;
 
-  static_assert(PREFETCH_DISTANCE > RENDER_DISTANCE, "damn");
-  static_assert(RETAIN_DISTANCE >= PREFETCH_DISTANCE, "damn");
+  static_assert(PREFETCH_DISTANCE >  RENDER_DISTANCE,   "prefetch distance has to be greater than render distance");
+  static_assert(RETAIN_DISTANCE   >= PREFETCH_DISTANCE, "retain distance has to be greater or equal than prefetch distance");
   
   constexpr unsigned MAX_CHUNK_VIEW_UPDATES = 12;
   constexpr unsigned MAX_CHUNK_MODEL_GENERATES = 10;
@@ -115,43 +115,26 @@ namespace chunklands {
 
     { // SSAO blur
       ssao_blur_uniforms_.ssao = ssao_blur_shader_->GetUniformLocation("u_ssao");
-      assert(ssao_blur_uniforms_.ssao != -1);
     }
 
     CHECK_GL_HERE();
 
     { // lighting
       
-      lighting_uniforms_.position = lighting_shader_->GetUniformLocation("u_position_texture");
-      assert(lighting_uniforms_.position != -1);
-
-      lighting_uniforms_.normal = lighting_shader_->GetUniformLocation("u_normal_texture");
-      assert(lighting_uniforms_.normal != -1);
-
-      lighting_uniforms_.color = lighting_shader_->GetUniformLocation("u_color_texture");
-      assert(lighting_uniforms_.color != -1);
-
-      lighting_uniforms_.ssao = lighting_shader_->GetUniformLocation("u_ssao_texture");
-      assert(lighting_uniforms_.ssao != -1);
-
-      lighting_uniforms_.render_distance = lighting_shader_->GetUniformLocation("u_render_distance");
-      assert(lighting_uniforms_.render_distance != -1);
-
-      lighting_uniforms_.sun_position = lighting_shader_->GetUniformLocation("u_sun_position");
-      assert(lighting_uniforms_.sun_position != -1);
+      lighting_uniforms_.position         = lighting_shader_->GetUniformLocation("u_position_texture");
+      lighting_uniforms_.normal           = lighting_shader_->GetUniformLocation("u_normal_texture");
+      lighting_uniforms_.color            = lighting_shader_->GetUniformLocation("u_color_texture");
+      lighting_uniforms_.ssao             = lighting_shader_->GetUniformLocation("u_ssao_texture");
+      lighting_uniforms_.render_distance  = lighting_shader_->GetUniformLocation("u_render_distance");
+      lighting_uniforms_.sun_position     = lighting_shader_->GetUniformLocation("u_sun_position");
     }
 
     CHECK_GL_HERE();
 
     { // skybox
-      skybox_uniforms_.proj = skybox_shader_->GetUniformLocation("u_proj");
-      assert(skybox_uniforms_.proj != -1);
-
-      skybox_uniforms_.view = skybox_shader_->GetUniformLocation("u_view");
-      assert(skybox_uniforms_.view != -1);
-
+      skybox_uniforms_.proj   = skybox_shader_->GetUniformLocation("u_proj");
+      skybox_uniforms_.view   = skybox_shader_->GetUniformLocation("u_view");
       skybox_uniforms_.skybox = skybox_shader_->GetUniformLocation("u_skybox");
-      assert(skybox_uniforms_.skybox != -1);
     }
 
     CHECK_GL_HERE();
