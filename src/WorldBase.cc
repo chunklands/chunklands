@@ -45,7 +45,7 @@ namespace chunklands {
   }
 
   void WorldBase::SetLightingShader(const Napi::CallbackInfo& info) {
-    lighting_shader_ = info[0].ToObject();
+    lighting_pass_.SetProgram(info[0]);
   }
 
   void WorldBase::SetSkyboxShader(const Napi::CallbackInfo& info) {
@@ -63,18 +63,6 @@ namespace chunklands {
   void WorldBase::Prepare() {
     PROF();
     CHECK_GL();
-
-    { // lighting
-      
-      lighting_uniforms_.position         = lighting_shader_->GetUniformLocation("u_position_texture");
-      lighting_uniforms_.normal           = lighting_shader_->GetUniformLocation("u_normal_texture");
-      lighting_uniforms_.color            = lighting_shader_->GetUniformLocation("u_color_texture");
-      lighting_uniforms_.ssao             = lighting_shader_->GetUniformLocation("u_ssao_texture");
-      lighting_uniforms_.render_distance  = lighting_shader_->GetUniformLocation("u_render_distance");
-      lighting_uniforms_.sun_position     = lighting_shader_->GetUniformLocation("u_sun_position");
-    }
-
-    CHECK_GL_HERE();
 
     { // skybox
       skybox_uniforms_.proj   = skybox_shader_->GetUniformLocation("u_proj");
@@ -346,34 +334,22 @@ namespace chunklands {
       glClearColor(0.f, 0.f, 0.f, 1.f);
       glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-      lighting_shader_->Use();
+      lighting_pass_.Begin();
+      lighting_pass_.BindPositionTexture(position_texture);
+      lighting_pass_.BindNormalTexture(normal_texture);
+      lighting_pass_.BindColorTexture(color_texture);
+      lighting_pass_.BindSSAOTexture(ssao_texture);
 
-      glActiveTexture(GL_TEXTURE0);
-      glBindTexture(GL_TEXTURE_2D, position_texture);
-
-      glActiveTexture(GL_TEXTURE1);
-      glBindTexture(GL_TEXTURE_2D, normal_texture);
-
-      glActiveTexture(GL_TEXTURE2);
-      glBindTexture(GL_TEXTURE_2D, color_texture);
-
-      glActiveTexture(GL_TEXTURE3);
-      glBindTexture(GL_TEXTURE_2D, ssao_texture);
-
-      glUniform1i(lighting_uniforms_.position, 0);
-      glUniform1i(lighting_uniforms_.normal, 1);
-      glUniform1i(lighting_uniforms_.color, 2);
-      glUniform1i(lighting_uniforms_.ssao, 3);
-      glUniform1f(lighting_uniforms_.render_distance, ((float)RENDER_DISTANCE - 0.5f) * Chunk::SIZE);
+      lighting_pass_.UpdateRenderDistance(((float)RENDER_DISTANCE - 0.5f) * Chunk::SIZE);
 
       glm::vec3 sun_position = glm::normalize(glm::mat3(view_) * glm::vec3(-3, 1, 3));
-      glUniform3fv(lighting_uniforms_.sun_position, 1, glm::value_ptr(sun_position));
+      lighting_pass_.UpdateSunPosition(sun_position);
     }
     
     {
       CHECK_GL();
       render_quad_->Render();
-      lighting_shader_->Unuse();
+      lighting_pass_.Begin();
     }
 
   }

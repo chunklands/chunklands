@@ -19,6 +19,7 @@
 #include "GBufferPass.h"
 #include "SSAOPass.h"
 #include "SSAOBlurPass.h"
+#include "LightingPass.h"
 
 namespace chunklands {
 
@@ -68,7 +69,7 @@ namespace chunklands {
     GBufferPass  g_buffer_pass;
     SSAOPass     ssao_pass;
     SSAOBlurPass ssao_blur_pass;
-    NapiExt::PersistentObjectWrap<GLProgramBase> lighting_shader_;
+    LightingPass lighting_pass_;
     NapiExt::PersistentObjectWrap<GLProgramBase> skybox_shader_;
 
     NapiExt::PersistentObjectWrap<SkyboxBase> skybox_;
@@ -86,15 +87,6 @@ namespace chunklands {
     std::vector<glm::ivec3> nearest_chunks_;
 
     struct {
-      GLint position        = -1;
-      GLint normal          = -1;
-      GLint color           = -1;
-      GLint ssao            = -1;
-      GLint render_distance = -1;
-      GLint sun_position    = -1;
-    } lighting_uniforms_;
-
-    struct {
       GLint view   = -1;
       GLint proj   = -1;
       GLint skybox = -1;
@@ -103,7 +95,5 @@ namespace chunklands {
     std::unique_ptr<RenderQuad> render_quad_;
   };
 }
-
-
 
 #endif

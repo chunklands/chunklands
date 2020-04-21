@@ -7,10 +7,9 @@ namespace chunklands {
     uniforms_ = {
       .proj     = program_->GetUniformLocation("u_proj"),
       .view     = program_->GetUniformLocation("u_view"),
-      .texture  = program_->GetUniformLocation("u_texture"),
     };
 
-    glUniform1i(uniforms_.texture, 0);
+    glUniform1i(program_->GetUniformLocation("u_texture"), 0);
   }
 
   void GBufferPass::UpdateProjection(const glm::mat4& proj) {

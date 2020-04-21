@@ -17,8 +17,7 @@ namespace chunklands {
   private:
     struct {
       GLint proj    = -1,
-            view    = -1,
-            texture = -1;
+            view    = -1;
     } uniforms_;
   };
 }
