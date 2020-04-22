@@ -20,6 +20,8 @@
 #include "SSAOPass.h"
 #include "SSAOBlurPass.h"
 #include "LightingPass.h"
+#include "js.h"
+#include "SkyboxPassBase.h"
 
 namespace chunklands {
 
@@ -32,6 +34,7 @@ namespace chunklands {
     DECLARE_OBJECT_WRAP_CB(void SetLightingShader)
     DECLARE_OBJECT_WRAP_CB(void SetSkyboxShader)
     DECLARE_OBJECT_WRAP_CB(void SetSkybox)
+    JS_DECL_SETTER(SkyboxPassBase, SkyboxPass)
 
   private:
     struct ivec3_hasher {
@@ -61,7 +64,7 @@ namespace chunklands {
 
     const glm::vec2& GetLook() const {
       return look_;
-    }
+    }  
 
   private:
 
@@ -70,7 +73,6 @@ namespace chunklands {
     SSAOPass     ssao_pass;
     SSAOBlurPass ssao_blur_pass;
     LightingPass lighting_pass_;
-    NapiExt::PersistentObjectWrap<GLProgramBase> skybox_shader_;
 
     NapiExt::PersistentObjectWrap<SkyboxBase> skybox_;
 
@@ -85,12 +87,6 @@ namespace chunklands {
     glm::mat4 view_skybox_;
 
     std::vector<glm::ivec3> nearest_chunks_;
-
-    struct {
-      GLint view   = -1;
-      GLint proj   = -1;
-      GLint skybox = -1;
-    } skybox_uniforms_;
 
     std::unique_ptr<RenderQuad> render_quad_;
   };

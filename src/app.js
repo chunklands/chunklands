@@ -9,6 +9,7 @@ const SimpleWorldGen  = require('./game/world/SimpleWorldGen');
 const Window          = require('./Window');
 const World           = require('./World');
 const Skybox          = require('./Skybox');
+const SkyboxPass      = require('./SkyboxPass');
 
 (async () => {
 
@@ -75,7 +76,11 @@ const Skybox          = require('./Skybox');
     vertexShader: `${__dirname}/game/shader/skybox.vsh.glsl`,
     fragmentShader: `${__dirname}/game/shader/skybox.fsh.glsl`
   });
-  world.setSkyboxShader(skyboxShader);
+
+  const skyboxPass = new SkyboxPass();
+  skyboxPass.useProgram(skyboxShader)
+  
+  world.setSkyboxPass(skyboxPass);
 
   const skybox = new Skybox();
   skybox.initialize(`${__dirname}/game/skyboxes/skyboxsun5deg2/`);

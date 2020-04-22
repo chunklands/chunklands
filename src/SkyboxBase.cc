@@ -65,6 +65,7 @@ namespace chunklands {
   }
 
   void SkyboxBase::Initialize(const Napi::CallbackInfo& info) {
+    CHECK_GL();
     glGenVertexArrays(1, &vao_);
     glBindVertexArray(vao_);
 

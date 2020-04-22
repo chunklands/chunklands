@@ -22,13 +22,13 @@ namespace chunklands {
   constexpr unsigned MAX_CHUNK_MODEL_GENERATES = 10;
   constexpr unsigned MAX_CHUNK_MODEL_PROCESSES = 20;
 
-  DEFINE_OBJECT_WRAP_DEFAULT_CTOR(WorldBase, ONE_ARG({
+  JS_DEF_WRAP(WorldBase, ONE_ARG({
     InstanceMethod("setChunkGenerator", &WorldBase::SetChunkGenerator),
     InstanceMethod("setGBufferShader",  &WorldBase::SetGBufferShader),
     InstanceMethod("setSSAOShader",     &WorldBase::SetSSAOShader),
     InstanceMethod("setSSAOBlurShader", &WorldBase::SetSSAOBlurShader),
     InstanceMethod("setLightingShader", &WorldBase::SetLightingShader),
-    InstanceMethod("setSkyboxShader",   &WorldBase::SetSkyboxShader),
+    JS_SETTER(SkyboxPass),
     InstanceMethod("setSkybox",         &WorldBase::SetSkybox),
   }))
 
@@ -48,9 +48,7 @@ namespace chunklands {
     lighting_pass_.SetProgram(info[0]);
   }
 
-  void WorldBase::SetSkyboxShader(const Napi::CallbackInfo& info) {
-    skybox_shader_ = info[0].ToObject();
-  }
+  JS_DEF_SETTER(WorldBase, SkyboxPass)
 
   void WorldBase::SetSkybox(const Napi::CallbackInfo& info) {
     skybox_ = info[0].ToObject();
@@ -63,14 +61,6 @@ namespace chunklands {
   void WorldBase::Prepare() {
     PROF();
     CHECK_GL();
-
-    { // skybox
-      skybox_uniforms_.proj   = skybox_shader_->GetUniformLocation("u_proj");
-      skybox_uniforms_.view   = skybox_shader_->GetUniformLocation("u_view");
-      skybox_uniforms_.skybox = skybox_shader_->GetUniformLocation("u_skybox");
-    }
-
-    CHECK_GL_HERE();
 
     { // general
 
@@ -234,15 +224,15 @@ namespace chunklands {
     glDisable(GL_CULL_FACE);
     glDepthFunc(GL_LEQUAL);
 
-    skybox_shader_->Use();
+    ref_SkyboxPass_->Begin();
+    ref_SkyboxPass_->UpdateProjection(proj_);
+    ref_SkyboxPass_->UpdateView(view_skybox_);
 
-    glUniformMatrix4fv(skybox_uniforms_.proj, 1, GL_FALSE, glm::value_ptr(proj_));
-    glUniformMatrix4fv(skybox_uniforms_.view, 1, GL_FALSE, glm::value_ptr(view_skybox_));
-    glUniform1i(skybox_uniforms_.skybox, 0);
     skybox_->Render();
-    skybox_shader_->Unuse();
     glDepthFunc(GL_LESS);
     glEnable(GL_CULL_FACE);
+
+    ref_SkyboxPass_->End();
   }
 
   void WorldBase::RenderGBufferPass(double diff) {

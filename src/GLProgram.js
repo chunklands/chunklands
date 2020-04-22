@@ -1,4 +1,4 @@
-const {GLProgramBase} = require('./module');
+const { GLProgramBase } = require('./module');
 const fs = require('fs');
 const { promisify } = require('util');
 

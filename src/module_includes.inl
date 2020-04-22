@@ -8,3 +8,4 @@
 #include "GLProgramBase.h"
 #include "ProfilerBase.h"
 #include "SkyboxBase.h"
+#include "SkyboxPassBase.h"

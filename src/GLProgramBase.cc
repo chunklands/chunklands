@@ -79,7 +79,7 @@ namespace chunklands {
 
   GLint GLProgramBase::GetUniformLocation(const GLchar* name) const {
     GLint location = glGetUniformLocation(program_, name);
-    CHECK(location != -1);
+    CHECK_MSG(location != -1, std::string("for ") + name);
 
     return location;
   }
