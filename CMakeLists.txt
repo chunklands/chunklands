@@ -48,6 +48,15 @@ set(CHUNKLANDS_INCLUDE "${CHUNKLANDS_INCLUDE}" ${BOOST_INCLUDE_DIRS})
 # STB
 set(CHUNKLANDS_INCLUDE "${CHUNKLANDS_INCLUDE}" "${CMAKE_SOURCE_DIR}/deps/stb")
 
+# Backtrace
+find_package(Backtrace)
+if (Backtrace_FOUND)
+  set(CHUNKLANDS_LIBRARIES "${CHUNKLANDS_LIBRARIES}" "backtrace")
+  set(CHUNKLANDS_INCLUDE "${CHUNKLANDS_INCLUDE}" "${Backtrace_INCLUDE_DIRS}")
+endif()
+
+
 # BUILD
-target_include_directories(${PROJECT_NAME} PRIVATE "${CHUNKLANDS_INCLUDE}")
+target_include_directories(${PROJECT_NAME} SYSTEM PRIVATE "${CHUNKLANDS_INCLUDE}")
 target_link_libraries(${PROJECT_NAME} "${CHUNKLANDS_LIBRARIES}")
+target_compile_options(${PROJECT_NAME} PRIVATE -Werror -Wall -Wextra)

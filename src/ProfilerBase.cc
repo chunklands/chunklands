@@ -3,11 +3,11 @@
 namespace chunklands {
   std::unordered_map<const char*, boost::circular_buffer<long>> ProfilerBase::meassurements_;
 
-  DEFINE_OBJECT_WRAP_DEFAULT_CTOR(ProfilerBase, ONE_ARG({
-    InstanceMethod("getMeassurements", &ProfilerBase::GetMeassurements),
+  JS_DEF_WRAP(ProfilerBase, ONE_ARG({
+    JS_CB(getMeassurements)
   }))
 
-  Napi::Value ProfilerBase::GetMeassurements(const Napi::CallbackInfo& info) {
+  Napi::Value ProfilerBase::JSCall_getMeassurements(const Napi::CallbackInfo& info) {
     auto&& meassurements = Napi::Object::New(info.Env());
 
     std::for_each(meassurements_.cbegin(), meassurements_.cend(), [&](auto& m) {

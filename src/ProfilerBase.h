@@ -1,15 +1,14 @@
 #ifndef __CHUNKLANDS_PROFILERBASE_H__
 #define __CHUNKLANDS_PROFILERBASE_H__
 
-#include <napi.h>
 #include <unordered_map>
 #include <boost/circular_buffer.hpp>
-#include "napi/object_wrap_util.h"
+#include "js.h"
 
 namespace chunklands {
-  class ProfilerBase : public Napi::ObjectWrap<ProfilerBase> {
-    DECLARE_OBJECT_WRAP(ProfilerBase)
-    DECLARE_OBJECT_WRAP_CB(Napi::Value GetMeassurements)
+  class ProfilerBase : public JSWrap<ProfilerBase> {
+    JS_DECL_WRAP(ProfilerBase)
+    JS_DECL_CB(getMeassurements)
 
   public:
     static void AddMeassurement(const char* name, long micros);

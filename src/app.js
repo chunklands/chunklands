@@ -6,16 +6,17 @@ const GLProgram       = require('./GLProgram');
 const Profiler        = require('./Profiler');
 const Scene           = require('./Scene');
 const SimpleWorldGen  = require('./game/world/SimpleWorldGen');
-const Window          = require('./Window');
-const World           = require('./World');
 const Skybox          = require('./Skybox');
 const SkyboxPass      = require('./SkyboxPass');
+const Window          = require('./Window');
+const World           = require('./World');
 
 (async () => {
 
   Environment.initialize();
 
-  const window = new Window({
+  const window = new Window();
+  window.initialize({
     width: 640,
     height: 480,
     title: 'Chunklands'
@@ -92,13 +93,12 @@ const SkyboxPass      = require('./SkyboxPass');
 
   const gameLoop = new GameLoop();
   gameLoop.setScene(scene);
-
+  
   gameLoop.start();
-
   const loop = () => {
     gameLoop.loop();
     
-    if (window.shouldClose) {
+    if (window.shouldClose()) {
       window.close();
       gameLoop.stop();
       Environment.terminate();
@@ -116,4 +116,7 @@ const SkyboxPass      = require('./SkyboxPass');
   setInterval(() => {
     console.log(profiler.getMeassurements());
   }, 1000);
-})();
+})().catch(e => {
+  console.error(e);
+  process.exit(1);
+});

@@ -1,5 +1,5 @@
-export = GLProgramBase;
+export {GLProgramBase}
 
 declare class GLProgramBase {
-  _compile(vertexShaderSource: string, fragmentShaderSource: string): void;
+  compile(vertexShaderSource: string, fragmentShaderSource: string): void
 }

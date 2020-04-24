@@ -2,36 +2,30 @@
 #include "gl.h"
 
 namespace chunklands {
-  DEFINE_OBJECT_WRAP_DEFAULT_CTOR(EnvironmentBase, ONE_ARG({
-    StaticMethod("initialize", Initialize_),
-    StaticMethod("loadProcs", LoadProcs),
-    StaticMethod("terminate", Terminate)
+  JS_DEF_WRAP(EnvironmentBase, ONE_ARG({
+    JS_CB_STATIC(initialize),
+    JS_CB_STATIC(loadProcs),
+    JS_CB_STATIC(terminate),
   }))
 
-  void EnvironmentBase::Initialize_(const Napi::CallbackInfo& info) {
+  void EnvironmentBase::JSCall_initialize(const Napi::CallbackInfo& info) {
+    auto&& env = info.Env();
     const int init = glfwInit();
-    if (init != GLFW_TRUE) {
-      Napi::Error::New(info.Env(), "could not initialize GLFW").ThrowAsJavaScriptException();
-      return;
-    }
+    JS_ASSERT_MSG(init == GLFW_TRUE, "could not initialize GLFW");
   }
 
-  void EnvironmentBase::LoadProcs(const Napi::CallbackInfo& info) {
-    if (glfwGetCurrentContext() == nullptr) {
-      Napi::Error::New(info.Env(), "call after `window.makeCurrentContext()`").ThrowAsJavaScriptException();
-      return;
-    }
+  void EnvironmentBase::JSCall_loadProcs(const Napi::CallbackInfo& info) {
+    auto&& env = info.Env();
+
+    JS_ASSERT_MSG(glfwGetCurrentContext() != nullptr, "call after `window.makeCurrentContext()`");
 
     const int load = gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
-    if (!load) {
-      Napi::Error::New(info.Env(), "could not load GL procs").ThrowAsJavaScriptException();
-      return;
-    }
+    JS_ASSERT_MSG(load != 0, "could not load GL procs");
     
     CHECK_GL();
   }
 
-  void EnvironmentBase::Terminate(const Napi::CallbackInfo& info) {
+  void EnvironmentBase::JSCall_terminate(const Napi::CallbackInfo&) {
     glfwTerminate();
   }
 }

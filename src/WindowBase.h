@@ -1,19 +1,19 @@
 #ifndef __CHUNKLANDS_WINDOWBASE_H__
 #define __CHUNKLANDS_WINDOWBASE_H__
 
-#include <napi.h>
 #include <boost/signals2.hpp>
 #include <glm/vec2.hpp>
 #include "gl.h"
-#include "napi/object_wrap_util.h"
+#include "js.h"
 
 namespace chunklands {
 
-  class WindowBase : public Napi::ObjectWrap<WindowBase> {
-    DECLARE_OBJECT_WRAP(WindowBase)
-    DECLARE_OBJECT_WRAP_CB(void MakeContextCurrent)
-    DECLARE_OBJECT_WRAP_CB(Napi::Value ShouldClose)
-    DECLARE_OBJECT_WRAP_CB(void Close)
+  class WindowBase : public JSWrap<WindowBase> {
+    JS_DECL_WRAP(WindowBase)
+    JS_DECL_CB_VOID(initialize)
+    JS_DECL_CB_VOID(makeContextCurrent)
+    JS_DECL_CB(shouldClose)
+    JS_DECL_CB_VOID(close)
 
   public:
     void SwapBuffers();

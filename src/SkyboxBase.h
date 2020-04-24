@@ -1,16 +1,14 @@
 #ifndef __CHUNKLANDS_SKYBOXBASE_H__
 #define __CHUNKLANDS_SKYBOXBASE_H__
 
-#include <napi.h>
-#include "napi/object_wrap_util.h"
-
+#include "js.h"
 #include "gl.h"
 #include "GLSkyboxTexture.h"
 
 namespace chunklands {
-  class SkyboxBase : public Napi::ObjectWrap<SkyboxBase> {
-    DECLARE_OBJECT_WRAP(SkyboxBase)
-    DECLARE_OBJECT_WRAP_CB(void Initialize)
+  class SkyboxBase : public JSWrap<SkyboxBase> {
+    JS_DECL_WRAP(SkyboxBase)
+    JS_DECL_CB_VOID(initialize)
 
   public:
     ~SkyboxBase();

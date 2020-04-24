@@ -4,7 +4,6 @@
 #include <glm/mat4x4.hpp>
 #include <glm/vec3.hpp>
 #include <boost/functional/hash.hpp>
-#include <napi.h>
 #include <queue>
 #include <unordered_map>
 #include <vector>
@@ -12,7 +11,6 @@
 #include "ChunkGeneratorBase.h"
 #include "gl.h"
 #include "napi/object_wrap_util.h"
-#include "napi/PersistentObjectWrap.h"
 #include "GLProgramBase.h"
 #include "RenderQuad.h"
 #include "SkyboxBase.h"
@@ -25,16 +23,16 @@
 
 namespace chunklands {
 
-  class WorldBase : public Napi::ObjectWrap<WorldBase> {
-    DECLARE_OBJECT_WRAP(WorldBase)
-    DECLARE_OBJECT_WRAP_CB(void SetChunkGenerator)
+  class WorldBase : public JSWrap<WorldBase> {
+    JS_DECL_WRAP(WorldBase)
+    JS_DECL_SETTER_REF(ChunkGeneratorBase, ChunkGenerator)
     DECLARE_OBJECT_WRAP_CB(void SetGBufferShader)
     DECLARE_OBJECT_WRAP_CB(void SetSSAOShader)
     DECLARE_OBJECT_WRAP_CB(void SetSSAOBlurShader)
     DECLARE_OBJECT_WRAP_CB(void SetLightingShader)
     DECLARE_OBJECT_WRAP_CB(void SetSkyboxShader)
-    DECLARE_OBJECT_WRAP_CB(void SetSkybox)
-    JS_DECL_SETTER(SkyboxPassBase, SkyboxPass)
+    JS_DECL_SETTER_REF(SkyboxBase, Skybox)
+    JS_DECL_SETTER_REF(SkyboxPassBase, SkyboxPass)
 
   private:
     struct ivec3_hasher {
@@ -68,13 +66,10 @@ namespace chunklands {
 
   private:
 
-    NapiExt::PersistentObjectWrap<ChunkGeneratorBase> chunk_generator_;
     GBufferPass  g_buffer_pass;
     SSAOPass     ssao_pass;
     SSAOBlurPass ssao_blur_pass;
     LightingPass lighting_pass_;
-
-    NapiExt::PersistentObjectWrap<SkyboxBase> skybox_;
 
     std::unordered_map<glm::ivec3, std::shared_ptr<Chunk>, ivec3_hasher> chunk_map_;
 

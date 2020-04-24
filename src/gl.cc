@@ -1,7 +1,7 @@
 #include "gl.h"
 
 #include <stdexcept>
-#include <boost/stacktrace.hpp>
+#include "boost_stacktrace_import.h"
 #include <sstream>
 
 namespace chunklands {

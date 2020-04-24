@@ -3,22 +3,16 @@
 #include <cmath>
 #include <iostream>
 
-#include "napi/flow.h"
 #include "prof.h"
 
 namespace chunklands {
-  DEFINE_OBJECT_WRAP_DEFAULT_CTOR(ChunkGeneratorBase, ONE_ARG({
-    InstanceMethod("setBlockRegistrar", &ChunkGeneratorBase::SetBlockRegistrar),
-    InstanceMethod("setWorldGenerator", &ChunkGeneratorBase::SetWorldGenerator)
+  JS_DEF_WRAP(ChunkGeneratorBase, ONE_ARG({
+    JS_SETTER(BlockRegistrar),
+    JS_SETTER(WorldGenerator),
   }))
 
-  void ChunkGeneratorBase::SetBlockRegistrar(const Napi::CallbackInfo& info) {
-    block_registrar_ = info[0].ToObject();
-  }
-
-  void ChunkGeneratorBase::SetWorldGenerator(const Napi::CallbackInfo& info) {
-    world_generator_ = Napi::Persistent(info[0].ToObject());
-  }
+  JS_DEF_SETTER_JSREF(ChunkGeneratorBase, BlockRegistrar)
+  JS_DEF_SETTER_JSOBJ(ChunkGeneratorBase, WorldGenerator)
 
   struct generate_model_callback_data {
     ChunkGeneratorBase *generator;
@@ -33,12 +27,12 @@ namespace chunklands {
 
     auto&& pos = chunk->GetPos();
     {
-      Napi::Env env = world_generator_.Env();
+      Napi::Env env = js_WorldGenerator.Env();
       Napi::HandleScope scope(env);
 
       chunk->state_ = kModelIsPreparing;
       
-      world_generator_.Get("generateChunk").As<Napi::Function>().Call(world_generator_.Value(), {
+      js_WorldGenerator.Get("generateChunk").As<Napi::Function>().Call(js_WorldGenerator.Value(), {
         Napi::Number::New(env, pos.x),
         Napi::Number::New(env, pos.y),
         Napi::Number::New(env, pos.z),
@@ -85,11 +79,11 @@ namespace chunklands {
     auto&& item = loaded_chunks_.front();
 
     int i = 0;
-    item.chunk->ForEachBlock([&](Chunk::BlockType& block_type, int x, int y, int z) {
+    item.chunk->ForEachBlock([&](Chunk::BlockType& block_type, int, int, int) {
       auto&& block_id = item.js_chunk_data.Get(i);
       assert(block_id.IsNumber());
 
-      block_type = block_registrar_->GetByIndex(block_id.ToNumber().Int32Value());
+      block_type = js_BlockRegistrar->GetByIndex(block_id.ToNumber().Int32Value());
       i++;
     });
 
@@ -123,7 +117,7 @@ namespace chunklands {
 
     glm::vec3 chunk_offset(glm::vec3(chunk.GetPos()) * (float)Chunk::SIZE);
 
-    chunk.ForEachBlock([&](const Chunk::BlockType& block_type, int x, int y, int z) {
+    chunk.ForEachBlock([&](const Chunk::BlockType& block_type, unsigned x, unsigned y, unsigned z) {
       assert(block_type != nullptr);
 
       //                                                              << inside of chunk || check neighbor >>
@@ -155,7 +149,7 @@ namespace chunklands {
 
         auto&& vertex_data = it->second;
         assert(vertex_data.size() % 8 == 0);
-        for (int fi = 0; fi < vertex_data.size(); ) { // float index
+        for (unsigned fi = 0; fi < vertex_data.size(); ) { // float index
 
           // position vertices
           vertex_buffer_data.push_back(vertex_data[fi++] + (GLfloat)x + chunk_offset.x);
@@ -207,6 +201,6 @@ namespace chunklands {
   }
 
   void ChunkGeneratorBase::BindTexture() {
-    block_registrar_->BindTexture();
+    js_BlockRegistrar->BindTexture();
   }
 }

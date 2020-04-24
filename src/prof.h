@@ -25,11 +25,14 @@ namespace chunklands {
       (*this) = std::move(other);
     }
 
+    prof& operator=(const prof& other) = delete;
+
     prof& operator=(prof&& other) {
       name_ = other.name_;
       start_ = other.start_;
 
       other.name_ = nullptr;
+      return *this;
     }
 
     ~prof() {

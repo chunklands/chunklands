@@ -1,19 +1,22 @@
 #include "WindowBase.h"
 
 namespace chunklands {
-  DEFINE_OBJECT_WRAP(WindowBase, ONE_ARG({
-    InstanceMethod("makeContextCurrent", &WindowBase::MakeContextCurrent),
-    InstanceAccessor("shouldClose", &WindowBase::ShouldClose, nullptr),
-    InstanceMethod("close", &WindowBase::Close)
-  }))
 
   namespace detail {
     WindowBase* Unwrap(GLFWwindow* window) {
       return static_cast<WindowBase*>(glfwGetWindowUserPointer(window));
     }
   }
+  
+  JS_DEF_WRAP(WindowBase, ONE_ARG({
+    JS_CB(initialize),
+    JS_CB(makeContextCurrent),
+    JS_CB(shouldClose),
+    JS_CB(close)
+  }))
 
-  WindowBase::WindowBase(const Napi::CallbackInfo& info) : Napi::ObjectWrap<WindowBase>(info) {
+  void WindowBase::JSCall_initialize(const Napi::CallbackInfo& info) {
+    auto&& env = info.Env();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 
@@ -26,6 +29,8 @@ namespace chunklands {
       nullptr
     );
 
+    JS_ASSERT(window_ != nullptr);
+
     glfwSetWindowUserPointer(window_, this);
 
     glfwSetFramebufferSizeCallback(window_, [](GLFWwindow* window, int width, int height) {
@@ -33,13 +38,14 @@ namespace chunklands {
     });
 
     glfwSetInputMode(window_, GLFW_STICKY_KEYS, 1);
+    glfwShowWindow(window_);
   }
 
-  void WindowBase::MakeContextCurrent(const Napi::CallbackInfo& info) {
+  void WindowBase::JSCall_makeContextCurrent(const Napi::CallbackInfo&) {
     glfwMakeContextCurrent(window_);
   }
 
-  Napi::Value WindowBase::ShouldClose(const Napi::CallbackInfo& info) {
+  Napi::Value WindowBase::JSCall_shouldClose(const Napi::CallbackInfo& info) {
     if (!window_) {
       return Napi::Boolean::New(info.Env(), true);
     }
@@ -48,7 +54,7 @@ namespace chunklands {
     return Napi::Boolean::New(info.Env(), should_close == GLFW_TRUE);
   }
 
-  void WindowBase::Close(const Napi::CallbackInfo& info) {
+  void WindowBase::JSCall_close(const Napi::CallbackInfo&) {
     if (!window_) {
       return;
     }

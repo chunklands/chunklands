@@ -3,7 +3,9 @@
 
 #include <boost/current_function.hpp>
 #include <boost/preprocessor/stringize.hpp>
-#include <napi.h>
+#include "../napi_import.h"
+
+#warning deprecated
 
 #define THROW_MSG(ENV, MSG, ...)                                \
   do {                                                          \

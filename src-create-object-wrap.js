@@ -58,7 +58,7 @@ namespace chunklands {
 `);
 console.info(`  ✓ created '${filePaths.cc}'`);
 
-fs.writeFileSync(filePaths.dts, `export = ${classNameBase};
+fs.writeFileSync(filePaths.dts, `export {${classNameBase}};
 
 declare class ${classNameBase} {
   
@@ -72,7 +72,5 @@ console.info(`  ✓ added export to '${filePaths.moduleExportsInl}'`);
 fs.appendFileSync(filePaths.moduleIncludesInl, `\n#include "${classNameBase}.h"`);
 console.info(`  ✓ added include to '${filePaths.moduleIncludesInl}'`);
 
-fs.appendFileSync(filePaths.moduleDts, `import ${classNameBase} from './${classNameBase}';
-export {${classNameBase}};
-`);
+fs.appendFileSync(filePaths.moduleDts, `export {${classNameBase}} from './${classNameBase}';\n`);
 console.info(`  ✓ added include to '${filePaths.moduleDts}'`);

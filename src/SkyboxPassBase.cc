@@ -7,7 +7,7 @@ namespace chunklands {
     JS_CB(useProgram)
   }))
   
-  Napi::Value SkyboxPassBase::JSCall_useProgram(const Napi::CallbackInfo& info) {
+  void SkyboxPassBase::JSCall_useProgram(const Napi::CallbackInfo& info) {
     CHECK_GL();
     program_ = info[0];
     program_->Use();

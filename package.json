@@ -9,7 +9,8 @@
     "clean": "cmake-js clean",
     "_build:dev": "cmake-js build --debug",
     "_native:dev": "nodemon --watch src -e h,cc --exec \"npm run _build:dev\"",
-    "_app:dev": "nodemon --delay 3 --watch src --watch build/Debug --watch resource -e js,node,glsl --exec \"node src/app.js\""
+    "_app:dev": "nodemon --delay 3 --watch src --watch build/Debug --watch resource -e js,node,glsl --exec \"node src/app.js\"",
+    "debug": "gdb -ex=r --args node src/app.js"
   },
   "keywords": [
     "game",
@@ -29,7 +30,7 @@
     "bindings": "^1.5.0",
     "cmake-js": "^4.0.1",
     "concurrently": "^4.1.2",
-    "node-addon-api": "^1.7.1",
+    "node-addon-api": "^2.0.0",
     "nodemon": "^2.0.3"
   }
 }

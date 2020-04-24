@@ -8,7 +8,7 @@
 namespace chunklands {
   class SkyboxPassBase : public JSWrap<SkyboxPassBase> {
     JS_DECL_WRAP(SkyboxPassBase)
-    JS_CB_DECL(useProgram)
+    JS_DECL_CB_VOID(useProgram)
 
   public:
     void Begin() {
@@ -24,7 +24,7 @@ namespace chunklands {
     void BindSkyboxTexture(GLuint texture);
     
   private:
-    JSRef<GLProgramBase> program_;
+    JSWrapRef<GLProgramBase> program_;
 
     struct {
       GLint proj = -1;

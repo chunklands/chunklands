@@ -23,18 +23,17 @@ namespace chunklands {
   constexpr unsigned MAX_CHUNK_MODEL_PROCESSES = 20;
 
   JS_DEF_WRAP(WorldBase, ONE_ARG({
-    InstanceMethod("setChunkGenerator", &WorldBase::SetChunkGenerator),
+    JS_SETTER(ChunkGenerator),
     InstanceMethod("setGBufferShader",  &WorldBase::SetGBufferShader),
     InstanceMethod("setSSAOShader",     &WorldBase::SetSSAOShader),
     InstanceMethod("setSSAOBlurShader", &WorldBase::SetSSAOBlurShader),
     InstanceMethod("setLightingShader", &WorldBase::SetLightingShader),
     JS_SETTER(SkyboxPass),
-    InstanceMethod("setSkybox",         &WorldBase::SetSkybox),
+    JS_SETTER(Skybox),
   }))
 
-  void WorldBase::SetChunkGenerator(const Napi::CallbackInfo& info) {
-    chunk_generator_ = info[0].ToObject();
-  }
+  JS_DEF_SETTER_JSREF(WorldBase, ChunkGenerator)
+  JS_DEF_SETTER_JSREF(WorldBase, Skybox)
 
   void WorldBase::SetGBufferShader(const Napi::CallbackInfo& info) {
     g_buffer_pass.SetProgram(info[0]);
@@ -48,11 +47,7 @@ namespace chunklands {
     lighting_pass_.SetProgram(info[0]);
   }
 
-  JS_DEF_SETTER(WorldBase, SkyboxPass)
-
-  void WorldBase::SetSkybox(const Napi::CallbackInfo& info) {
-    skybox_ = info[0].ToObject();
-  }
+  JS_DEF_SETTER_JSREF(WorldBase, SkyboxPass)
 
   void WorldBase::SetSSAOBlurShader(const Napi::CallbackInfo& info) {
     ssao_blur_pass.SetProgram(info[0]);
@@ -108,7 +103,7 @@ namespace chunklands {
   }
 
 
-  void WorldBase::Update(double diff) {
+  void WorldBase::Update(double) {
     PROF();
 
     // Calculation of the current chunk we are standing on:
@@ -190,7 +185,7 @@ namespace chunklands {
           };
           
           chunk_view_updates++;
-          chunk_generator_->GenerateView(*chunk, neighbors);
+          js_ChunkGenerator->GenerateView(*chunk, neighbors);
         } while (0);
       }
 
@@ -198,13 +193,13 @@ namespace chunklands {
       // always inside prefetch distance
       if (chunk_model_updates < MAX_CHUNK_MODEL_GENERATES && chunk->GetState() == kEmpty) {
         chunk_model_updates++;
-        chunk_generator_->GenerateModel(chunk);
+        js_ChunkGenerator->GenerateModel(chunk);
       }
 
     }
 
-    for (int i = 0; i < MAX_CHUNK_MODEL_PROCESSES; i++) {
-      if (!chunk_generator_->ProcessNextModel()) {
+    for (unsigned i = 0; i < MAX_CHUNK_MODEL_PROCESSES; i++) {
+      if (!js_ChunkGenerator->ProcessNextModel()) {
         break;
       }
     }
@@ -217,25 +212,25 @@ namespace chunklands {
     view_skybox_ = glm::lookAt(glm::vec3(0, 0, 0), look_center, glm::vec3(0.f, 1.f, 0.f));
   }
 
-  void WorldBase::RenderSkybox(double diff) {
+  void WorldBase::RenderSkybox(double) {
     PROF();
     CHECK_GL();
 
     glDisable(GL_CULL_FACE);
     glDepthFunc(GL_LEQUAL);
 
-    ref_SkyboxPass_->Begin();
-    ref_SkyboxPass_->UpdateProjection(proj_);
-    ref_SkyboxPass_->UpdateView(view_skybox_);
+    js_SkyboxPass->Begin();
+    js_SkyboxPass->UpdateProjection(proj_);
+    js_SkyboxPass->UpdateView(view_skybox_);
 
-    skybox_->Render();
+    js_Skybox->Render();
     glDepthFunc(GL_LESS);
     glEnable(GL_CULL_FACE);
 
-    ref_SkyboxPass_->End();
+    js_SkyboxPass->End();
   }
 
-  void WorldBase::RenderGBufferPass(double diff) {
+  void WorldBase::RenderGBufferPass(double) {
     PROF();
     CHECK_GL();
 
@@ -253,7 +248,7 @@ namespace chunklands {
     g_buffer_pass.UpdateView(view_);
 
     // TODO(daaitch): should be set by g_buffer_pass
-    chunk_generator_->BindTexture();
+    js_ChunkGenerator->BindTexture();
 
     // map render all chunks
     unsigned rendered_index_count = 0;
@@ -279,7 +274,7 @@ namespace chunklands {
     g_buffer_pass.End();
   }
 
-  void WorldBase::RenderSSAOPass(double diff, GLuint position_texture, GLuint normal_texture, GLuint noise_texture) {
+  void WorldBase::RenderSSAOPass(double, GLuint position_texture, GLuint normal_texture, GLuint noise_texture) {
     PROF();
     CHECK_GL();
 
@@ -298,7 +293,7 @@ namespace chunklands {
     ssao_pass.End();
   }
 
-  void WorldBase::RenderSSAOBlurPass(double diff, GLuint ssao_texture) {
+  void WorldBase::RenderSSAOBlurPass(double, GLuint ssao_texture) {
     PROF();
     CHECK_GL();
 
@@ -311,12 +306,8 @@ namespace chunklands {
     ssao_blur_pass.End();
   }
 
-  void WorldBase::RenderDeferredLightingPass(double diff, GLuint position_texture, GLuint normal_texture, GLuint color_texture, GLuint ssao_texture) {
+  void WorldBase::RenderDeferredLightingPass(double, GLuint position_texture, GLuint normal_texture, GLuint color_texture, GLuint ssao_texture) {
     PROF();
-
-    glm::vec3 sky_color(.70f, .92f, .97f);
-    glm::vec3 underground_color(0.f, 0.f, 0.f);
-    glm::vec3 clear_color = glm::mix(underground_color, sky_color, glm::smoothstep(-30.f, 0.f, pos_.y));
     
     {
       CHECK_GL();

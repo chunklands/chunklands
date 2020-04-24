@@ -74,11 +74,11 @@ namespace chunklands {
 
   template <typename CbFn>
   void Chunk::ForEachBlock(const CbFn& fn) {
-    for (int z = 0; z < SIZE; z++) {
+    for (unsigned z = 0; z < SIZE; z++) {
       auto&& items_yx = blocks_[z];
-      for (int y = 0; y < SIZE; y++) {
+      for (unsigned y = 0; y < SIZE; y++) {
         auto&& items_x = items_yx[y];
-        for (int x = 0; x < SIZE; x++) {
+        for (unsigned x = 0; x < SIZE; x++) {
           auto&& item = items_x[x];
           fn(item, x, y, z);
         }

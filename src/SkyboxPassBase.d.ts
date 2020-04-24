@@ -1,7 +1,6 @@
-export = SkyboxPassBase;
-
-import GLProgramBase from './GLProgramBase';
+import {GLProgramBase} from './GLProgramBase'
+export {SkyboxPassBase}
 
 declare class SkyboxPassBase {
-  useProgram(program: GLProgramBase): void;
+  useProgram(program: GLProgramBase): void
 }

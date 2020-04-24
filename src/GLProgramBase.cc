@@ -3,11 +3,11 @@
 #include "check.h"
 
 namespace chunklands {
-  DEFINE_OBJECT_WRAP_DEFAULT_CTOR(GLProgramBase, ONE_ARG({
-    InstanceMethod("_compile", &GLProgramBase::Compile)
+  JS_DEF_WRAP(GLProgramBase, ONE_ARG({
+    JS_CB(compile)
   }))
 
-  void GLProgramBase::Compile(const Napi::CallbackInfo& info) {
+  void GLProgramBase::JSCall_compile(const Napi::CallbackInfo& info) {
     std::string vsh_src = info[0].ToString(),
                 fsh_src = info[1].ToString();
 
@@ -27,8 +27,7 @@ namespace chunklands {
         glGetShaderiv(vsh, GL_INFO_LOG_LENGTH, &length);
         std::vector<char> message(length + 1);
         glGetShaderInfoLog(vsh, length, nullptr, message.data());
-        Napi::Error::New(Env(), message.data()).ThrowAsJavaScriptException();
-        return;
+        throw Napi::Error::New(Env(), message.data());
       }
     }
 
@@ -46,8 +45,7 @@ namespace chunklands {
         glGetShaderiv(fsh, GL_INFO_LOG_LENGTH, &length);
         std::vector<char> message(length + 1);
         glGetShaderInfoLog(fsh, length, nullptr, message.data());
-        Napi::Error::New(Env(), message.data()).ThrowAsJavaScriptException();
-        return;
+        throw Napi::Error::New(Env(), message.data());
       }
     }
 
@@ -66,8 +64,7 @@ namespace chunklands {
         glGetProgramiv(program_, GL_INFO_LOG_LENGTH, &length);
         std::vector<char> message(length + 1);
         glGetProgramInfoLog(program_, length, nullptr, message.data());
-        Napi::Error::New(Env(), message.data()).ThrowAsJavaScriptException();
-        return;
+        throw Napi::Error::New(Env(), message.data());
       }
 
       glDeleteShader(vsh);

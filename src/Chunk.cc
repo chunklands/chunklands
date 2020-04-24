@@ -1,5 +1,6 @@
 #include "Chunk.h"
 #include <vector>
+#include "error.h"
 
 namespace chunklands {
 
@@ -11,8 +12,8 @@ namespace chunklands {
   }
 
   void Chunk::InitializeGL() {
-    assert(vao_ == 0 && vb_ == 0);
-    assert(state_ != kViewPrepared);
+    CC_ASSERT(vao_ == 0 && vb_ == 0);
+    CC_ASSERT(state_ != kViewPrepared);
 
     glGenVertexArrays(1, &vao_);
     glGenBuffers(1, &vb_);
@@ -36,10 +37,10 @@ namespace chunklands {
   }
 
   void Chunk::Render() {
-    assert(state_ == kViewPrepared);
+    CC_ASSERT(state_ == kViewPrepared);
+    CHECK_GL();
 
     glBindVertexArray(vao_);
     glDrawArrays(GL_TRIANGLES, 0, vb_index_count_);
-    CHECK_GL();
   }
 }

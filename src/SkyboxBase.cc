@@ -48,8 +48,8 @@ namespace chunklands {
      1.f, -1.f,  1.f
   };
 
-  DEFINE_OBJECT_WRAP_DEFAULT_CTOR(SkyboxBase, ONE_ARG({
-    InstanceMethod("initialize", &SkyboxBase::Initialize),
+  JS_DEF_WRAP(SkyboxBase, ONE_ARG({
+    JS_CB(initialize)
   }))
 
   SkyboxBase::~SkyboxBase() {
@@ -64,7 +64,7 @@ namespace chunklands {
     }
   }
 
-  void SkyboxBase::Initialize(const Napi::CallbackInfo& info) {
+  void SkyboxBase::JSCall_initialize(const Napi::CallbackInfo& info) {
     CHECK_GL();
     glGenVertexArrays(1, &vao_);
     glBindVertexArray(vao_);

@@ -1,15 +1,14 @@
 #ifndef __CHUNKLANDS_ENVIRONMENTBASE_H__
 #define __CHUNKLANDS_ENVIRONMENTBASE_H__
 
-#include <napi.h>
-#include "napi/object_wrap_util.h"
+#include "js.h"
 
 namespace chunklands {
-  class EnvironmentBase : public Napi::ObjectWrap<EnvironmentBase> {
-    DECLARE_OBJECT_WRAP(EnvironmentBase)
-    DECLARE_OBJECT_WRAP_CB(static void Initialize_)
-    DECLARE_OBJECT_WRAP_CB(static void LoadProcs)
-    DECLARE_OBJECT_WRAP_CB(static void Terminate)
+  class EnvironmentBase : public JSWrap<EnvironmentBase> {
+    JS_DECL_WRAP(EnvironmentBase)
+    JS_DECL_CB_STATIC_VOID(initialize)
+    JS_DECL_CB_STATIC_VOID(loadProcs)
+    JS_DECL_CB_STATIC_VOID(terminate)
   };
 }
 

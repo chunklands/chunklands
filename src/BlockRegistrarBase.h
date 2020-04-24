@@ -2,18 +2,17 @@
 #define __CHUNKLANDS_BLOCKREGISTRARBASE_H__
 
 #include <memory>
-#include <napi.h>
 #include <vector>
 #include "BlockDefinition.h"
-#include "napi/object_wrap_util.h"
+#include "js.h"
 #include "GLTexture.h"
 
 namespace chunklands {
-  class BlockRegistrarBase : public Napi::ObjectWrap<BlockRegistrarBase> {
-    DECLARE_OBJECT_WRAP(BlockRegistrarBase)
-    DECLARE_OBJECT_WRAP_CB(void AddBlock)
-    DECLARE_OBJECT_WRAP_CB(void LoadTexture)
-    DECLARE_OBJECT_WRAP_CB(Napi::Value GetBlockIds)
+  class BlockRegistrarBase : public JSWrap<BlockRegistrarBase> {
+    JS_DECL_WRAP(BlockRegistrarBase)
+    JS_DECL_CB_VOID(addBlock)
+    JS_DECL_CB_VOID(loadTexture)
+    JS_DECL_CB(getBlockIds)
 
   public:
     BlockDefinition* GetByIndex(int index);

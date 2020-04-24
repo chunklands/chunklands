@@ -2,7 +2,7 @@
 #define __CHUNKLANDS_NAPI_PERSISTENTOBJECTWRAP_H__
 
 #include <cassert>
-#include <napi.h>
+#include "../napi_import.h"
 
 namespace NapiExt {
   /**

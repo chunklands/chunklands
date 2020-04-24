@@ -1,7 +1,7 @@
-import SkyboxPassBase from './SkyboxPassBase';
+import {SkyboxPassBase} from './SkyboxPassBase'
+export {WorldBase}
 
-export = WorldBase;
 
 declare class WorldBase {
-  setSkyboxPass(pass: SkyboxPassBase): void;
+  setSkyboxPass(pass: SkyboxPassBase): void
 }

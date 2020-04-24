@@ -2,11 +2,9 @@
 #define __CHUNKLANDS_CHUNKGENERATORBASE_H__
 
 #include <queue>
-#include <napi.h>
 #include "BlockRegistrarBase.h"
 #include "Chunk.h"
-#include "napi/object_wrap_util.h"
-#include "napi/PersistentObjectWrap.h"
+#include "js.h"
 
 namespace chunklands {
   namespace detail {
@@ -16,10 +14,10 @@ namespace chunklands {
     };
   }
 
-  class ChunkGeneratorBase : public Napi::ObjectWrap<ChunkGeneratorBase> {
-    DECLARE_OBJECT_WRAP(ChunkGeneratorBase)
-    DECLARE_OBJECT_WRAP_CB(void SetBlockRegistrar)
-    DECLARE_OBJECT_WRAP_CB(void SetWorldGenerator)
+  class ChunkGeneratorBase : public JSWrap<ChunkGeneratorBase> {
+    JS_DECL_WRAP(ChunkGeneratorBase)
+    JS_DECL_SETTER_REF(BlockRegistrarBase, BlockRegistrar)
+    JS_DECL_SETTER_OBJ(WorldGenerator)
 
   public:
     void GenerateModel(std::shared_ptr<Chunk>& chunk);
@@ -29,8 +27,6 @@ namespace chunklands {
     void BindTexture();
 
   private:
-    NapiExt::PersistentObjectWrap<BlockRegistrarBase> block_registrar_;
-    Napi::ObjectReference world_generator_;
 
     std::queue<detail::loaded_chunks_data> loaded_chunks_;
   };
