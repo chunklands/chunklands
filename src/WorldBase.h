@@ -16,7 +16,7 @@
 #include "SkyboxBase.h"
 #include "GBufferPassBase.h"
 #include "SSAOPassBase.h"
-#include "SSAOBlurPass.h"
+#include "SSAOBlurPassBase.h"
 #include "LightingPass.h"
 #include "js.h"
 #include "SkyboxPassBase.h"
@@ -28,7 +28,7 @@ namespace chunklands {
     JS_DECL_SETTER_REF(ChunkGeneratorBase, ChunkGenerator)
     JS_DECL_SETTER_REF(GBufferPassBase, GBufferPass)
     JS_DECL_SETTER_REF(SSAOPassBase, SSAOPass)
-    DECLARE_OBJECT_WRAP_CB(void SetSSAOBlurShader)
+    JS_DECL_SETTER_REF(SSAOBlurPassBase, SSAOBlurPass)
     DECLARE_OBJECT_WRAP_CB(void SetLightingShader)
     DECLARE_OBJECT_WRAP_CB(void SetSkyboxShader)
     JS_DECL_SETTER_REF(SkyboxBase, Skybox)
@@ -66,7 +66,6 @@ namespace chunklands {
 
   private:
 
-    SSAOBlurPass ssao_blur_pass;
     LightingPass lighting_pass_;
 
     std::unordered_map<glm::ivec3, std::shared_ptr<Chunk>, ivec3_hasher> chunk_map_;

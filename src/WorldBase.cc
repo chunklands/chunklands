@@ -26,7 +26,7 @@ namespace chunklands {
     JS_SETTER(ChunkGenerator),
     JS_SETTER(GBufferPass),
     JS_SETTER(SSAOPass),
-    InstanceMethod("setSSAOBlurShader", &WorldBase::SetSSAOBlurShader),
+    JS_SETTER(SSAOBlurPass),
     InstanceMethod("setLightingShader", &WorldBase::SetLightingShader),
     JS_SETTER(SkyboxPass),
     JS_SETTER(Skybox),
@@ -42,10 +42,7 @@ namespace chunklands {
   }
 
   JS_DEF_SETTER_JSREF(WorldBase, SkyboxPass)
-
-  void WorldBase::SetSSAOBlurShader(const Napi::CallbackInfo& info) {
-    ssao_blur_pass.SetProgram(info[0]);
-  }
+  JS_DEF_SETTER_JSREF(WorldBase, SSAOBlurPass)
 
   void WorldBase::Prepare() {
     PROF();
@@ -292,12 +289,12 @@ namespace chunklands {
     CHECK_GL();
 
     glClear(GL_COLOR_BUFFER_BIT);
-    ssao_blur_pass.Begin();
-    ssao_blur_pass.BindSSAOTexture(ssao_texture);
+    js_SSAOBlurPass->Begin();
+    js_SSAOBlurPass->BindSSAOTexture(ssao_texture);
     
     render_quad_->Render();
 
-    ssao_blur_pass.End();
+    js_SSAOBlurPass->End();
   }
 
   void WorldBase::RenderDeferredLightingPass(double, GLuint position_texture, GLuint normal_texture, GLuint color_texture, GLuint ssao_texture) {

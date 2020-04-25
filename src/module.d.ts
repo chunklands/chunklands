@@ -5,6 +5,7 @@ export {GameLoopBase} from './GameLoopBase'
 export {GLProgramBase} from './GLProgramBase'
 export {GBufferPassBase} from './GBufferPassBase'
 export {ProfilerBase} from './ProfilerBase'
+export {SSAOBlurPassBase} from './SSAOBlurPassBase'
 export {SSAOPassBase} from './SSAOPassBase'
 export {SceneBase} from './SceneBase'
 export {SkyboxPassBase} from './SkyboxPassBase';
