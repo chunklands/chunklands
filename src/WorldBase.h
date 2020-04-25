@@ -10,7 +10,6 @@
 #include "Chunk.h"
 #include "ChunkGeneratorBase.h"
 #include "gl.h"
-#include "napi/object_wrap_util.h"
 #include "GLProgramBase.h"
 #include "RenderQuad.h"
 #include "SkyboxBase.h"
