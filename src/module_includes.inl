@@ -5,6 +5,7 @@
 #include "GameLoopBase.h"
 #include "ProfilerBase.h"
 #include "SceneBase.h"
+#include "SSAOPassBase.h"
 #include "SkyboxBase.h"
 #include "SkyboxPassBase.h"
 #include "WindowBase.h"

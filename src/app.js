@@ -5,6 +5,7 @@ const GameLoop        = require('./GameLoop');
 const GLProgram       = require('./GLProgram');
 const GBufferPass     = require('./GBufferPass');
 const Profiler        = require('./Profiler');
+const SSAOPass        = require('./SSAOPass');
 const Scene           = require('./Scene');
 const SimpleWorldGen  = require('./game/world/SimpleWorldGen');
 const Skybox          = require('./Skybox');
@@ -62,7 +63,9 @@ const World           = require('./World');
     vertexShader: `${__dirname}/game/shader/ssao.vsh.glsl`,
     fragmentShader: `${__dirname}/game/shader/ssao.fsh.glsl`
   });
-  world.setSSAOShader(ssaoShader);
+  const ssaoPass = new SSAOPass();
+  ssaoPass.setProgram(ssaoShader);
+  world.setSSAOPass(ssaoPass);
 
   const ssaoBlurShader = await GLProgram.create({
     vertexShader: `${__dirname}/game/shader/ssaoblur.vsh.glsl`,

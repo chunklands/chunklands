@@ -42,10 +42,10 @@
                                                       } while (0)
 
 #define JS_DECL_SETTER_REF(TYPE, WHAT)                JS_DECL_CB_VOID(Set_##WHAT) \
-                                                      private: JSWrapRef<TYPE> js_##WHAT;
+                                                      protected: JSWrapRef<TYPE> js_##WHAT;
 
 #define JS_DECL_SETTER_OBJ(WHAT)                      JS_DECL_CB_VOID(Set_##WHAT) \
-                                                      private: JSObjRef js_##WHAT;
+                                                      protected: JSObjRef js_##WHAT;
 
 #define JS_SETTER(WHAT)                               InstanceMethod("set" #WHAT, \
                                                         &JSCurrentWrap::_JS_CB_NAME(Set_##WHAT))
@@ -84,10 +84,10 @@
 
 #define _JS_CB_NAME(WHAT)                             JSCall_##WHAT
 
-#define _JS_DECL_CB_TYPE(RETTYPE, WHAT)               private: RETTYPE _JS_CB_NAME(WHAT)\
+#define _JS_DECL_CB_TYPE(RETTYPE, WHAT)               protected: RETTYPE _JS_CB_NAME(WHAT)\
                                                         (const Napi::CallbackInfo& info);
 
-#define _JS_DECL_CB_TYPE_STATIC(RETTYPE, WHAT)        private: static RETTYPE _JS_CB_NAME(WHAT)\
+#define _JS_DECL_CB_TYPE_STATIC(RETTYPE, WHAT)        protected: static RETTYPE _JS_CB_NAME(WHAT)\
                                                         (const Napi::CallbackInfo& info);
 
 
