@@ -3,6 +3,7 @@ const ChunkGenerator  = require('./ChunkGenerator');
 const Environment     = require('./Environment');
 const GameLoop        = require('./GameLoop');
 const GLProgram       = require('./GLProgram');
+const GBufferPass     = require('./GBufferPass');
 const Profiler        = require('./Profiler');
 const Scene           = require('./Scene');
 const SimpleWorldGen  = require('./game/world/SimpleWorldGen');
@@ -49,11 +50,13 @@ const World           = require('./World');
   const world = new World();
   world.setChunkGenerator(chunkGenerator);
 
-  const gBufferShader = await GLProgram.create({
+  const gbufferShader = await GLProgram.create({
     vertexShader: `${__dirname}/game/shader/gbuffer.vsh.glsl`,
     fragmentShader: `${__dirname}/game/shader/gbuffer.fsh.glsl`
   });
-  world.setGBufferShader(gBufferShader);
+  const gbufferPass = new GBufferPass();
+  gbufferPass.setProgram(gbufferShader);
+  world.setGBufferPass(gbufferPass);
 
   const ssaoShader = await GLProgram.create({
     vertexShader: `${__dirname}/game/shader/ssao.vsh.glsl`,

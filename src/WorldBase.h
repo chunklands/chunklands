@@ -14,7 +14,7 @@
 #include "GLProgramBase.h"
 #include "RenderQuad.h"
 #include "SkyboxBase.h"
-#include "GBufferPass.h"
+#include "GBufferPassBase.h"
 #include "SSAOPass.h"
 #include "SSAOBlurPass.h"
 #include "LightingPass.h"
@@ -26,7 +26,7 @@ namespace chunklands {
   class WorldBase : public JSWrap<WorldBase> {
     JS_DECL_WRAP(WorldBase)
     JS_DECL_SETTER_REF(ChunkGeneratorBase, ChunkGenerator)
-    DECLARE_OBJECT_WRAP_CB(void SetGBufferShader)
+    JS_DECL_SETTER_REF(GBufferPassBase, GBufferPass)
     DECLARE_OBJECT_WRAP_CB(void SetSSAOShader)
     DECLARE_OBJECT_WRAP_CB(void SetSSAOBlurShader)
     DECLARE_OBJECT_WRAP_CB(void SetLightingShader)
@@ -66,7 +66,6 @@ namespace chunklands {
 
   private:
 
-    GBufferPass  g_buffer_pass;
     SSAOPass     ssao_pass;
     SSAOBlurPass ssao_blur_pass;
     LightingPass lighting_pass_;

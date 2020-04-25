@@ -3,6 +3,7 @@ export {ChunkGeneratorBase, IWorldGenerator} from './ChunkGeneratorBase'
 export {EnvironmentBase} from './EnvironmentBase'
 export {GameLoopBase} from './GameLoopBase'
 export {GLProgramBase} from './GLProgramBase'
+export {GBufferPassBase} from './GBufferPassBase'
 export {ProfilerBase} from './ProfilerBase'
 export {SceneBase} from './SceneBase'
 export {SkyboxPassBase} from './SkyboxPassBase';

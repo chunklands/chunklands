@@ -24,7 +24,7 @@ namespace chunklands {
 
   JS_DEF_WRAP(WorldBase, ONE_ARG({
     JS_SETTER(ChunkGenerator),
-    InstanceMethod("setGBufferShader",  &WorldBase::SetGBufferShader),
+    JS_SETTER(GBufferPass),
     InstanceMethod("setSSAOShader",     &WorldBase::SetSSAOShader),
     InstanceMethod("setSSAOBlurShader", &WorldBase::SetSSAOBlurShader),
     InstanceMethod("setLightingShader", &WorldBase::SetLightingShader),
@@ -34,10 +34,7 @@ namespace chunklands {
 
   JS_DEF_SETTER_JSREF(WorldBase, ChunkGenerator)
   JS_DEF_SETTER_JSREF(WorldBase, Skybox)
-
-  void WorldBase::SetGBufferShader(const Napi::CallbackInfo& info) {
-    g_buffer_pass.SetProgram(info[0]);
-  }
+  JS_DEF_SETTER_JSREF(WorldBase, GBufferPass)
 
   void WorldBase::SetSSAOShader(const Napi::CallbackInfo& info) {
     ssao_pass.SetProgram(info[0]);
@@ -242,10 +239,10 @@ namespace chunklands {
                                              pos_.z >= 0 ? pos_.z : pos_.z - Chunk::SIZE
                                             ) / (int)Chunk::SIZE;
 
-    g_buffer_pass.Begin();
+    js_GBufferPass->Begin();
 
-    g_buffer_pass.UpdateProjection(proj_);
-    g_buffer_pass.UpdateView(view_);
+    js_GBufferPass->UpdateProjection(proj_);
+    js_GBufferPass->UpdateView(view_);
 
     // TODO(daaitch): should be set by g_buffer_pass
     js_ChunkGenerator->BindTexture();
@@ -271,7 +268,7 @@ namespace chunklands {
 
     std::cout << "Rendered index count: " << rendered_index_count << ", chunk count: " << rendered_chunk_count << std::endl;
 
-    g_buffer_pass.End();
+    js_GBufferPass->End();
   }
 
   void WorldBase::RenderSSAOPass(double, GLuint position_texture, GLuint normal_texture, GLuint noise_texture) {
