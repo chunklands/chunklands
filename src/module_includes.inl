@@ -3,6 +3,7 @@
 #include "EnvironmentBase.h"
 #include "GLProgramBase.h"
 #include "GameLoopBase.h"
+#include "LightingPassBase.h"
 #include "ProfilerBase.h"
 #include "SceneBase.h"
 #include "SSAOBlurPassBase.h"

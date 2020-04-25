@@ -27,7 +27,7 @@ namespace chunklands {
     JS_SETTER(GBufferPass),
     JS_SETTER(SSAOPass),
     JS_SETTER(SSAOBlurPass),
-    InstanceMethod("setLightingShader", &WorldBase::SetLightingShader),
+    JS_SETTER(LightingPass),
     JS_SETTER(SkyboxPass),
     JS_SETTER(Skybox),
   }))
@@ -36,11 +36,7 @@ namespace chunklands {
   JS_DEF_SETTER_JSREF(WorldBase, Skybox)
   JS_DEF_SETTER_JSREF(WorldBase, GBufferPass)
   JS_DEF_SETTER_JSREF(WorldBase, SSAOPass)
-
-  void WorldBase::SetLightingShader(const Napi::CallbackInfo& info) {
-    lighting_pass_.SetProgram(info[0]);
-  }
-
+  JS_DEF_SETTER_JSREF(WorldBase, LightingPass)
   JS_DEF_SETTER_JSREF(WorldBase, SkyboxPass)
   JS_DEF_SETTER_JSREF(WorldBase, SSAOBlurPass)
 
@@ -306,22 +302,23 @@ namespace chunklands {
       glClearColor(0.f, 0.f, 0.f, 1.f);
       glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-      lighting_pass_.Begin();
-      lighting_pass_.BindPositionTexture(position_texture);
-      lighting_pass_.BindNormalTexture(normal_texture);
-      lighting_pass_.BindColorTexture(color_texture);
-      lighting_pass_.BindSSAOTexture(ssao_texture);
+      js_LightingPass->Begin();
+      js_LightingPass->Begin();
+      js_LightingPass->BindPositionTexture(position_texture);
+      js_LightingPass->BindNormalTexture(normal_texture);
+      js_LightingPass->BindColorTexture(color_texture);
+      js_LightingPass->BindSSAOTexture(ssao_texture);
 
-      lighting_pass_.UpdateRenderDistance(((float)RENDER_DISTANCE - 0.5f) * Chunk::SIZE);
+      js_LightingPass->UpdateRenderDistance(((float)RENDER_DISTANCE - 0.5f) * Chunk::SIZE);
 
       glm::vec3 sun_position = glm::normalize(glm::mat3(view_) * glm::vec3(-3, 1, 3));
-      lighting_pass_.UpdateSunPosition(sun_position);
+      js_LightingPass->UpdateSunPosition(sun_position);
     }
     
     {
       CHECK_GL();
       render_quad_->Render();
-      lighting_pass_.Begin();
+      js_LightingPass->End();
     }
 
   }

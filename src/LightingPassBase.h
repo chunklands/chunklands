@@ -1,12 +1,15 @@
-#ifndef __CHUNKLANDS_LIGHTINGPASS_H__
-#define __CHUNKLANDS_LIGHTINGPASS_H__
+#ifndef __CHUNKLANDS_LIGHTINGPASSBASE_H__
+#define __CHUNKLANDS_LIGHTINGPASSBASE_H__
 
 #include "gl.h"
+#include "js.h"
 #include <glm/vec3.hpp>
-#include "RenderPass.h"
+#include "ARenderPass.h"
 
 namespace chunklands {
-  class LightingPass : public RenderPass {
+  class LightingPassBase : public JSWrap<LightingPassBase>, public ARenderPass {
+    JS_DECL_WRAP(LightingPassBase)
+
   public:
     void UpdateRenderDistance(GLfloat value);
     void UpdateSunPosition(const glm::vec3& value);

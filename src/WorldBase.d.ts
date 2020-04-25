@@ -4,6 +4,7 @@ import {GBufferPassBase} from './GBufferPassBase'
 import {SSAOBlurPassBase} from './SSAOBlurPassBase'
 import {SSAOPassBase} from './SSAOPassBase'
 import {SkyboxBase} from './SkyboxBase'
+import {LightingPassBase} from './LightingPassBase'
 export {WorldBase}
 
 
@@ -15,4 +16,5 @@ declare class WorldBase {
   setGBufferPass(pass: GBufferPassBase): void
   setSSAOPass(pass: SSAOPassBase): void
   setSSAOBlurPass(pass: SSAOBlurPassBase): void
+  setLightingPass(pass: LightingPassBase): void
 }

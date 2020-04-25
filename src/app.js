@@ -4,6 +4,7 @@ const Environment     = require('./Environment');
 const GameLoop        = require('./GameLoop');
 const GLProgram       = require('./GLProgram');
 const GBufferPass     = require('./GBufferPass');
+const LightingPass    = require('./LightingPass');
 const Profiler        = require('./Profiler');
 const SSAOBlurPass    = require('./SSAOBlurPass');
 const SSAOPass        = require('./SSAOPass');
@@ -80,7 +81,9 @@ const World           = require('./World');
     vertexShader: `${__dirname}/game/shader/lighting.vsh.glsl`,
     fragmentShader: `${__dirname}/game/shader/lighting.fsh.glsl`
   });
-  world.setLightingShader(lightingShader);
+  const lightingPass = new LightingPass();
+  lightingPass.setProgram(lightingShader);
+  world.setLightingPass(lightingPass);
 
   const skyboxShader = await GLProgram.create({
     vertexShader: `${__dirname}/game/shader/skybox.vsh.glsl`,
