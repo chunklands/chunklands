@@ -85,17 +85,20 @@ namespace chunklands {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     { // g-buffer pass
+      
       CHECK_GL_HERE();
-      glBindFramebuffer(GL_FRAMEBUFFER, g_buffer_.framebuffer);
-      js_World->RenderGBufferPass(diff);
-      glBindFramebuffer(GL_FRAMEBUFFER, 0);
+      js_GBufferPass->Begin();
+      js_GBufferPass->UpdateProjection(js_World->GetProjection());
+      js_GBufferPass->UpdateView(js_World->GetView());
+      js_World->RenderChunks(diff);
+      js_GBufferPass->End();
       CHECK_GL_HERE();
     }
 
     { // SSAO
       CHECK_GL_HERE();
       glBindFramebuffer(GL_FRAMEBUFFER, ssao_.framebuffer);
-      js_World->RenderSSAOPass(diff, g_buffer_.position_texture, g_buffer_.normal_texture, ssao_.noise_texture);
+      js_World->RenderSSAOPass(diff, js_GBufferPass->textures_.position, js_GBufferPass->textures_.normal, ssao_.noise_texture);
       glBindFramebuffer(GL_FRAMEBUFFER, 0);
       CHECK_GL_HERE();
     }
@@ -109,7 +112,7 @@ namespace chunklands {
     }
 
     { // deferred lighting pass
-      js_World->RenderDeferredLightingPass(diff, g_buffer_.position_texture, g_buffer_.normal_texture, g_buffer_.color_texture, ssao_blur_.color_texture);
+      js_World->RenderDeferredLightingPass(diff, js_GBufferPass->textures_.position, js_GBufferPass->textures_.normal, js_GBufferPass->textures_.color, ssao_blur_.color_texture);
     }
 
     { // skybox
@@ -149,48 +152,7 @@ namespace chunklands {
     buffer_size_.x = width;
     buffer_size_.y = height;
 
-    { // gBuffer
-      glGenFramebuffers(1, &g_buffer_.framebuffer);
-      glBindFramebuffer(GL_FRAMEBUFFER, g_buffer_.framebuffer);
-
-      glGenTextures(1, &g_buffer_.position_texture);
-      glBindTexture(GL_TEXTURE_2D, g_buffer_.position_texture);
-      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, width, height, 0, GL_RGB, GL_FLOAT, nullptr);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-      glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, g_buffer_.position_texture, 0);
-
-      glGenTextures(1, &g_buffer_.normal_texture);
-      glBindTexture(GL_TEXTURE_2D, g_buffer_.normal_texture);
-      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, width, height, 0, GL_RGB, GL_FLOAT, nullptr);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-      glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, g_buffer_.normal_texture, 0);
-
-      glGenTextures(1, &g_buffer_.color_texture);
-      glBindTexture(GL_TEXTURE_2D, g_buffer_.color_texture);
-      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-      glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, g_buffer_.color_texture, 0);
-
-      const GLuint attachments[3] = {
-        GL_COLOR_ATTACHMENT0,
-        GL_COLOR_ATTACHMENT1,
-        GL_COLOR_ATTACHMENT2
-      };
-
-      glDrawBuffers(3, attachments);
-
-      glGenRenderbuffers(1, &g_buffer_.renderbuffer);
-      glBindRenderbuffer(GL_RENDERBUFFER, g_buffer_.renderbuffer);
-      glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width, height);
-      glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, g_buffer_.renderbuffer);
-
-      assert(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE);
-
-      glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    }
+    js_GBufferPass->UpdateBufferSize(width, height);
 
     { // initialize SSAO
       glGenFramebuffers(1, &ssao_.framebuffer);
@@ -246,25 +208,7 @@ namespace chunklands {
   }
 
   void SceneBase::DeleteGLBuffers() {
-    if (g_buffer_.position_texture != 0) {
-      glDeleteTextures(1, &g_buffer_.position_texture);
-      g_buffer_.position_texture = 0;
-    }
-
-    if (g_buffer_.normal_texture != 0) {
-      glDeleteTextures(1, &g_buffer_.normal_texture);
-      g_buffer_.normal_texture = 0;
-    }
-
-    if (g_buffer_.color_texture != 0) {
-      glDeleteTextures(1, &g_buffer_.color_texture);
-      g_buffer_.color_texture = 0;
-    }
-
-    if (g_buffer_.framebuffer != 0) {
-      glDeleteFramebuffers(1, &g_buffer_.framebuffer);
-      g_buffer_.framebuffer = 0;
-    }
+    
 
     // TODO(daaitch): cleanups missing? ssao, ssao-blur
   }

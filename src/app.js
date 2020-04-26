@@ -53,14 +53,6 @@ const World           = require('./World');
   const world = new World();
   world.setChunkGenerator(chunkGenerator);
 
-  const gbufferShader = await GLProgram.create({
-    vertexShader: `${__dirname}/game/shader/gbuffer.vsh.glsl`,
-    fragmentShader: `${__dirname}/game/shader/gbuffer.fsh.glsl`
-  });
-  const gbufferPass = new GBufferPass();
-  gbufferPass.setProgram(gbufferShader);
-  world.setGBufferPass(gbufferPass);
-
   const ssaoShader = await GLProgram.create({
     vertexShader: `${__dirname}/game/shader/ssao.vsh.glsl`,
     fragmentShader: `${__dirname}/game/shader/ssao.fsh.glsl`
@@ -100,8 +92,18 @@ const World           = require('./World');
   world.setSkybox(skybox);
 
   const scene = new Scene();
-  scene.setWindow(window);
   scene.setWorld(world);
+
+  const gbufferShader = await GLProgram.create({
+    vertexShader: `${__dirname}/game/shader/gbuffer.vsh.glsl`,
+    fragmentShader: `${__dirname}/game/shader/gbuffer.fsh.glsl`
+  });
+  const gbufferPass = new GBufferPass();
+  gbufferPass.setProgram(gbufferShader);
+  scene.setGBufferPass(gbufferPass);
+
+  // for now after GBufferPass
+  scene.setWindow(window);
 
   const gameLoop = new GameLoop();
   gameLoop.setScene(scene);

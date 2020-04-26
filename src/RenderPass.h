@@ -9,13 +9,15 @@ namespace chunklands {
     JS_ATTR_WRAP(GLProgramBase, Program)
 
   public:
-    void Begin() {
+    virtual void Begin() {
       js_Program->Use();
     }
 
-    void End() {
+    virtual void End() {
       js_Program->Unuse();
     }
+
+    virtual void UpdateBufferSize(int /*width*/, int /*height*/) {}
   
   protected:
     virtual void InitializeProgram() {}

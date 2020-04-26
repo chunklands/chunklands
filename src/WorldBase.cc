@@ -201,22 +201,16 @@ namespace chunklands {
     js_SkyboxPass->End();
   }
 
-  void WorldBase::RenderGBufferPass(double) {
+  void WorldBase::RenderChunks(double) {
     PROF();
     CHECK_GL();
 
-    glClearColor(0.f, 0.f, 0.f, 1.f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    
 
     glm::ivec3 center_chunk_pos = glm::ivec3(pos_.x >= 0 ? pos_.x : pos_.x - Chunk::SIZE,
                                              pos_.y >= 0 ? pos_.y : pos_.y - Chunk::SIZE,
                                              pos_.z >= 0 ? pos_.z : pos_.z - Chunk::SIZE
                                             ) / (int)Chunk::SIZE;
-
-    js_GBufferPass->Begin();
-
-    js_GBufferPass->UpdateProjection(proj_);
-    js_GBufferPass->UpdateView(view_);
 
     // TODO(daaitch): should be set by g_buffer_pass
     js_ChunkGenerator->BindTexture();
@@ -241,8 +235,6 @@ namespace chunklands {
     }
 
     std::cout << "Rendered index count: " << rendered_index_count << ", chunk count: " << rendered_chunk_count << std::endl;
-
-    js_GBufferPass->End();
   }
 
   void WorldBase::RenderSSAOPass(double, GLuint position_texture, GLuint normal_texture, GLuint noise_texture) {

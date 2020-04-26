@@ -13,7 +13,6 @@
 #include "GLProgramBase.h"
 #include "RenderQuad.h"
 #include "SkyboxBase.h"
-#include "GBufferPassBase.h"
 #include "SSAOPassBase.h"
 #include "SSAOBlurPassBase.h"
 #include "LightingPassBase.h"
@@ -25,7 +24,6 @@ namespace chunklands {
   class WorldBase : public JSObjectWrap<WorldBase> {
     JS_IMPL_WRAP(WorldBase, ONE_ARG({
       JS_SETTER(ChunkGenerator),
-      JS_SETTER(GBufferPass),
       JS_SETTER(SSAOPass),
       JS_SETTER(SSAOBlurPass),
       JS_SETTER(LightingPass),
@@ -34,7 +32,6 @@ namespace chunklands {
     }))
 
     JS_IMPL_SETTER_WRAP(ChunkGeneratorBase, ChunkGenerator)
-    JS_IMPL_SETTER_WRAP(GBufferPassBase, GBufferPass)
     JS_IMPL_SETTER_WRAP(SSAOPassBase, SSAOPass)
     JS_IMPL_SETTER_WRAP(SSAOBlurPassBase, SSAOBlurPass)
     JS_IMPL_SETTER_WRAP(LightingPassBase, LightingPass)
@@ -56,7 +53,7 @@ namespace chunklands {
   public:
     void Prepare();
     void Update(double diff);
-    void RenderGBufferPass(double diff);
+    void RenderChunks(double diff);
     void RenderSSAOPass(double diff, GLuint position_texture, GLuint normal_texture, GLuint noise_texture);
     void RenderSSAOBlurPass(double diff, GLuint ssao_texture);
     void RenderDeferredLightingPass(double diff, GLuint position_texture, GLuint normal_texture, GLuint color_texture, GLuint ssao_texture);
@@ -71,6 +68,14 @@ namespace chunklands {
 
     const glm::vec2& GetLook() const {
       return look_;
+    }
+
+    const glm::mat4& GetProjection() const {
+      return proj_;
+    }
+
+    const glm::mat4& GetView() const {
+      return view_;
     }
 
   private:
