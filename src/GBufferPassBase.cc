@@ -4,12 +4,10 @@ namespace chunklands {
   JS_DEF_WRAP(GBufferPassBase)
 
   void GBufferPassBase::InitializeProgram() {
-    uniforms_ = {
-      .proj     = js_Program->GetUniformLocation("u_proj"),
-      .view     = js_Program->GetUniformLocation("u_view"),
-    };
+    GLUniform texture {"u_texture"};
+    *js_Program << uniforms_.proj << uniforms_.view << texture;
 
-    glUniform1i(js_Program->GetUniformLocation("u_texture"), 0);
+    texture(0);
   }
 
   void GBufferPassBase::UpdateBufferSize(int width, int height) {

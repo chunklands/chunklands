@@ -8,6 +8,7 @@
 #include "gl.h"
 #include "GLProgramBase.h"
 #include "RenderPass.h"
+#include "GLUniform.h"
 
 namespace chunklands {
   class GBufferPassBase : public JSObjectWrap<GBufferPassBase>, public RenderPass {
@@ -39,7 +40,6 @@ namespace chunklands {
 
     void UpdateView(const glm::mat4& view) {
       glUniformMatrix4fv(uniforms_.view, 1, GL_FALSE, glm::value_ptr(view));
-      
     }
 
     void UpdateBufferSize(int width, int height) override;
@@ -50,8 +50,8 @@ namespace chunklands {
 
   public:
     struct {
-      GLint proj    = -1,
-            view    = -1;
+      GLUniform proj {"u_proj"},
+                view {"u_view"};
     } uniforms_;
 
     GLuint renderbuffer_ = 0;
