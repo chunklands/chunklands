@@ -11,7 +11,7 @@ namespace chunklands {
     }))
 
   protected:
-    void InitializeProgram() {
+    void InitializeProgram() override {
       glUniform1i(js_Program->GetUniformLocation("u_ssao"), 0);
     }
 

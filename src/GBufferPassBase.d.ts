@@ -1,6 +1,5 @@
-import {GLProgramBase} from './GLProgramBase'
+import { RenderPass } from './RenderPass'
 export {GBufferPassBase}
 
-declare class GBufferPassBase {
-  setProgram(program: GLProgramBase): void
+declare class GBufferPassBase extends RenderPass {
 }
