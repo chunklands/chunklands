@@ -56,6 +56,9 @@ if (Backtrace_FOUND)
 endif()
 
 
+message("LIBRARIES: ${CHUNKLANDS_LIBRARIES}")
+message("INCLUDE:   ${CHUNKLANDS_INCLUDE}")
+
 # BUILD
 target_include_directories(${PROJECT_NAME} SYSTEM PRIVATE "${CHUNKLANDS_INCLUDE}")
 target_link_libraries(${PROJECT_NAME} "${CHUNKLANDS_LIBRARIES}")

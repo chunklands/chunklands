@@ -5,13 +5,21 @@
 #include "gl.h"
 
 namespace chunklands {
-  class GLProgramBase : public JSWrap<GLProgramBase> {
-    JS_DECL_WRAP(GLProgramBase)
+  class GLProgramBase : public JSObjectWrap<GLProgramBase> {
+    JS_IMPL_WRAP(GLProgramBase, ONE_ARG({
+      JS_CB(compile)
+    }))
+
     JS_DECL_CB_VOID(compile)
 
   public:
-    void Use() const;
-    void Unuse() const;
+    void Use() const {
+      glUseProgram(program_);
+    }
+
+    void Unuse() const {
+      glUseProgram(0);
+    }
 
     GLint GetUniformLocation(const GLchar* name) const;
 

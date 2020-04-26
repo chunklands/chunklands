@@ -4,16 +4,9 @@
 #include <glm/geometric.hpp>
 
 namespace chunklands {
-  JS_DEF_WRAP(SceneBase, ONE_ARG({
-    JS_SETTER(Window),
-    JS_SETTER(World)
-  }))
+  JS_DEF_WRAP(SceneBase)
 
-  SceneBase::~SceneBase() {
-    DeleteGLBuffers();
-  }
-
-  void SceneBase::JSCall_Set_Window(const Napi::CallbackInfo& info) {
+  void SceneBase::JSCall_SetWindow(JSCbi info) {
     js_Window = info[0].ToObject();
     UpdateViewport();
 
@@ -33,13 +26,9 @@ namespace chunklands {
     });
   }
 
-  void SceneBase::JSCall_Set_World(const Napi::CallbackInfo& info) {
+  void SceneBase::JSCall_SetWorld(JSCbi info) {
     js_World = info[0].ToObject();
     UpdateViewport();
-  }
-
-  void SceneBase::Prepare() {
-    js_World->Prepare();
   }
 
   void SceneBase::Update(double diff) {

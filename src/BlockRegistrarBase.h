@@ -8,8 +8,13 @@
 #include "GLTexture.h"
 
 namespace chunklands {
-  class BlockRegistrarBase : public JSWrap<BlockRegistrarBase> {
-    JS_DECL_WRAP(BlockRegistrarBase)
+  class BlockRegistrarBase : public JSObjectWrap<BlockRegistrarBase> {
+    JS_IMPL_WRAP(BlockRegistrarBase, ONE_ARG({
+      JS_CB(addBlock),
+      JS_CB(loadTexture),
+      JS_CB(getBlockIds)
+    }))
+
     JS_DECL_CB_VOID(addBlock)
     JS_DECL_CB_VOID(loadTexture)
     JS_DECL_CB(getBlockIds)

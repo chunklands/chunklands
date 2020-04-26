@@ -2,19 +2,15 @@
 #include "gl.h"
 
 namespace chunklands {
-  JS_DEF_WRAP(EnvironmentBase, ONE_ARG({
-    JS_CB_STATIC(initialize),
-    JS_CB_STATIC(loadProcs),
-    JS_CB_STATIC(terminate),
-  }))
+  JS_DEF_WRAP(EnvironmentBase)
 
-  void EnvironmentBase::JSCall_initialize(const Napi::CallbackInfo& info) {
+  void EnvironmentBase::JSCall_initialize(JSCbi info) {
     auto&& env = info.Env();
     const int init = glfwInit();
     JS_ASSERT_MSG(init == GLFW_TRUE, "could not initialize GLFW");
   }
 
-  void EnvironmentBase::JSCall_loadProcs(const Napi::CallbackInfo& info) {
+  void EnvironmentBase::JSCall_loadProcs(JSCbi info) {
     auto&& env = info.Env();
 
     JS_ASSERT_MSG(glfwGetCurrentContext() != nullptr, "call after `window.makeCurrentContext()`");
@@ -25,7 +21,7 @@ namespace chunklands {
     CHECK_GL();
   }
 
-  void EnvironmentBase::JSCall_terminate(const Napi::CallbackInfo&) {
+  void EnvironmentBase::JSCall_terminate(JSCbi) {
     glfwTerminate();
   }
 }

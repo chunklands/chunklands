@@ -1,13 +1,9 @@
 #include "BlockRegistrarBase.h"
 
 namespace chunklands {
-  JS_DEF_WRAP(BlockRegistrarBase, ONE_ARG({
-    JS_CB(addBlock),
-    JS_CB(loadTexture),
-    JS_CB(getBlockIds)
-  }))
+  JS_DEF_WRAP(BlockRegistrarBase)
 
-  void BlockRegistrarBase::JSCall_addBlock(const Napi::CallbackInfo& info) {
+  void BlockRegistrarBase::JSCall_addBlock(JSCbi info) {
     auto&& env = info.Env();
     JS_ASSERT(info[0].IsObject());
 
@@ -58,7 +54,7 @@ namespace chunklands {
     block_definitions_.push_back(std::move(block_definition));
   }
 
-  Napi::Value BlockRegistrarBase::JSCall_getBlockIds(const Napi::CallbackInfo& info) {
+  JSValue BlockRegistrarBase::JSCall_getBlockIds(JSCbi info) {
     auto&& js_block_ids = Napi::Object::New(info.Env());
 
     for (unsigned i = 0; i < block_definitions_.size(); i++) {
@@ -69,7 +65,7 @@ namespace chunklands {
     return js_block_ids;
   }
 
-  void BlockRegistrarBase::JSCall_loadTexture(const Napi::CallbackInfo& info) {
+  void BlockRegistrarBase::JSCall_loadTexture(JSCbi info) {
     auto&& env = info.Env();
     JS_ASSERT(info[0].IsString());
 

@@ -22,15 +22,24 @@
 
 namespace chunklands {
 
-  class WorldBase : public JSWrap<WorldBase> {
-    JS_DECL_WRAP(WorldBase)
-    JS_DECL_SETTER_REF(ChunkGeneratorBase, ChunkGenerator)
-    JS_DECL_SETTER_REF(GBufferPassBase, GBufferPass)
-    JS_DECL_SETTER_REF(SSAOPassBase, SSAOPass)
-    JS_DECL_SETTER_REF(SSAOBlurPassBase, SSAOBlurPass)
-    JS_DECL_SETTER_REF(LightingPassBase, LightingPass)
-    JS_DECL_SETTER_REF(SkyboxBase, Skybox)
-    JS_DECL_SETTER_REF(SkyboxPassBase, SkyboxPass)
+  class WorldBase : public JSObjectWrap<WorldBase> {
+    JS_IMPL_WRAP(WorldBase, ONE_ARG({
+      JS_SETTER(ChunkGenerator),
+      JS_SETTER(GBufferPass),
+      JS_SETTER(SSAOPass),
+      JS_SETTER(SSAOBlurPass),
+      JS_SETTER(LightingPass),
+      JS_SETTER(SkyboxPass),
+      JS_SETTER(Skybox),
+    }))
+
+    JS_IMPL_SETTER_WRAP(ChunkGeneratorBase, ChunkGenerator)
+    JS_IMPL_SETTER_WRAP(GBufferPassBase, GBufferPass)
+    JS_IMPL_SETTER_WRAP(SSAOPassBase, SSAOPass)
+    JS_IMPL_SETTER_WRAP(SSAOBlurPassBase, SSAOBlurPass)
+    JS_IMPL_SETTER_WRAP(LightingPassBase, LightingPass)
+    JS_IMPL_SETTER_WRAP(SkyboxBase, Skybox)
+    JS_IMPL_SETTER_WRAP(SkyboxPassBase, SkyboxPass)
 
   private:
     struct ivec3_hasher {
@@ -56,11 +65,13 @@ namespace chunklands {
     void UpdateViewportRatio(int width, int height);
 
     void AddLook(float yaw_rad, float pitch_rad);
-    void AddPos(const glm::vec3& v);
+    void AddPos(const glm::vec3& v) {
+      pos_ += v;
+    }
 
     const glm::vec2& GetLook() const {
       return look_;
-    }  
+    }
 
   private:
 

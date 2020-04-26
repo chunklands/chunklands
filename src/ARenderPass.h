@@ -6,7 +6,7 @@
 
 namespace chunklands {
   class ARenderPass {
-    JS_DECL_SETTER_REF(GLProgramBase, Program)
+    JS_ATTR_WRAP(GLProgramBase, Program)
 
   public:
     void Begin() {
@@ -19,6 +19,14 @@ namespace chunklands {
   
   protected:
     virtual void InitializeProgram() {}
+
+    void JSCall_SetProgram(JSCbi info) {
+      js_Program = info[0];
+
+      js_Program->Use();
+      InitializeProgram();
+      js_Program->Unuse();
+    }
   };
 }
 

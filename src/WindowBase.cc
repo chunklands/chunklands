@@ -8,14 +8,9 @@ namespace chunklands {
     }
   }
   
-  JS_DEF_WRAP(WindowBase, ONE_ARG({
-    JS_CB(initialize),
-    JS_CB(makeContextCurrent),
-    JS_CB(shouldClose),
-    JS_CB(close)
-  }))
+  JS_DEF_WRAP(WindowBase)
 
-  void WindowBase::JSCall_initialize(const Napi::CallbackInfo& info) {
+  void WindowBase::JSCall_initialize(JSCbi info) {
     auto&& env = info.Env();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -41,11 +36,11 @@ namespace chunklands {
     glfwShowWindow(window_);
   }
 
-  void WindowBase::JSCall_makeContextCurrent(const Napi::CallbackInfo&) {
+  void WindowBase::JSCall_makeContextCurrent(JSCbi) {
     glfwMakeContextCurrent(window_);
   }
 
-  Napi::Value WindowBase::JSCall_shouldClose(const Napi::CallbackInfo& info) {
+  JSValue WindowBase::JSCall_shouldClose(JSCbi info) {
     if (!window_) {
       return Napi::Boolean::New(info.Env(), true);
     }
@@ -54,7 +49,7 @@ namespace chunklands {
     return Napi::Boolean::New(info.Env(), should_close == GLFW_TRUE);
   }
 
-  void WindowBase::JSCall_close(const Napi::CallbackInfo&) {
+  void WindowBase::JSCall_close(JSCbi) {
     if (!window_) {
       return;
     }

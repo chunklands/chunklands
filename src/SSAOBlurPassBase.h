@@ -5,14 +5,21 @@
 #include "ARenderPass.h"
 
 namespace chunklands {
-  class SSAOBlurPassBase : public JSWrap<SSAOBlurPassBase>, public ARenderPass {
-    JS_DECL_WRAP(SSAOBlurPassBase)
+  class SSAOBlurPassBase : public JSObjectWrap<SSAOBlurPassBase>, public ARenderPass {
+    JS_IMPL_WRAP(SSAOBlurPassBase, ONE_ARG({
+      JS_SETTER(Program)
+    }))
 
   protected:
-    void InitializeProgram();
+    void InitializeProgram() {
+      glUniform1i(js_Program->GetUniformLocation("u_ssao"), 0);
+    }
 
   public:
-    void BindSSAOTexture(GLuint texture);
+    void BindSSAOTexture(GLuint texture) {
+      glActiveTexture(GL_TEXTURE0);
+      glBindTexture(GL_TEXTURE_2D, texture);
+    }
   };
 }
 

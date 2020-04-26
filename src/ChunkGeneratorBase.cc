@@ -6,13 +6,7 @@
 #include "prof.h"
 
 namespace chunklands {
-  JS_DEF_WRAP(ChunkGeneratorBase, ONE_ARG({
-    JS_SETTER(BlockRegistrar),
-    JS_SETTER(WorldGenerator),
-  }))
-
-  JS_DEF_SETTER_JSREF(ChunkGeneratorBase, BlockRegistrar)
-  JS_DEF_SETTER_JSOBJ(ChunkGeneratorBase, WorldGenerator)
+  JS_DEF_WRAP(ChunkGeneratorBase)
 
   struct generate_model_callback_data {
     ChunkGeneratorBase *generator;
@@ -37,7 +31,7 @@ namespace chunklands {
         Napi::Number::New(env, pos.y),
         Napi::Number::New(env, pos.z),
         Napi::Number::New(env, Chunk::SIZE),
-        Napi::Function::New(env, [](const Napi::CallbackInfo& info) {
+        Napi::Function::New(env, [](JSCbi info) {
             std::unique_ptr<generate_model_callback_data> data(static_cast<generate_model_callback_data *>(info.Data()));
             
             auto&& js_err = info[0];

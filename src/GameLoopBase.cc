@@ -5,16 +5,9 @@
 #include "prof.h"
 
 namespace chunklands {
-  JS_DEF_WRAP(GameLoopBase, ONE_ARG({
-    JS_CB(loop),
-    JS_CB(start),
-    JS_CB(stop),
-    JS_SETTER(Scene)
-  }))
+  JS_DEF_WRAP(GameLoopBase)
 
-  JS_DEF_SETTER_JSREF(GameLoopBase, Scene)
-
-  void GameLoopBase::JSCall_start(const Napi::CallbackInfo& info) {
+  void GameLoopBase::JSCall_start(JSCbi info) {
     auto&& env = info.Env();
     JS_ASSERT(!running_);
 
@@ -25,7 +18,7 @@ namespace chunklands {
     last_render_ = last_update_;
   }
 
-  void GameLoopBase::JSCall_stop(const Napi::CallbackInfo& info) {
+  void GameLoopBase::JSCall_stop(JSCbi info) {
     auto&& env = info.Env();
     JS_ASSERT(running_);
     running_ = false;
@@ -33,7 +26,7 @@ namespace chunklands {
 
   constexpr double update_threshold = 1.0 / 30.0; // Hz
 
-  void GameLoopBase::JSCall_loop(const Napi::CallbackInfo& info) {
+  void GameLoopBase::JSCall_loop(JSCbi info) {
     auto&& env = info.Env();
     JS_ASSERT(running_);
 

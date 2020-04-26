@@ -22,23 +22,7 @@ namespace chunklands {
   constexpr unsigned MAX_CHUNK_MODEL_GENERATES = 10;
   constexpr unsigned MAX_CHUNK_MODEL_PROCESSES = 20;
 
-  JS_DEF_WRAP(WorldBase, ONE_ARG({
-    JS_SETTER(ChunkGenerator),
-    JS_SETTER(GBufferPass),
-    JS_SETTER(SSAOPass),
-    JS_SETTER(SSAOBlurPass),
-    JS_SETTER(LightingPass),
-    JS_SETTER(SkyboxPass),
-    JS_SETTER(Skybox),
-  }))
-
-  JS_DEF_SETTER_JSREF(WorldBase, ChunkGenerator)
-  JS_DEF_SETTER_JSREF(WorldBase, Skybox)
-  JS_DEF_SETTER_JSREF(WorldBase, GBufferPass)
-  JS_DEF_SETTER_JSREF(WorldBase, SSAOPass)
-  JS_DEF_SETTER_JSREF(WorldBase, LightingPass)
-  JS_DEF_SETTER_JSREF(WorldBase, SkyboxPass)
-  JS_DEF_SETTER_JSREF(WorldBase, SSAOBlurPass)
+  JS_DEF_WRAP(WorldBase)
 
   void WorldBase::Prepare() {
     PROF();
@@ -337,9 +321,5 @@ namespace chunklands {
 
     look_.y += pitch_rad;
     look_.y = std::max(std::min(look_.y, pitch_break), -pitch_break);
-  }
-
-  void WorldBase::AddPos(const glm::vec3& v) {
-    pos_ += v;
   }
 }

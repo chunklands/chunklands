@@ -7,16 +7,25 @@
 #include "WorldBase.h"
 
 namespace chunklands {
-  class SceneBase : public JSWrap<SceneBase> {
-    JS_DECL_WRAP(SceneBase)
-    JS_DECL_SETTER_REF(WindowBase, Window)
-    JS_DECL_SETTER_REF(WorldBase, World)
+  class SceneBase : public JSObjectWrap<SceneBase> {
+    JS_IMPL_WRAP(SceneBase, ONE_ARG({
+      JS_SETTER(Window),
+      JS_SETTER(World)
+    }))
+
+    JS_DECL_SETTER_WRAP(WindowBase, Window)
+    JS_DECL_SETTER_WRAP(WorldBase, World)
 
   public:
-    virtual ~SceneBase();
+    virtual ~SceneBase() {
+      DeleteGLBuffers();
+    }
   
   public:
-    void Prepare();
+    void Prepare() {
+      js_World->Prepare();
+    }
+
     void Update(double diff);
     void Render(double diff);
 

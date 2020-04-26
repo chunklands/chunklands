@@ -3,11 +3,9 @@
 namespace chunklands {
   std::unordered_map<const char*, boost::circular_buffer<long>> ProfilerBase::meassurements_;
 
-  JS_DEF_WRAP(ProfilerBase, ONE_ARG({
-    JS_CB(getMeassurements)
-  }))
+  JS_DEF_WRAP(ProfilerBase)
 
-  Napi::Value ProfilerBase::JSCall_getMeassurements(const Napi::CallbackInfo& info) {
+  JSValue ProfilerBase::JSCall_getMeassurements(JSCbi info) {
     auto&& meassurements = Napi::Object::New(info.Env());
 
     std::for_each(meassurements_.cbegin(), meassurements_.cend(), [&](auto& m) {
@@ -26,9 +24,5 @@ namespace chunklands {
 
     auto&& insert = meassurements_.insert(std::make_pair(name, boost::circular_buffer<long>(100)));
     return insert.first->second;
-  }
-
-  void ProfilerBase::AddMeassurement(const char* name, long micros) {
-    GetOrCreateMeassurement(name).push_back(micros);
   }
 }

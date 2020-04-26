@@ -8,8 +8,14 @@
 
 namespace chunklands {
 
-  class WindowBase : public JSWrap<WindowBase> {
-    JS_DECL_WRAP(WindowBase)
+  class WindowBase : public JSObjectWrap<WindowBase> {
+    JS_IMPL_WRAP(WindowBase, ONE_ARG({
+      JS_CB(initialize),
+      JS_CB(makeContextCurrent),
+      JS_CB(shouldClose),
+      JS_CB(close)
+    }))
+
     JS_DECL_CB_VOID(initialize)
     JS_DECL_CB_VOID(makeContextCurrent)
     JS_DECL_CB(shouldClose)

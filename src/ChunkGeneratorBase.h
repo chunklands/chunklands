@@ -14,10 +14,14 @@ namespace chunklands {
     };
   }
 
-  class ChunkGeneratorBase : public JSWrap<ChunkGeneratorBase> {
-    JS_DECL_WRAP(ChunkGeneratorBase)
-    JS_DECL_SETTER_REF(BlockRegistrarBase, BlockRegistrar)
-    JS_DECL_SETTER_OBJ(WorldGenerator)
+  class ChunkGeneratorBase : public JSObjectWrap<ChunkGeneratorBase> {
+    JS_IMPL_WRAP(ChunkGeneratorBase, ONE_ARG({
+      JS_SETTER(BlockRegistrar),
+      JS_SETTER(WorldGenerator),
+    }))
+
+    JS_IMPL_SETTER_WRAP(BlockRegistrarBase, BlockRegistrar)
+    JS_IMPL_SETTER_OBJECT(WorldGenerator)
 
   public:
     void GenerateModel(std::shared_ptr<Chunk>& chunk);

@@ -6,8 +6,11 @@
 #include "GLSkyboxTexture.h"
 
 namespace chunklands {
-  class SkyboxBase : public JSWrap<SkyboxBase> {
-    JS_DECL_WRAP(SkyboxBase)
+  class SkyboxBase : public JSObjectWrap<SkyboxBase> {
+    JS_IMPL_WRAP(SkyboxBase, ONE_ARG({
+      JS_CB(initialize)
+    }))
+
     JS_DECL_CB_VOID(initialize)
 
   public:

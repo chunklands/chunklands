@@ -3,11 +3,9 @@
 #include "check.h"
 
 namespace chunklands {
-  JS_DEF_WRAP(GLProgramBase, ONE_ARG({
-    JS_CB(compile)
-  }))
+  JS_DEF_WRAP(GLProgramBase)
 
-  void GLProgramBase::JSCall_compile(const Napi::CallbackInfo& info) {
+  void GLProgramBase::JSCall_compile(JSCbi info) {
     std::string vsh_src = info[0].ToString(),
                 fsh_src = info[1].ToString();
 
@@ -79,13 +77,5 @@ namespace chunklands {
     CHECK_MSG(location != -1, std::string("for ") + name);
 
     return location;
-  }
-
-  void GLProgramBase::Use() const {
-    glUseProgram(program_);
-  }
-
-  void GLProgramBase::Unuse() const {
-    glUseProgram(0);
   }
 }

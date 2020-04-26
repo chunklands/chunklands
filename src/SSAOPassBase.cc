@@ -4,12 +4,9 @@
 
 #define  GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/compatibility.hpp>
-#include <glm/gtc/type_ptr.hpp>
 
 namespace chunklands {
-  JS_DEF_WRAP(SSAOPassBase, ONE_ARG({
-    JS_SETTER(Program)
-  }))
+  JS_DEF_WRAP(SSAOPassBase)
 
   void SSAOPassBase::InitializeProgram() {
     uniforms_ = {
@@ -40,24 +37,5 @@ namespace chunklands {
       GLint location = js_Program->GetUniformLocation(uniform.c_str());
       glUniform3fv(location, 1, glm::value_ptr(sample));
     }
-  }
-
-  void SSAOPassBase::UpdateProjection(const glm::mat4& proj) {
-    glUniformMatrix4fv(uniforms_.proj, 1, GL_FALSE, glm::value_ptr(proj));
-  }
-
-  void SSAOPassBase::BindPositionTexture(GLuint texture) {
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, texture);
-  }
-
-  void SSAOPassBase::BindNormalTexture(GLuint texture) {
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, texture);
-  }
-
-  void SSAOPassBase::BindNoiseTexture(GLuint texture) {
-    glActiveTexture(GL_TEXTURE2);
-    glBindTexture(GL_TEXTURE_2D, texture);
   }
 }

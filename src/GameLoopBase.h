@@ -5,12 +5,18 @@
 #include "SceneBase.h"
 
 namespace chunklands {
-  class GameLoopBase : public JSWrap<GameLoopBase> {
-    JS_DECL_WRAP(GameLoopBase)
+  class GameLoopBase : public JSObjectWrap<GameLoopBase> {
+    JS_IMPL_WRAP(GameLoopBase, ONE_ARG({
+      JS_CB(start),
+      JS_CB(stop),
+      JS_CB(loop),
+      JS_SETTER(Scene)
+    }))
+
     JS_DECL_CB_VOID(start)
     JS_DECL_CB_VOID(stop)
     JS_DECL_CB_VOID(loop)
-    JS_DECL_SETTER_REF(SceneBase, Scene)
+    JS_IMPL_SETTER_WRAP(SceneBase, Scene)
 
   private:
     bool running_ = false;

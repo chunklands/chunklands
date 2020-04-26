@@ -48,9 +48,7 @@ namespace chunklands {
      1.f, -1.f,  1.f
   };
 
-  JS_DEF_WRAP(SkyboxBase, ONE_ARG({
-    JS_CB(initialize)
-  }))
+  JS_DEF_WRAP(SkyboxBase)
 
   SkyboxBase::~SkyboxBase() {
     if (vbo_ != 0) {
@@ -64,7 +62,7 @@ namespace chunklands {
     }
   }
 
-  void SkyboxBase::JSCall_initialize(const Napi::CallbackInfo& info) {
+  void SkyboxBase::JSCall_initialize(JSCbi info) {
     CHECK_GL();
     glGenVertexArrays(1, &vao_);
     glBindVertexArray(vao_);

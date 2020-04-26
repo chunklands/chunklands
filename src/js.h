@@ -6,70 +6,68 @@
 
 #include "napi_import.h"
 
-// solves comma problems: e.g. `MACRO({ InstanceMethod(...), ... })` -> `MACRO(ONE_ARG({ ... }))`
-#define ONE_ARG(...) __VA_ARGS__
-
 
 // Wrap
-
-#define JS_DECL_WRAP(CLASS)                           public: \
+#define JS_IMPL_WRAP(CLASS, CLASS_DEF)                public: \
                                                         static Napi::FunctionReference constructor; \
-                                                        static void Initialize(Napi::Env env); \
-                                                      public: \
-                                                        CLASS(const Napi::CallbackInfo& info);
+                                                        CLASS(JSCbi info) \
+                                                          : JSObjectWrap<CLASS>(info) {} \
+                                                        static void Initialize(Napi::Env env) { \
+                                                          using JSCurrentWrap = CLASS; \
+                                                          constructor = Napi::Persistent( \
+                                                            DefineClass(env, #CLASS, CLASS_DEF) \
+                                                          ); \
+                                                          constructor.SuppressDestruct(); \
+                                                        }
 
-#define JS_DEF_INIT(CLASS, CLASS_DEF)                 Napi::FunctionReference CLASS::constructor; \
-                                                      void CLASS::Initialize(Napi::Env env) { \
-                                                        using JSCurrentWrap = CLASS; \
-                                                        constructor = Napi::Persistent( \
-                                                          DefineClass(env, #CLASS, CLASS_DEF) \
-                                                        ); \
-                                                        constructor.SuppressDestruct(); \
+// Wrap - Class definition
+#define JS_SETTER(WHAT)                               InstanceMethod("set" #WHAT, &JSCurrentWrap::JSCall_Set##WHAT)
+#define JS_CB(WHAT)                                   InstanceMethod(      #WHAT, &JSCurrentWrap::JSCall_   ##WHAT)
+#define JS_CB_STATIC(WHAT)                            StaticMethod(        #WHAT, &JSCurrentWrap::JSCall_   ##WHAT)
+
+// Wrap - DECL
+#define JS_DECL_SETTER_WRAP(TYPE, WHAT)               _JS_IMPL_SETTER_WRAP(TYPE, WHAT, ;)
+#define JS_DECL_SETTER_OBJECT(WHAT)                   _JS_IMPL_SETTER_OBJECTECT(WHAT, ;)
+#define JS_DECL_CB(WHAT)                              protected:        JSValue JSCall_##WHAT(JSCbi info);
+#define JS_DECL_CB_VOID(WHAT)                         protected:        void    JSCall_##WHAT(JSCbi info);
+#define JS_DECL_CB_STATIC(WHAT)                       protected: static JSValue JSCall_##WHAT(JSCbi info);
+#define JS_DECL_CB_STATIC_VOID(WHAT)                  protected: static void    JSCall_##WHAT(JSCbi info);
+
+// Wrap - DEF
+#define JS_DEF_WRAP(CLASS)                            Napi::FunctionReference CLASS::constructor;
+#define JS_DEF_SETTER_WRAP(CLASS, WHAT)               void CLASS::JSCall_Set##WHAT(JSCbi info) { \
+                                                        js_##WHAT = info[0]; \
+                                                      }
+#define JS_DEF_SETTER_OBJECT(CLASS, WHAT)             void CLASS::JSCall_Set##WHAT(JSCbi info) {  \
+                                                        js_##WHAT = Napi::Persistent(info[0].ToObject()); \
                                                       }
 
-#define JS_DEF_WRAP(CLASS, CLASS_DEF)                 JS_DEF_INIT(CLASS, ONE_ARG(CLASS_DEF)) \
-                                                      CLASS::CLASS(const Napi::CallbackInfo& info) \
-                                                        : JSWrap<CLASS>(info) {}
+// Wrap - ATTR
+#define JS_ATTR_WRAP(TYPE, WHAT)                      protected: \
+                                                        JSWrapRef<TYPE> js_##WHAT;
 
-#define JS_DECL_CB(WHAT)                              _JS_DECL_CB_TYPE(Napi::Value, WHAT)
-#define JS_DECL_CB_VOID(WHAT)                         _JS_DECL_CB_TYPE(void, WHAT)
-#define JS_DECL_CB_STATIC(WHAT)                       _JS_DECL_CB_TYPE_STATIC(Napi::Value, WHAT)
-#define JS_DECL_CB_STATIC_VOID(WHAT)                  _JS_DECL_CB_TYPE_STATIC(void, WHAT)
+// Wrap - IMPL
+#define JS_IMPL_SETTER_WRAP(TYPE, WHAT)               _JS_IMPL_SETTER_WRAP(TYPE, WHAT, ONE_ARG({ \
+                                                        js_##WHAT = info[0]; \
+                                                      }))
+#define JS_IMPL_SETTER_OBJECT(WHAT)                   _JS_IMPL_SETTER_OBJECT(WHAT, ONE_ARG({ \
+                                                        js_##WHAT = Napi::Persistent(info[0].ToObject()); \
+                                                      }))
+#define _JS_IMPL_SETTER_WRAP(TYPE, WHAT, IMPL)        JS_ATTR_WRAP(TYPE, WHAT) \
+                                                      protected: \
+                                                        void JSCall_Set##WHAT(JSCbi info) IMPL
+#define _JS_IMPL_SETTER_OBJECT(WHAT, IMPL)            protected: \
+                                                        JSObjectRef js_##WHAT; \
+                                                        void JSCall_Set##WHAT(JSCbi info) IMPL
 
+// Wrap - MODULE
 #define JS_MODULE_WRAPEXPORT(ENV, CLASS)              do { \
                                                         CLASS::Initialize(ENV); \
                                                         exports[#CLASS] = CLASS::constructor.Value(); \
                                                       } while (0)
 
-#define JS_DECL_SETTER_REF(TYPE, WHAT)                JS_DECL_CB_VOID(Set_##WHAT) \
-                                                      protected: JSWrapRef<TYPE> js_##WHAT;
-
-#define JS_DECL_SETTER_OBJ(WHAT)                      JS_DECL_CB_VOID(Set_##WHAT) \
-                                                      protected: JSObjRef js_##WHAT;
-
-#define JS_SETTER(WHAT)                               InstanceMethod("set" #WHAT, \
-                                                        &JSCurrentWrap::_JS_CB_NAME(Set_##WHAT))
-
-#define JS_CB(WHAT)                                   InstanceMethod(#WHAT, \
-                                                        &JSCurrentWrap::_JS_CB_NAME(WHAT))
-
-#define JS_CB_STATIC(WHAT)                            StaticMethod(#WHAT, \
-                                                        &JSCurrentWrap::_JS_CB_NAME(WHAT))
-
-#define JS_DEF_SETTER_JSREF(CLASS, WHAT)              void CLASS::_JS_CB_NAME(Set_##WHAT)\
-                                                        (const Napi::CallbackInfo& info) { \
-                                                          js_##WHAT = info[0]; \
-                                                        }
-
-#define JS_DEF_SETTER_JSOBJ(CLASS, WHAT)              void CLASS::_JS_CB_NAME(Set_##WHAT)\
-                                                        (const Napi::CallbackInfo& info) {  \
-                                                          js_##WHAT = Napi::Persistent(info[0].ToObject()); \
-                                                        }
-
 // Assert
-
 #define JS_ASSERT(COND)                               JS_ASSERT_MSG(COND, "failed condition " #COND)
-
 #define JS_ASSERT_MSG(COND, MSG)                      do { \
                                                         if (!(COND)) { \
                                                           JS_THROW(MSG); \
@@ -77,27 +75,21 @@
                                                       } while (0)
 
 // Error
-
 #define JS_THROW(MSG)                                 throw create_error(env, (MSG))
 
-// internal macros
 
-#define _JS_CB_NAME(WHAT)                             JSCall_##WHAT
-
-#define _JS_DECL_CB_TYPE(RETTYPE, WHAT)               protected: RETTYPE _JS_CB_NAME(WHAT)\
-                                                        (const Napi::CallbackInfo& info);
-
-#define _JS_DECL_CB_TYPE_STATIC(RETTYPE, WHAT)        protected: static RETTYPE _JS_CB_NAME(WHAT)\
-                                                        (const Napi::CallbackInfo& info);
-
+// solves comma problems: e.g. `MACRO({ InstanceMethod(...), ... })` -> `MACRO(ONE_ARG({ ... }))`
+#define ONE_ARG(...) __VA_ARGS__
 
 namespace chunklands {
   Napi::Error create_error(Napi::Env env, const std::string& msg);
 
   template<class BASE>
-  using JSWrap = Napi::ObjectWrap<BASE>;
-
-  using JSObjRef = Napi::ObjectReference;
+  using JSObjectWrap = Napi::ObjectWrap<BASE>;
+  using JSObjectRef  = Napi::ObjectReference;
+  using JSCbi        = const Napi::CallbackInfo&;
+  using JSValue      = Napi::Value;
+  using JSObject     = Napi::Object;
 
   template <typename T>
   class JSWrapRef {
