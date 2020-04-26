@@ -13,7 +13,6 @@ declare class WorldBase {
   setSkybox(skybox: SkyboxBase): void
 
   setSkyboxPass(pass: SkyboxPassBase): void
-  setSSAOPass(pass: SSAOPassBase): void
   setSSAOBlurPass(pass: SSAOBlurPassBase): void
   setLightingPass(pass: LightingPassBase): void
 }

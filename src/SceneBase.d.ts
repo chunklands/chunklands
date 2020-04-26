@@ -8,4 +8,5 @@ declare class SceneBase {
   setWorld(world: WorldBase): void
 
   setGBufferPass(pass: GBufferPassBase): void
+  setSSAOPass(pass: SSAOPassBase): void
 }

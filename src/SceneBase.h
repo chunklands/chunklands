@@ -6,18 +6,21 @@
 #include "WindowBase.h"
 #include "WorldBase.h"
 #include "GBufferPassBase.h"
+#include "SSAOPassBase.h"
 
 namespace chunklands {
   class SceneBase : public JSObjectWrap<SceneBase> {
     JS_IMPL_WRAP(SceneBase, ONE_ARG({
       JS_SETTER(Window),
       JS_SETTER(World),
-      JS_SETTER(GBufferPass)
+      JS_SETTER(GBufferPass),
+      JS_SETTER(SSAOPass),
     }))
 
     JS_DECL_SETTER_WRAP(WindowBase, Window)
     JS_DECL_SETTER_WRAP(WorldBase, World)
     JS_IMPL_SETTER_WRAP(GBufferPassBase, GBufferPass)
+    JS_IMPL_SETTER_WRAP(SSAOPassBase, SSAOPass)
 
   public:
     virtual ~SceneBase() {
@@ -45,13 +48,6 @@ namespace chunklands {
     glm::ivec2 last_cursor_pos_;
 
     glm::ivec2 buffer_size_;
-
-
-    struct {
-      GLuint framebuffer   = 0;
-      GLuint color_texture = 0;
-      GLuint noise_texture = 0;
-    } ssao_;
 
     struct {
       GLuint framebuffer   = 0;

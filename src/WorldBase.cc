@@ -237,23 +237,11 @@ namespace chunklands {
     std::cout << "Rendered index count: " << rendered_index_count << ", chunk count: " << rendered_chunk_count << std::endl;
   }
 
-  void WorldBase::RenderSSAOPass(double, GLuint position_texture, GLuint normal_texture, GLuint noise_texture) {
+  void WorldBase::RenderSSAOPass(double) {
     PROF();
     CHECK_GL();
-
-    glClearColor(0.f, 0.f, 0.f, 1.0);
-    glClear(GL_COLOR_BUFFER_BIT);
-
-    js_SSAOPass->Begin();
-
-    js_SSAOPass->UpdateProjection(proj_);
-    js_SSAOPass->BindPositionTexture(position_texture);
-    js_SSAOPass->BindNormalTexture(normal_texture);
-    js_SSAOPass->BindNoiseTexture(noise_texture);
     
     render_quad_->Render();
-
-    js_SSAOPass->End();
   }
 
   void WorldBase::RenderSSAOBlurPass(double, GLuint ssao_texture) {

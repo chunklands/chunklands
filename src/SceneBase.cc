@@ -97,16 +97,21 @@ namespace chunklands {
 
     { // SSAO
       CHECK_GL_HERE();
-      glBindFramebuffer(GL_FRAMEBUFFER, ssao_.framebuffer);
-      js_World->RenderSSAOPass(diff, js_GBufferPass->textures_.position, js_GBufferPass->textures_.normal, ssao_.noise_texture);
-      glBindFramebuffer(GL_FRAMEBUFFER, 0);
+      js_SSAOPass->Begin();
+      js_SSAOPass->UpdateProjection(js_World->GetProjection());
+      js_SSAOPass->BindPositionTexture(js_GBufferPass->textures_.position);
+      js_SSAOPass->BindNormalTexture(js_GBufferPass->textures_.normal);
+
+      // TODO(daaitch): no js_World call: simply render_quad->Render() instead here
+      js_World->RenderSSAOPass(diff);
+      js_SSAOPass->End();
       CHECK_GL_HERE();
     }
 
     { // SSAO blur
       CHECK_GL_HERE();
       glBindFramebuffer(GL_FRAMEBUFFER, ssao_blur_.framebuffer);
-      js_World->RenderSSAOBlurPass(diff, ssao_.color_texture);
+      js_World->RenderSSAOBlurPass(diff, js_SSAOPass->textures_.color);
       glBindFramebuffer(GL_FRAMEBUFFER, 0);
       CHECK_GL_HERE();
     }
@@ -153,43 +158,7 @@ namespace chunklands {
     buffer_size_.y = height;
 
     js_GBufferPass->UpdateBufferSize(width, height);
-
-    { // initialize SSAO
-      glGenFramebuffers(1, &ssao_.framebuffer);
-      glBindFramebuffer(GL_FRAMEBUFFER, ssao_.framebuffer);
-
-      glGenTextures(1, &ssao_.color_texture);
-      glBindTexture(GL_TEXTURE_2D, ssao_.color_texture);
-      glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, width, height, 0, GL_RED, GL_FLOAT, nullptr);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-      glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ssao_.color_texture, 0);
-      
-      assert(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE);
-
-      glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-      std::uniform_real_distribution<GLfloat> random_floats(0.f, 1.f);
-      std::default_random_engine generator;
-
-      std::array<glm::vec3, 16> ssao_noise;
-      for (int i = 0; i < 16; i++) {
-        glm::vec3 noise(
-          random_floats(generator) * 2.f - 1.f,
-          random_floats(generator) * 2.f - 1.f,
-          0.f
-        );
-        ssao_noise[i] = std::move(noise);
-      }
-
-      glGenTextures(1, &ssao_.noise_texture);
-      glBindTexture(GL_TEXTURE_2D, ssao_.noise_texture);
-      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, 4, 4, 0, GL_RGB, GL_FLOAT, ssao_noise.data());
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    }
+    js_SSAOPass->UpdateBufferSize(width, height);
 
     { // initialize SSAO blur
       glGenFramebuffers(1, &ssao_blur_.framebuffer);

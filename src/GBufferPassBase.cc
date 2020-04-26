@@ -5,7 +5,7 @@ namespace chunklands {
 
   void GBufferPassBase::InitializeProgram() {
     GLUniform texture {"u_texture"};
-    *js_Program << uniforms_.proj << uniforms_.view << texture;
+    *js_Program >> uniforms_.proj >> uniforms_.view >> texture;
 
     texture.Update(0);
   }
