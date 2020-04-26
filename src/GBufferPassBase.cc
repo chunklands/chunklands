@@ -7,7 +7,7 @@ namespace chunklands {
     GLUniform texture {"u_texture"};
     *js_Program << uniforms_.proj << uniforms_.view << texture;
 
-    texture(0);
+    texture.Update(0);
   }
 
   void GBufferPassBase::UpdateBufferSize(int width, int height) {

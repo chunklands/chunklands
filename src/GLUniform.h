@@ -17,7 +17,7 @@ namespace chunklands {
       return location_;
     }
 
-    void operator()(GLint value) {
+    void Update(GLint value) {
       CC_ASSERT(location_ != -1);
       glUniform1i(location_, value);
     }
