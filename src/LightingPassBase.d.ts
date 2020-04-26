@@ -1,5 +1,5 @@
-import {ARenderPass} from './ARenderPass'
+import {RenderPass} from './RenderPass'
 export {LightingPassBase}
 
-declare class LightingPassBase extends ARenderPass {
+declare class LightingPassBase extends RenderPass {
 }

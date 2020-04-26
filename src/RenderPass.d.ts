@@ -1,7 +1,7 @@
 import { GLProgramBase } from './GLProgramBase'
 
-export {ARenderPass}
+export {RenderPass}
 
-declare class ARenderPass {
+declare class RenderPass {
   setProgram(program: GLProgramBase): void
 }

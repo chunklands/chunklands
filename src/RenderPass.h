@@ -1,11 +1,11 @@
-#ifndef __CHUNKLANDS_ARENDERPASS_H__
-#define __CHUNKLANDS_ARENDERPASS_H__
+#ifndef __CHUNKLANDS_RENDERPASS_H__
+#define __CHUNKLANDS_RENDERPASS_H__
 
 #include "js.h"
 #include "GLProgramBase.h"
 
 namespace chunklands {
-  class ARenderPass {
+  class RenderPass {
     JS_ATTR_WRAP(GLProgramBase, Program)
 
   public:

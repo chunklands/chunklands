@@ -5,10 +5,10 @@
 #include "js.h"
 #include <glm/vec3.hpp>
 #include <glm/gtc/type_ptr.hpp>
-#include "ARenderPass.h"
+#include "RenderPass.h"
 
 namespace chunklands {
-  class LightingPassBase : public JSObjectWrap<LightingPassBase>, public ARenderPass {
+  class LightingPassBase : public JSObjectWrap<LightingPassBase>, public RenderPass {
     JS_IMPL_WRAP(LightingPassBase, ONE_ARG({
       JS_SETTER(Program)
     }))

@@ -1,5 +1,5 @@
-import {ARenderPass} from './ARenderPass'
+import {RenderPass} from './RenderPass'
 export {SSAOPassBase}
 
-declare class SSAOPassBase extends ARenderPass {
+declare class SSAOPassBase extends RenderPass {
 }

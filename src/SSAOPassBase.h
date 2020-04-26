@@ -8,10 +8,10 @@
 #include "gl.h"
 
 #include "GLProgramBase.h"
-#include "ARenderPass.h"
+#include "RenderPass.h"
 
 namespace chunklands {
-  class SSAOPassBase : public JSObjectWrap<SSAOPassBase>, public ARenderPass {
+  class SSAOPassBase : public JSObjectWrap<SSAOPassBase>, public RenderPass {
     JS_IMPL_WRAP(SSAOPassBase, ONE_ARG({
       JS_SETTER(Program)
     }))

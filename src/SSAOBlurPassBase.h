@@ -2,10 +2,10 @@
 #define __CHUNKLANDS_SSAOBLURPASSBASE_H__
 
 #include "js.h"
-#include "ARenderPass.h"
+#include "RenderPass.h"
 
 namespace chunklands {
-  class SSAOBlurPassBase : public JSObjectWrap<SSAOBlurPassBase>, public ARenderPass {
+  class SSAOBlurPassBase : public JSObjectWrap<SSAOBlurPassBase>, public RenderPass {
     JS_IMPL_WRAP(SSAOBlurPassBase, ONE_ARG({
       JS_SETTER(Program)
     }))
