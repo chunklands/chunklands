@@ -244,17 +244,11 @@ namespace chunklands {
     render_quad_->Render();
   }
 
-  void WorldBase::RenderSSAOBlurPass(double, GLuint ssao_texture) {
+  void WorldBase::RenderSSAOBlurPass(double) {
     PROF();
     CHECK_GL();
 
-    glClear(GL_COLOR_BUFFER_BIT);
-    js_SSAOBlurPass->Begin();
-    js_SSAOBlurPass->BindSSAOTexture(ssao_texture);
-    
     render_quad_->Render();
-
-    js_SSAOBlurPass->End();
   }
 
   void WorldBase::RenderDeferredLightingPass(double, GLuint position_texture, GLuint normal_texture, GLuint color_texture, GLuint ssao_texture) {

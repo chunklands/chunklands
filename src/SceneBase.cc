@@ -110,14 +110,15 @@ namespace chunklands {
 
     { // SSAO blur
       CHECK_GL_HERE();
-      glBindFramebuffer(GL_FRAMEBUFFER, ssao_blur_.framebuffer);
-      js_World->RenderSSAOBlurPass(diff, js_SSAOPass->textures_.color);
-      glBindFramebuffer(GL_FRAMEBUFFER, 0);
+      js_SSAOBlurPass->Begin();
+      js_SSAOBlurPass->BindSSAOTexture(js_SSAOPass->textures_.color);
+      js_World->RenderSSAOBlurPass(diff);
+      js_SSAOBlurPass->End();
       CHECK_GL_HERE();
     }
 
     { // deferred lighting pass
-      js_World->RenderDeferredLightingPass(diff, js_GBufferPass->textures_.position, js_GBufferPass->textures_.normal, js_GBufferPass->textures_.color, ssao_blur_.color_texture);
+      js_World->RenderDeferredLightingPass(diff, js_GBufferPass->textures_.position, js_GBufferPass->textures_.normal, js_GBufferPass->textures_.color, js_SSAOBlurPass->textures_.color);
     }
 
     { // skybox
@@ -159,21 +160,9 @@ namespace chunklands {
 
     js_GBufferPass->UpdateBufferSize(width, height);
     js_SSAOPass->UpdateBufferSize(width, height);
+    js_SSAOBlurPass->UpdateBufferSize(width, height);
 
-    { // initialize SSAO blur
-      glGenFramebuffers(1, &ssao_blur_.framebuffer);
-      glBindFramebuffer(GL_FRAMEBUFFER, ssao_blur_.framebuffer);
-      glGenTextures(1, &ssao_blur_.color_texture);
-      glBindTexture(GL_TEXTURE_2D, ssao_blur_.color_texture);
-      glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, width, height, 0, GL_RED, GL_FLOAT, nullptr);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-      glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ssao_blur_.color_texture, 0);
-
-      assert(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE);
-      
-      glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    }
+    
   }
 
   void SceneBase::DeleteGLBuffers() {

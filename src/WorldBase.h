@@ -13,7 +13,6 @@
 #include "GLProgramBase.h"
 #include "RenderQuad.h"
 #include "SkyboxBase.h"
-#include "SSAOBlurPassBase.h"
 #include "LightingPassBase.h"
 #include "js.h"
 #include "SkyboxPassBase.h"
@@ -23,14 +22,12 @@ namespace chunklands {
   class WorldBase : public JSObjectWrap<WorldBase> {
     JS_IMPL_WRAP(WorldBase, ONE_ARG({
       JS_SETTER(ChunkGenerator),
-      JS_SETTER(SSAOBlurPass),
       JS_SETTER(LightingPass),
       JS_SETTER(SkyboxPass),
       JS_SETTER(Skybox),
     }))
 
     JS_IMPL_SETTER_WRAP(ChunkGeneratorBase, ChunkGenerator)
-    JS_IMPL_SETTER_WRAP(SSAOBlurPassBase, SSAOBlurPass)
     JS_IMPL_SETTER_WRAP(LightingPassBase, LightingPass)
     JS_IMPL_SETTER_WRAP(SkyboxBase, Skybox)
     JS_IMPL_SETTER_WRAP(SkyboxPassBase, SkyboxPass)
@@ -52,7 +49,7 @@ namespace chunklands {
     void Update(double diff);
     void RenderChunks(double diff);
     void RenderSSAOPass(double diff);
-    void RenderSSAOBlurPass(double diff, GLuint ssao_texture);
+    void RenderSSAOBlurPass(double diff);
     void RenderDeferredLightingPass(double diff, GLuint position_texture, GLuint normal_texture, GLuint color_texture, GLuint ssao_texture);
     void RenderSkybox(double diff);
 

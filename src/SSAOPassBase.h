@@ -18,6 +18,11 @@ namespace chunklands {
     }))
 
   public:
+    ~SSAOPassBase() {
+      DeleteBuffers();
+    }
+
+  public:
     void Begin() {
       glBindFramebuffer(GL_FRAMEBUFFER, framebuffer_);
       glClearColor(0.f, 0.f, 0.f, 1.0);
