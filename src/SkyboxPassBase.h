@@ -5,24 +5,15 @@
 #include <glm/gtc/type_ptr.hpp>
 #include "js.h"
 #include "GLProgramBase.h"
+#include "RenderPass.h"
 
 namespace chunklands {
-  class SkyboxPassBase : public JSObjectWrap<SkyboxPassBase> {
+  class SkyboxPassBase : public JSObjectWrap<SkyboxPassBase>, public RenderPass {
     JS_IMPL_WRAP(SkyboxPassBase, ONE_ARG({
-      JS_CB(useProgram)
+      JS_SETTER(Program)
     }))
 
-    JS_DECL_CB_VOID(useProgram)
-
   public:
-    void Begin() {
-      program_->Use();
-    }
-
-    void End() {
-      program_->Unuse();
-    }
-
     void UpdateProjection(const glm::mat4& matrix) {
       glUniformMatrix4fv(uniforms_.proj, 1, GL_FALSE, glm::value_ptr(matrix));
     }
@@ -35,9 +26,11 @@ namespace chunklands {
       glActiveTexture(GL_TEXTURE0);
       glBindTexture(GL_TEXTURE_2D, texture);
     }
+
+  protected:
+    void InitializeProgram() override;
     
   private:
-    JSWrapRef<GLProgramBase> program_;
 
     struct {
       GLint proj = -1;

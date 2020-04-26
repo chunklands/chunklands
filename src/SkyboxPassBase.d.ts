@@ -1,6 +1,5 @@
-import {GLProgramBase} from './GLProgramBase'
+import { RenderPass } from './RenderPass'
 export {SkyboxPassBase}
 
-declare class SkyboxPassBase {
-  useProgram(program: GLProgramBase): void
+declare class SkyboxPassBase extends RenderPass {
 }

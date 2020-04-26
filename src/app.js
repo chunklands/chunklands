@@ -91,7 +91,7 @@ const World           = require('./World');
   });
 
   const skyboxPass = new SkyboxPass();
-  skyboxPass.useProgram(skyboxShader)
+  skyboxPass.setProgram(skyboxShader)
   
   world.setSkyboxPass(skyboxPass);
 
