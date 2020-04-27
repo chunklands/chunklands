@@ -47,5 +47,7 @@ namespace chunklands {
       last_render_ = time;
       js_Scene->Render(render_diff);
     }
+
+    glfwPollEvents();
   }
 }

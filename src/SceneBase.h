@@ -10,6 +10,8 @@
 #include "SSAOBlurPassBase.h"
 #include "LightingPassBase.h"
 #include "SkyboxPassBase.h"
+#include "SkyboxBase.h"
+#include "RenderQuad.h"
 
 namespace chunklands {
   class SceneBase : public JSObjectWrap<SceneBase> {
@@ -34,9 +36,7 @@ namespace chunklands {
     JS_IMPL_SETTER_WRAP(SkyboxBase, Skybox)
   
   public:
-    void Prepare() {
-      js_World->Prepare();
-    }
+    void Prepare();
 
     void Update(double diff);
     void Render(double diff);
@@ -53,6 +53,8 @@ namespace chunklands {
     glm::ivec2 last_cursor_pos_;
 
     glm::ivec2 buffer_size_;
+
+    RenderQuad render_quad_;
   };
 }
 

@@ -3,7 +3,6 @@
 #include <algorithm>
 
 #include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
 #include <glm/vector_relational.hpp>
 
 #include "log.h"
@@ -27,19 +26,6 @@ namespace chunklands {
   void WorldBase::Prepare() {
     PROF();
     CHECK_GL();
-
-    { // general
-
-      // depth test
-      glEnable(GL_DEPTH_TEST);
-
-      // culling
-      glEnable(GL_CULL_FACE);
-      glCullFace(GL_FRONT);
-      glFrontFace(GL_CCW);
-    }
-
-    CHECK_GL_HERE();
 
     { // calculate nearest chunks
       nearest_chunks_.clear();
@@ -66,10 +52,6 @@ namespace chunklands {
 
         return glm::length(af) < glm::length(bf);
       });
-    }
-
-    { // render quad
-      render_quad_ = std::make_unique<RenderQuad>();
     }
   }
 
@@ -217,26 +199,6 @@ namespace chunklands {
     }
 
     std::cout << "Rendered index count: " << rendered_index_count << ", chunk count: " << rendered_chunk_count << std::endl;
-  }
-
-  void WorldBase::RenderSSAOPass(double) {
-    PROF();
-    CHECK_GL();
-    
-    render_quad_->Render();
-  }
-
-  void WorldBase::RenderSSAOBlurPass(double) {
-    PROF();
-    CHECK_GL();
-
-    render_quad_->Render();
-  }
-
-  void WorldBase::RenderDeferredLightingPass(double) {
-    PROF();
-    CHECK_GL();
-    render_quad_->Render();
   }
 
   void WorldBase::UpdateViewportRatio(int width, int height) {

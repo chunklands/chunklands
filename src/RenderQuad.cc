@@ -10,6 +10,7 @@ namespace chunklands {
   };
 
   RenderQuad::RenderQuad() {
+    CHECK_GL();
     glGenVertexArrays(1, &vao_);
     glBindVertexArray(vao_);
 
@@ -25,20 +26,7 @@ namespace chunklands {
   }
 
   RenderQuad::~RenderQuad() {
-    if (vbo_ != 0) {
-      glDeleteBuffers(1, &vbo_);
-      vbo_ = 0;
-    }
-
-    if (vao_ != 0) {
-      glDeleteVertexArrays(1, &vao_);
-      vao_ = 0;
-    }
-  }
-
-  void RenderQuad::Render() {
-    glBindVertexArray(vao_);
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-    glBindVertexArray(0);
+    glDeleteBuffers(1, &vbo_);
+    glDeleteVertexArrays(1, &vao_);
   }
 }

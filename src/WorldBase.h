@@ -10,8 +10,6 @@
 #include "Chunk.h"
 #include "ChunkGeneratorBase.h"
 #include "gl.h"
-#include "RenderQuad.h"
-#include "SkyboxBase.h"
 #include "js.h"
 
 namespace chunklands {
@@ -39,9 +37,6 @@ namespace chunklands {
     void Prepare();
     void Update(double diff);
     void RenderChunks(double diff);
-    void RenderSSAOPass(double diff);
-    void RenderSSAOBlurPass(double diff);
-    void RenderDeferredLightingPass(double diff);
 
     void UpdateViewportRatio(int width, int height);
 
@@ -81,8 +76,6 @@ namespace chunklands {
     glm::mat4 view_skybox_;
 
     std::vector<glm::ivec3> nearest_chunks_;
-
-    std::unique_ptr<RenderQuad> render_quad_;
   };
 }
 

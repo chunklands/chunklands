@@ -31,6 +31,17 @@ namespace chunklands {
     UpdateViewport();
   }
 
+  void SceneBase::Prepare() {
+    // depth test
+    glEnable(GL_DEPTH_TEST);
+
+    // culling
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_FRONT);
+    glFrontFace(GL_CCW);
+    js_World->Prepare();
+  }
+
   void SceneBase::Update(double diff) {
     constexpr float move_factor = 20.f;
 
@@ -74,8 +85,6 @@ namespace chunklands {
     }
 
     js_World->Update(diff);
-
-    glfwPollEvents();
   }
 
   void SceneBase::Render(double diff) {
@@ -101,9 +110,7 @@ namespace chunklands {
       js_SSAOPass->UpdateProjection(js_World->GetProjection());
       js_SSAOPass->BindPositionTexture(js_GBufferPass->textures_.position);
       js_SSAOPass->BindNormalTexture(js_GBufferPass->textures_.normal);
-
-      // TODO(daaitch): no js_World call: simply render_quad->Render() instead here
-      js_World->RenderSSAOPass(diff);
+      render_quad_.Render();
       js_SSAOPass->End();
       CHECK_GL_HERE();
     }
@@ -112,7 +119,7 @@ namespace chunklands {
       CHECK_GL_HERE();
       js_SSAOBlurPass->Begin();
       js_SSAOBlurPass->BindSSAOTexture(js_SSAOPass->textures_.color);
-      js_World->RenderSSAOBlurPass(diff);
+      render_quad_.Render();
       js_SSAOBlurPass->End();
       CHECK_GL_HERE();
     }
@@ -129,7 +136,7 @@ namespace chunklands {
 
       glm::vec3 sun_position = glm::normalize(glm::mat3(js_World->GetView()) * glm::vec3(-3, 1, 3));
       js_LightingPass->UpdateSunPosition(sun_position);
-      js_World->RenderDeferredLightingPass(diff);
+      render_quad_.Render();
       js_LightingPass->End();
       CHECK_GL_HERE();
     }
