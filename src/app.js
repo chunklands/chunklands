@@ -53,10 +53,6 @@ const World           = require('./World');
   const world = new World();
   world.setChunkGenerator(chunkGenerator);
 
-  const skybox = new Skybox();
-  skybox.initialize(`${__dirname}/game/skyboxes/skyboxsun5deg2/`);
-  world.setSkybox(skybox);
-
   const scene = new Scene();
   scene.setWorld(world);
 
@@ -100,6 +96,10 @@ const World           = require('./World');
   const skyboxPass = new SkyboxPass();
   skyboxPass.setProgram(skyboxShader);
   scene.setSkyboxPass(skyboxPass);
+
+  const skybox = new Skybox();
+  skybox.initialize(`${__dirname}/game/skyboxes/skyboxsun5deg2/`);
+  scene.setSkybox(skybox);
 
   // TODO(daaitch): add preparation phase: this has to be at the end to update buffers
   scene.setWindow(window);

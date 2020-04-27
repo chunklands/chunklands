@@ -19,11 +19,9 @@ namespace chunklands {
   class WorldBase : public JSObjectWrap<WorldBase> {
     JS_IMPL_WRAP(WorldBase, ONE_ARG({
       JS_SETTER(ChunkGenerator),
-      JS_SETTER(Skybox),
     }))
 
     JS_IMPL_SETTER_WRAP(ChunkGeneratorBase, ChunkGenerator)
-    JS_IMPL_SETTER_WRAP(SkyboxBase, Skybox)
 
   private:
     struct ivec3_hasher {
@@ -44,7 +42,6 @@ namespace chunklands {
     void RenderSSAOPass(double diff);
     void RenderSSAOBlurPass(double diff);
     void RenderDeferredLightingPass(double diff);
-    void RenderSkybox(double diff);
 
     void UpdateViewportRatio(int width, int height);
 

@@ -183,13 +183,6 @@ namespace chunklands {
     view_skybox_ = glm::lookAt(glm::vec3(0, 0, 0), look_center, glm::vec3(0.f, 1.f, 0.f));
   }
 
-  void WorldBase::RenderSkybox(double) {
-    PROF();
-    CHECK_GL();
-
-    js_Skybox->Render();
-  }
-
   void WorldBase::RenderChunks(double) {
     PROF();
     CHECK_GL();

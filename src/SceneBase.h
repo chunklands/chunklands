@@ -21,6 +21,7 @@ namespace chunklands {
       JS_SETTER(SSAOBlurPass),
       JS_SETTER(LightingPass),
       JS_SETTER(SkyboxPass),
+      JS_SETTER(Skybox),
     }))
 
     JS_DECL_SETTER_WRAP(WindowBase, Window)
@@ -30,6 +31,7 @@ namespace chunklands {
     JS_IMPL_SETTER_WRAP(SSAOBlurPassBase, SSAOBlurPass)
     JS_IMPL_SETTER_WRAP(LightingPassBase, LightingPass)
     JS_IMPL_SETTER_WRAP(SkyboxPassBase, SkyboxPass)
+    JS_IMPL_SETTER_WRAP(SkyboxBase, Skybox)
   
   public:
     void Prepare() {
