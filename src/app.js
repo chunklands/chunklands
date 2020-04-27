@@ -53,14 +53,6 @@ const World           = require('./World');
   const world = new World();
   world.setChunkGenerator(chunkGenerator);
 
-  const lightingShader = await GLProgram.create({
-    vertexShader: `${__dirname}/game/shader/lighting.vsh.glsl`,
-    fragmentShader: `${__dirname}/game/shader/lighting.fsh.glsl`
-  });
-  const lightingPass = new LightingPass();
-  lightingPass.setProgram(lightingShader);
-  world.setLightingPass(lightingPass);
-
   const skyboxShader = await GLProgram.create({
     vertexShader: `${__dirname}/game/shader/skybox.vsh.glsl`,
     fragmentShader: `${__dirname}/game/shader/skybox.fsh.glsl`
@@ -101,6 +93,14 @@ const World           = require('./World');
   const ssaoBlurPass = new SSAOBlurPass();
   ssaoBlurPass.setProgram(ssaoBlurShader)
   scene.setSSAOBlurPass(ssaoBlurPass);
+
+  const lightingShader = await GLProgram.create({
+    vertexShader: `${__dirname}/game/shader/lighting.vsh.glsl`,
+    fragmentShader: `${__dirname}/game/shader/lighting.fsh.glsl`
+  });
+  const lightingPass = new LightingPass();
+  lightingPass.setProgram(lightingShader);
+  scene.setLightingPass(lightingPass);
 
   // TODO(daaitch): add preparation phase: this has to be at the end to update buffers
   scene.setWindow(window);

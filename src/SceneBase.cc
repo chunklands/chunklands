@@ -118,7 +118,20 @@ namespace chunklands {
     }
 
     { // deferred lighting pass
-      js_World->RenderDeferredLightingPass(diff, js_GBufferPass->textures_.position, js_GBufferPass->textures_.normal, js_GBufferPass->textures_.color, js_SSAOBlurPass->textures_.color);
+      CHECK_GL_HERE();
+      js_LightingPass->Begin();
+      js_LightingPass->BindPositionTexture(js_GBufferPass->textures_.position);
+      js_LightingPass->BindNormalTexture(js_GBufferPass->textures_.normal);
+      js_LightingPass->BindColorTexture(js_GBufferPass->textures_.color);
+      js_LightingPass->BindSSAOTexture(js_SSAOBlurPass->textures_.color);
+
+      js_LightingPass->UpdateRenderDistance(((float)js_World->GetRenderDistance() - 0.5f) * Chunk::SIZE);
+
+      glm::vec3 sun_position = glm::normalize(glm::mat3(js_World->GetView()) * glm::vec3(-3, 1, 3));
+      js_LightingPass->UpdateSunPosition(sun_position);
+      js_World->RenderDeferredLightingPass(diff);
+      js_LightingPass->End();
+      CHECK_GL_HERE();
     }
 
     { // skybox
@@ -149,7 +162,6 @@ namespace chunklands {
       js_World->UpdateViewportRatio(width, height);
     }
 
-    DeleteGLBuffers();
     InitializeGLBuffers(width, height);
   }
   
@@ -161,13 +173,6 @@ namespace chunklands {
     js_GBufferPass->UpdateBufferSize(width, height);
     js_SSAOPass->UpdateBufferSize(width, height);
     js_SSAOBlurPass->UpdateBufferSize(width, height);
-
-    
-  }
-
-  void SceneBase::DeleteGLBuffers() {
-    
-
-    // TODO(daaitch): cleanups missing? ssao, ssao-blur
+    js_LightingPass->UpdateBufferSize(width, height);
   }
 }

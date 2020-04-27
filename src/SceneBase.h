@@ -17,6 +17,7 @@ namespace chunklands {
       JS_SETTER(GBufferPass),
       JS_SETTER(SSAOPass),
       JS_SETTER(SSAOBlurPass),
+      JS_SETTER(LightingPass),
     }))
 
     JS_DECL_SETTER_WRAP(WindowBase, Window)
@@ -24,11 +25,7 @@ namespace chunklands {
     JS_IMPL_SETTER_WRAP(GBufferPassBase, GBufferPass)
     JS_IMPL_SETTER_WRAP(SSAOPassBase, SSAOPass)
     JS_IMPL_SETTER_WRAP(SSAOBlurPassBase, SSAOBlurPass)
-
-  public:
-    virtual ~SceneBase() {
-      DeleteGLBuffers();
-    }
+    JS_IMPL_SETTER_WRAP(LightingPassBase, LightingPass)
   
   public:
     void Prepare() {
@@ -43,7 +40,6 @@ namespace chunklands {
 
   private:
     void InitializeGLBuffers(int width, int height);
-    void DeleteGLBuffers();
 
   private:
     boost::signals2::scoped_connection window_on_resize_conn_;

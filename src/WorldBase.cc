@@ -251,34 +251,10 @@ namespace chunklands {
     render_quad_->Render();
   }
 
-  void WorldBase::RenderDeferredLightingPass(double, GLuint position_texture, GLuint normal_texture, GLuint color_texture, GLuint ssao_texture) {
+  void WorldBase::RenderDeferredLightingPass(double) {
     PROF();
-    
-    {
-      CHECK_GL();
-
-      glClearColor(0.f, 0.f, 0.f, 1.f);
-      glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-      js_LightingPass->Begin();
-      js_LightingPass->Begin();
-      js_LightingPass->BindPositionTexture(position_texture);
-      js_LightingPass->BindNormalTexture(normal_texture);
-      js_LightingPass->BindColorTexture(color_texture);
-      js_LightingPass->BindSSAOTexture(ssao_texture);
-
-      js_LightingPass->UpdateRenderDistance(((float)RENDER_DISTANCE - 0.5f) * Chunk::SIZE);
-
-      glm::vec3 sun_position = glm::normalize(glm::mat3(view_) * glm::vec3(-3, 1, 3));
-      js_LightingPass->UpdateSunPosition(sun_position);
-    }
-    
-    {
-      CHECK_GL();
-      render_quad_->Render();
-      js_LightingPass->End();
-    }
-
+    CHECK_GL();
+    render_quad_->Render();
   }
 
   void WorldBase::UpdateViewportRatio(int width, int height) {
@@ -295,5 +271,9 @@ namespace chunklands {
 
     look_.y += pitch_rad;
     look_.y = std::max(std::min(look_.y, pitch_break), -pitch_break);
+  }
+
+  int WorldBase::GetRenderDistance() const {
+    return RENDER_DISTANCE;
   }
 }
