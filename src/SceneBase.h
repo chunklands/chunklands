@@ -8,6 +8,8 @@
 #include "GBufferPassBase.h"
 #include "SSAOPassBase.h"
 #include "SSAOBlurPassBase.h"
+#include "LightingPassBase.h"
+#include "SkyboxPassBase.h"
 
 namespace chunklands {
   class SceneBase : public JSObjectWrap<SceneBase> {
@@ -18,6 +20,7 @@ namespace chunklands {
       JS_SETTER(SSAOPass),
       JS_SETTER(SSAOBlurPass),
       JS_SETTER(LightingPass),
+      JS_SETTER(SkyboxPass),
     }))
 
     JS_DECL_SETTER_WRAP(WindowBase, Window)
@@ -26,6 +29,7 @@ namespace chunklands {
     JS_IMPL_SETTER_WRAP(SSAOPassBase, SSAOPass)
     JS_IMPL_SETTER_WRAP(SSAOBlurPassBase, SSAOBlurPass)
     JS_IMPL_SETTER_WRAP(LightingPassBase, LightingPass)
+    JS_IMPL_SETTER_WRAP(SkyboxPassBase, SkyboxPass)
   
   public:
     void Prepare() {

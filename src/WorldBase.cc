@@ -187,18 +187,7 @@ namespace chunklands {
     PROF();
     CHECK_GL();
 
-    glDisable(GL_CULL_FACE);
-    glDepthFunc(GL_LEQUAL);
-
-    js_SkyboxPass->Begin();
-    js_SkyboxPass->UpdateProjection(proj_);
-    js_SkyboxPass->UpdateView(view_skybox_);
-
     js_Skybox->Render();
-    glDepthFunc(GL_LESS);
-    glEnable(GL_CULL_FACE);
-
-    js_SkyboxPass->End();
   }
 
   void WorldBase::RenderChunks(double) {

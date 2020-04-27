@@ -53,16 +53,6 @@ const World           = require('./World');
   const world = new World();
   world.setChunkGenerator(chunkGenerator);
 
-  const skyboxShader = await GLProgram.create({
-    vertexShader: `${__dirname}/game/shader/skybox.vsh.glsl`,
-    fragmentShader: `${__dirname}/game/shader/skybox.fsh.glsl`
-  });
-
-  const skyboxPass = new SkyboxPass();
-  skyboxPass.setProgram(skyboxShader)
-  
-  world.setSkyboxPass(skyboxPass);
-
   const skybox = new Skybox();
   skybox.initialize(`${__dirname}/game/skyboxes/skyboxsun5deg2/`);
   world.setSkybox(skybox);
@@ -101,6 +91,15 @@ const World           = require('./World');
   const lightingPass = new LightingPass();
   lightingPass.setProgram(lightingShader);
   scene.setLightingPass(lightingPass);
+
+  const skyboxShader = await GLProgram.create({
+    vertexShader: `${__dirname}/game/shader/skybox.vsh.glsl`,
+    fragmentShader: `${__dirname}/game/shader/skybox.fsh.glsl`
+  });
+
+  const skyboxPass = new SkyboxPass();
+  skyboxPass.setProgram(skyboxShader);
+  scene.setSkyboxPass(skyboxPass);
 
   // TODO(daaitch): add preparation phase: this has to be at the end to update buffers
   scene.setWindow(window);

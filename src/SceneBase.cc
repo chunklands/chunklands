@@ -135,7 +135,14 @@ namespace chunklands {
     }
 
     { // skybox
+      CHECK_GL_HERE();
+      js_SkyboxPass->Begin();
+      js_SkyboxPass->BindSkyboxTexture(js_GBufferPass->textures_.position);
+      js_SkyboxPass->UpdateProjection(js_World->GetProjection());
+      js_SkyboxPass->UpdateView(js_World->GetViewSkybox());
       js_World->RenderSkybox(diff);
+      js_SkyboxPass->End();
+      CHECK_GL_HERE();
     }
 
     // glBindFramebuffer(GL_READ_FRAMEBUFFER, g_buffer_.framebuffer);

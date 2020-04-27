@@ -14,6 +14,18 @@ namespace chunklands {
     }))
 
   public:
+    void Begin() override {
+      glDisable(GL_CULL_FACE);
+      glDepthFunc(GL_LEQUAL);
+      RenderPass::Begin();
+    }
+
+    void End() override {
+      RenderPass::End();
+      glDepthFunc(GL_LESS);
+      glEnable(GL_CULL_FACE);
+    }
+
     void UpdateProjection(const glm::mat4& matrix) {
       glUniformMatrix4fv(uniforms_.proj, 1, GL_FALSE, glm::value_ptr(matrix));
     }

@@ -10,25 +10,20 @@
 #include "Chunk.h"
 #include "ChunkGeneratorBase.h"
 #include "gl.h"
-#include "GLProgramBase.h"
 #include "RenderQuad.h"
 #include "SkyboxBase.h"
-#include "LightingPassBase.h"
 #include "js.h"
-#include "SkyboxPassBase.h"
 
 namespace chunklands {
 
   class WorldBase : public JSObjectWrap<WorldBase> {
     JS_IMPL_WRAP(WorldBase, ONE_ARG({
       JS_SETTER(ChunkGenerator),
-      JS_SETTER(SkyboxPass),
       JS_SETTER(Skybox),
     }))
 
     JS_IMPL_SETTER_WRAP(ChunkGeneratorBase, ChunkGenerator)
     JS_IMPL_SETTER_WRAP(SkyboxBase, Skybox)
-    JS_IMPL_SETTER_WRAP(SkyboxPassBase, SkyboxPass)
 
   private:
     struct ivec3_hasher {
@@ -68,6 +63,10 @@ namespace chunklands {
 
     const glm::mat4& GetView() const {
       return view_;
+    }
+
+    const glm::mat4& GetViewSkybox() const {
+      return view_skybox_;
     }
 
     int GetRenderDistance() const;

@@ -4,6 +4,7 @@ import { GBufferPassBase } from './GBufferPassBase'
 import { SSAOPassBase } from './SSAOPassBase'
 import { SSAOBlurPassBase } from './SSAOBlurPassBase'
 import { LightingPassBase } from './LightingPassBase'
+import { SkyboxPassBase } from './SkyboxPassBase'
 export {SceneBase}
 
 declare class SceneBase {
@@ -14,4 +15,5 @@ declare class SceneBase {
   setSSAOPass(pass: SSAOPassBase): void
   setSSAOBlurPass(pass: SSAOBlurPassBase): void
   setLightingPass(pass: LightingPassBase): void
+  setSkyboxPass(pass: SkyboxPassBase): void
 }
