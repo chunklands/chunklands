@@ -14,6 +14,7 @@ const Skybox          = require('./Skybox');
 const SkyboxPass      = require('./SkyboxPass');
 const Window          = require('./Window');
 const World           = require('./World');
+const blocks          = require('./game/blocks');
 
 (async () => {
 
@@ -31,17 +32,9 @@ const World           = require('./World');
   Environment.loadProcs();
 
   const blockRegistrar = new BlockRegistrar();
-  blockRegistrar.addBlock(require('./game/blocks/coal'));
-  blockRegistrar.addBlock(require('./game/blocks/cobblestone'));
-  blockRegistrar.addBlock(require('./game/blocks/dirt'));
-  blockRegistrar.addBlock(require('./game/blocks/gold'));
-  blockRegistrar.addBlock(require('./game/blocks/grass'));
-  blockRegistrar.addBlock(require('./game/blocks/iron'));
-  blockRegistrar.addBlock(require('./game/blocks/sand'));
-  blockRegistrar.addBlock(require('./game/blocks/stone'));
-  blockRegistrar.addBlock(require('./game/blocks/water'));
-  blockRegistrar.addBlock(require('./game/blocks/wood'));
-  blockRegistrar.addBlock(require('./game/blocks/air'));
+  for (const block of blocks) {
+    blockRegistrar.addBlock(block);
+  }
   await blockRegistrar.bake();
 
   const chunkGenerator = new ChunkGenerator();
