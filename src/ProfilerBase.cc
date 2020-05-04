@@ -1,4 +1,5 @@
 #include "ProfilerBase.h"
+#include <numeric>
 
 namespace chunklands {
   std::unordered_map<const char*, boost::circular_buffer<long>> ProfilerBase::meassurements_;
