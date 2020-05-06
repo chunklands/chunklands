@@ -1,5 +1,5 @@
 const world = require('./world');
-const noise = require('../../../noise');
+const noise = require('../../noise');
 noise.seed(94832281);
 
 const { parentPort, workerData } = require('worker_threads');

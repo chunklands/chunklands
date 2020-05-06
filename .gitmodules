@@ -103,3 +103,6 @@
 [submodule "deps/boost_array"]
 	path = deps/boost_array
 	url = https://github.com/boostorg/array
+[submodule "deps/node"]
+	path = deps/node
+	url = https://github.com/nodejs/node.git

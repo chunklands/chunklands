@@ -1,4 +1,4 @@
-const noise = require('../../../noise');
+const noise = require('../../noise');
 
 module.exports = {
   isGround(x, y, z) {

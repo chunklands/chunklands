@@ -1,16 +1,20 @@
 cmake_minimum_required(VERSION 3.5)
 set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_BUILD_PARALLEL_LEVEL 8)
 
 include(ExternalProject)
 
 project (chunklands)
 
-file(GLOB SOURCE_FILES "${CMAKE_SOURCE_DIR}/src/*.cc" "${CMAKE_SOURCE_DIR}/deps/glfw/deps/glad.c" "${CMAKE_SOURCE_DIR}/deps/boost_chrono/src/*.cpp")
+file(GLOB_RECURSE SOURCE_FILES
+  "${CMAKE_SOURCE_DIR}/src/*.cc"
+  "${CMAKE_SOURCE_DIR}/src/**/*.cc"
+  "${CMAKE_SOURCE_DIR}/deps/glfw/deps/glad.c"
+  "${CMAKE_SOURCE_DIR}/deps/boost_chrono/src/*.cpp"
+)
 add_library(${PROJECT_NAME} SHARED ${SOURCE_FILES})
 
 set(CHUNKLANDS_LIBRARIES "")
-set(CHUNKLANDS_INCLUDE "")
+set(CHUNKLANDS_INCLUDE "${CMAKE_SOURCE_DIR}/src")
 
 # OpenGL
 set(OpenGL_GL_PREFERENCE "GLVND")
@@ -18,12 +22,8 @@ find_package(OpenGL REQUIRED)
 set(CHUNKLANDS_INCLUDE "${CHUNKLANDS_INCLUDE}" "${OPENGL_INCLUDE_DIR}")
 set(CHUNKLANDS_LIBRARIES "${CHUNKLANDS_LIBRARIES}" "${OPENGL_gl_LIBRARY}")
 
-# cmake-js
-set(CHUNKLANDS_INCLUDE "${CHUNKLANDS_INCLUDE}" "${CMAKE_JS_INC}")
-set(CHUNKLANDS_LIBRARIES "${CHUNKLANDS_LIBRARIES}" "${CMAKE_JS_LIB}")
-
-MESSAGE("CMAKE_JS_INC: " ${CMAKE_JS_INC})
-MESSAGE("CMAKE_JS_LIB: " ${CMAKE_JS_LIB})
+# node
+set(CHUNKLANDS_INCLUDE "${CHUNKLANDS_INCLUDE}" "${CMAKE_SOURCE_DIR}/deps/node/src")
 
 # NAPI
 set(CHUNKLANDS_INCLUDE "${CHUNKLANDS_INCLUDE}" "${CMAKE_SOURCE_DIR}/node_modules/node-addon-api")
@@ -58,8 +58,9 @@ if (Backtrace_FOUND)
 endif()
 
 
-message("LIBRARIES: ${CHUNKLANDS_LIBRARIES}")
-message("INCLUDE:   ${CHUNKLANDS_INCLUDE}")
+message("LIBRARIES:     ${CHUNKLANDS_LIBRARIES}")
+message("INCLUDE:       ${CHUNKLANDS_INCLUDE}")
+message("SOURCE_FILES:  ${SOURCE_FILES}")
 
 # BUILD
 target_include_directories(${PROJECT_NAME} SYSTEM PRIVATE "${CHUNKLANDS_INCLUDE}")
