@@ -2,7 +2,7 @@ const world = require('./world');
 const noise = require('../../noise');
 noise.seed(94832281);
 
-const { parentPort, workerData } = require('worker_threads');
+const { workerData } = require('piscina');
 
 const {
   'block.stone': BLOCK_STONE,
@@ -15,13 +15,11 @@ if (BLOCK_STONE === undefined || BLOCK_GRASS === undefined || BLOCK_DIRT === und
   throw new TypeError(`bad workerData: ${JSON.stringify(workerData)}`);
 }
 
-parentPort.on('message', onMessage);
-
 /**
  * 
  * @param {{x: number, y: number, z: number, chunkDim: number, sendPort: MessagePort}} param0 
  */
-function onMessage({x, y, z, chunkDim, sendPort}) {
+module.exports = ({x, y, z, chunkDim, sendPort}) => {
   const chunk = generateChunk(x, y, z, chunkDim);
   
   sendPort.postMessage(chunk);
