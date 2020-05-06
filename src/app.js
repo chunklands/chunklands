@@ -84,7 +84,7 @@ const blocks          = require('./game/blocks');
   scene.setWindow(window);
 
   const gameLoop = new chunklands.engine.GameLoop();
-  gameLoop.setScene(scene.asIScene());
+  gameLoop.setScene(scene);
   
   gameLoop.start();
   const loop = () => {

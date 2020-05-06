@@ -20,9 +20,11 @@
                                                         }
 
 // Wrap - Class definition
-#define JS_SETTER(WHAT)                               InstanceMethod("set" #WHAT, &JSCurrentWrap::JSCall_Set##WHAT)
-#define JS_CB(WHAT)                                   InstanceMethod(      #WHAT, &JSCurrentWrap::JSCall_   ##WHAT)
-#define JS_CB_STATIC(WHAT)                            StaticMethod(        #WHAT, &JSCurrentWrap::JSCall_   ##WHAT)
+#define JS_SETTER(WHAT)                               InstanceMethod("set" #WHAT,           &JSCurrentWrap::JSCall_Set##WHAT)
+#define JS_CB(WHAT)                                   InstanceMethod(      #WHAT,           &JSCurrentWrap::JSCall_   ##WHAT)
+#define JS_CB_STATIC(WHAT)                            StaticMethod(        #WHAT,           &JSCurrentWrap::JSCall_   ##WHAT)
+#define JS_ABSTRACT_WRAP(TYPE, WHAT)                  InstanceAccessor(typeid(TYPE).name(), &JSCurrentWrap::JSCall_As ##WHAT, \
+                                                        nullptr, napi_default)
 
 // Wrap - DECL
 #define JS_DECL_SETTER_WRAP(TYPE, WHAT)               _JS_IMPL_SETTER_WRAP(TYPE, WHAT, ;)
@@ -52,18 +54,22 @@
 #define JS_IMPL_SETTER_OBJECT(WHAT)                   _JS_IMPL_SETTER_OBJECT(WHAT, ONE_ARG({ \
                                                         js_##WHAT = Napi::Persistent(info[0].ToObject()); \
                                                       }))
+#define JS_IMPL_ABSTRACT_WRAP(TYPE, WHAT)             protected: \
+                                                        JSValue JSCall_As##WHAT(JSCbi info) { \
+                                                          return JSExternal<TYPE>::New(info.Env(), this); \
+                                                        }
+#define JS_IMPL_ABSTRACT_WRAP_SETTER(TYPE, WHAT)      protected: \
+                                                        void JSCall_Set##WHAT(JSCbi info) { \
+                                                          js_##WHAT = info[0]; \
+                                                        } \
+                                                      private: \
+                                                        JSAbstractUnwrap<TYPE> js_##WHAT;
 #define _JS_IMPL_SETTER_WRAP(TYPE, WHAT, IMPL)        JS_ATTR_WRAP(TYPE, WHAT) \
                                                       protected: \
                                                         void JSCall_Set##WHAT(JSCbi info) IMPL
 #define _JS_IMPL_SETTER_OBJECT(WHAT, IMPL)            protected: \
                                                         JSObjectRef js_##WHAT; \
                                                         void JSCall_Set##WHAT(JSCbi info) IMPL
-
-// Wrap - MODULE
-#define JS_MODULE_WRAPEXPORT(ENV, CLASS)              do { \
-                                                        CLASS::Initialize(ENV); \
-                                                        exports[#CLASS] = CLASS::constructor.Value(); \
-                                                      } while (0)
 
 // Assert
 #define JS_ASSERT(ENV, COND)                          JS_ASSERT_MSG((ENV), (COND), "failed condition " #COND)
@@ -92,6 +98,7 @@ namespace chunklands {
   using JSHandleScope = Napi::HandleScope;
   using JSFunction    = Napi::Function;
   using JSError       = Napi::Error;
+  using JSSymbol      = Napi::Symbol;
   template<class T>
   using JSExternal    = Napi::External<T>;
   template<class T>
@@ -180,55 +187,42 @@ namespace chunklands {
   template<class A>
   class JSAbstractUnwrap {
   public:
-    static constexpr uint32_t kWrapIndex = 0;
-    static constexpr uint32_t kAbstractIndex = 1;
-    static constexpr uint32_t kNameIndex = 2;
-  public:
     JSAbstractUnwrap() {}
     JSAbstractUnwrap(JSValue value) {
-      JSArray arr = value.As<JSArray>();
+      JSObject object = value.ToObject();
+      const char* name = typeid(A).name();
+      JSValue v = object.Get(name);
+      JS_ASSERT(value.Env(), v.IsExternal());
 
-      std::string name = arr.Get(kNameIndex).ToString();
-      const char* name_of_a = typeid(A).name();
-      if (name != name_of_a) {
+      JSExternal<A> abstract = v.As<Napi::External<A>>();
+
+      if (abstract.IsEmpty()) {
         std::stringstream ss;
-        ss << "Cannot cast " << name << " to " << name_of_a << "!";
+        ss << "ObjectWrap is not convertible to " << name << "!";
         throw js_create_error(value.Env(), ss.str());
       }
 
-      wrap_.Reset(arr.Get(kWrapIndex), 1);
-      abstract_.Reset(arr.Get(kAbstractIndex).As<JSExternal<A>>(), 1);
+      ptr_ = abstract.Data();
+      assert(ptr_ != nullptr);
+
+      wrap_.Reset(object, 1);
+      abstract_.Reset(abstract, 1);
     }
 
     A* operator->() {
-      assert(!abstract_.IsEmpty());
-      A* ptr = abstract_.Value().Data();
-
-      assert(ptr != nullptr);
-      return ptr;
+      return ptr_;
     }
 
-    JSValue GetWrap() const {
+    JSObject GetWrap() const {
       assert(!wrap_.IsEmpty());
       return wrap_.Value();
     }
 
   private:
-    JSRef<JSValue> wrap_;
+    JSRef<JSObject> wrap_;
     JSRef<JSExternal<A>> abstract_;
+    A* ptr_ = nullptr;
   };
-
-  template<class A, class W>
-  JSArray js_abstract_wrap(W* wrap) {
-    A* abstract = dynamic_cast<A*>(wrap);
-    auto&& arr = JSArray::New(wrap->Env(), 3);
-
-    arr[JSAbstractUnwrap<A>::kWrapIndex] = wrap->Value();
-    arr[JSAbstractUnwrap<A>::kAbstractIndex] = JSExternal<A>::New(wrap->Env(), abstract);
-    arr[JSAbstractUnwrap<A>::kNameIndex] = JSString::New(wrap->Env(), typeid(A).name());
-
-    return arr;
-  }
 }
 
 #endif

@@ -67,11 +67,7 @@ namespace chunklands::engine {
     JS_DECL_CB_VOID(start)
     JS_DECL_CB_VOID(stop)
     JS_DECL_CB_VOID(loop)
-  private:
-    void JSCall_SetScene(JSCbi info) {
-      js_Scene = info[0];
-    }
-    JSAbstractUnwrap<IScene> js_Scene;
+    JS_IMPL_ABSTRACT_WRAP_SETTER(IScene, Scene)
 
   private:
     bool running_ = false;

@@ -235,12 +235,8 @@ namespace chunklands::game {
       JS_SETTER(LightingPass),
       JS_SETTER(SkyboxPass),
       JS_SETTER(Skybox),
-      InstanceMethod("asIScene", &Scene::x)
+      JS_ABSTRACT_WRAP(engine::IScene, IScene),
     }))
-
-    JSValue x(JSCbi) {
-      return js_abstract_wrap<IScene>(this);
-    }
 
     JS_DECL_SETTER_WRAP(engine::Window, Window)
     JS_DECL_SETTER_WRAP(World, World)
@@ -250,6 +246,7 @@ namespace chunklands::game {
     JS_IMPL_SETTER_WRAP(engine::LightingPass, LightingPass)
     JS_IMPL_SETTER_WRAP(engine::SkyboxPass, SkyboxPass)
     JS_IMPL_SETTER_WRAP(engine::Skybox, Skybox)
+    JS_IMPL_ABSTRACT_WRAP(engine::IScene, IScene)
   
   public:
     virtual void Prepare() override;
