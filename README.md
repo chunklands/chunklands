@@ -1,7 +1,7 @@
 # Chunklands
 
-- [GitHub Issues](https://github.com/DaAitch/chunklands/issues)
-- [GitHub Project](https://github.com/DaAitch/chunklands/projects/1)
+- [GitHub Issues](https://github.com/20hoibe/chunklands/issues)
+- [GitHub Project](https://github.com/20hoibe/chunklands/projects/1)
 
 ## Technologies
 
