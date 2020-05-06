@@ -181,25 +181,22 @@ namespace chunklands {
 
   JSError js_create_error(JSEnv env, const std::string& msg);
 
-  // Idea: more generic ObjectWrap has properties (maybe symbol keys) for all inherited classes
-  // object[Symbol(typeid(A).name())] is a External<A> => what you want
-  // that it's possible to `gameloop.setScene(scene)` and not `gameloop.setScene(scene.asIScene)`
   template<class A>
   class JSAbstractUnwrap {
   public:
     JSAbstractUnwrap() {}
-    JSAbstractUnwrap(JSValue value) {
-      JSObject object = value.ToObject();
+    JSAbstractUnwrap(JSValue wrap) {
+      JSObject object = wrap.ToObject();
       const char* name = typeid(A).name();
       JSValue v = object.Get(name);
-      JS_ASSERT(value.Env(), v.IsExternal());
+      JS_ASSERT(wrap.Env(), v.IsExternal());
 
       JSExternal<A> abstract = v.As<Napi::External<A>>();
 
       if (abstract.IsEmpty()) {
         std::stringstream ss;
         ss << "ObjectWrap is not convertible to " << name << "!";
-        throw js_create_error(value.Env(), ss.str());
+        throw js_create_error(wrap.Env(), ss.str());
       }
 
       ptr_ = abstract.Data();
