@@ -15,18 +15,15 @@ namespace chunklands::engine {
   JS_DEF_WRAP(Environment)
 
   void Environment::JSCall_initialize(JSCbi info) {
-    auto&& env = info.Env();
     const int init = glfwInit();
-    JS_ASSERT_MSG(init == GLFW_TRUE, "could not initialize GLFW");
+    JS_ASSERT_MSG(info.Env(), init == GLFW_TRUE, "could not initialize GLFW");
   }
 
   void Environment::JSCall_loadProcs(JSCbi info) {
-    auto&& env = info.Env();
-
-    JS_ASSERT_MSG(glfwGetCurrentContext() != nullptr, "call after `window.makeCurrentContext()`");
+    JS_ASSERT_MSG(info.Env(), glfwGetCurrentContext() != nullptr, "call after `window.makeCurrentContext()`");
 
     const int load = gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
-    JS_ASSERT_MSG(load != 0, "could not load GL procs");
+    JS_ASSERT_MSG(info.Env(), load != 0, "could not load GL procs");
     
     CHECK_GL();
   }
@@ -44,8 +41,7 @@ namespace chunklands::engine {
   JS_DEF_WRAP(GameLoop)
 
   void GameLoop::JSCall_start(JSCbi info) {
-    auto&& env = info.Env();
-    JS_ASSERT(!running_);
+    JS_ASSERT(info.Env(), !running_);
 
     js_Scene->Prepare();
 
@@ -55,16 +51,14 @@ namespace chunklands::engine {
   }
 
   void GameLoop::JSCall_stop(JSCbi info) {
-    auto&& env = info.Env();
-    JS_ASSERT(running_);
+    JS_ASSERT(info.Env(), running_);
     running_ = false;
   }
 
   constexpr double update_threshold = 1.0 / 30.0; // Hz
 
   void GameLoop::JSCall_loop(JSCbi info) {
-    auto&& env = info.Env();
-    JS_ASSERT(running_);
+    JS_ASSERT(info.Env(), running_);
 
     const double time = glfwGetTime();
     { // update
@@ -388,7 +382,6 @@ namespace chunklands::engine {
   JS_DEF_WRAP(Window)
 
   void Window::JSCall_initialize(JSCbi info) {
-    auto&& env = info.Env();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 
@@ -401,7 +394,7 @@ namespace chunklands::engine {
       nullptr
     );
 
-    JS_ASSERT(window_ != nullptr);
+    JS_ASSERT(info.Env(), window_ != nullptr);
 
     glfwSetWindowUserPointer(window_, this);
 

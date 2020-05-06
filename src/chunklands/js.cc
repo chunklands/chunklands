@@ -3,7 +3,7 @@
 #include <boost/stacktrace.hpp>
 
 namespace chunklands {
-  JSError create_error(JSEnv env, const std::string& msg) {
+  JSError js_create_error(JSEnv env, const std::string& msg) {
     std::stringstream ss;
     ss
       << msg << "\n"
@@ -13,7 +13,7 @@ namespace chunklands {
 
     for (auto&& frame : boost::stacktrace::stacktrace(1, 100)) {
       auto&& name = frame.name();
-      if (name.rfind("Napi::ObjectWrap") == 0 || name.rfind("JSObjectWrap")) {
+      if (name.rfind("Napi::ObjectWrap<") == 0) {
         break;
       }
 

@@ -26,21 +26,20 @@ namespace chunklands::game {
   JS_DEF_WRAP(BlockRegistrarBase)
 
   void BlockRegistrarBase::JSCall_addBlock(JSCbi info) {
-    auto&& env = info.Env();
-    JS_ASSERT(info[0].IsObject());
+    JS_ASSERT(info.Env(), info[0].IsObject());
 
     auto&& js_block_definition = info[0].ToObject();
 
     auto&& js_id = js_block_definition.Get("id");
-    JS_ASSERT(js_id.IsString());
+    JS_ASSERT(info.Env(), js_id.IsString());
     std::string id = js_id.ToString();
 
     auto&& js_opaque = js_block_definition.Get("opaque");
-    JS_ASSERT(js_opaque.IsBoolean());
+    JS_ASSERT(info.Env(), js_opaque.IsBoolean());
     bool opaque = js_opaque.ToBoolean();
 
     auto&& js_vertex_data = js_block_definition.Get("vertexData");
-    JS_ASSERT(js_vertex_data.IsObject());
+    JS_ASSERT(info.Env(), js_vertex_data.IsObject());
 
     auto&& js_vertex_data_obj = js_vertex_data.As<JSObject>();
     auto&& js_facenames_arr = js_vertex_data_obj.GetPropertyNames();
@@ -52,7 +51,7 @@ namespace chunklands::game {
       
       auto&& js_facename_str = js_facename.ToString();
       auto&& js_face_vertex_data = js_vertex_data_obj.Get(js_facename_str);
-      JS_ASSERT(js_face_vertex_data.IsArray());
+      JS_ASSERT(info.Env(), js_face_vertex_data.IsArray());
       auto&& js_face_vertex_data_arr = js_face_vertex_data.As<JSArray>();
 
       std::vector<GLfloat> face_vertex_data;
@@ -60,7 +59,7 @@ namespace chunklands::game {
 
       for(unsigned i = 0; i < js_face_vertex_data_arr.Length(); i++) {
         auto&& js_face_vertex_value = js_face_vertex_data_arr.Get(i);
-        JS_ASSERT(js_face_vertex_value.IsNumber());
+        JS_ASSERT(info.Env(), js_face_vertex_value.IsNumber());
 
         face_vertex_data.push_back(js_face_vertex_value.ToNumber().FloatValue());
       }
@@ -88,8 +87,7 @@ namespace chunklands::game {
   }
 
   void BlockRegistrarBase::JSCall_loadTexture(JSCbi info) {
-    auto&& env = info.Env();
-    JS_ASSERT(info[0].IsString());
+    JS_ASSERT(info.Env(), info[0].IsString());
 
     std::string filepath = info[0].ToString();
     texture_.LoadTexture(filepath.c_str());

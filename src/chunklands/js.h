@@ -66,15 +66,12 @@
                                                       } while (0)
 
 // Assert
-#define JS_ASSERT(COND)                               JS_ASSERT_MSG(COND, "failed condition " #COND)
-#define JS_ASSERT_MSG(COND, MSG)                      do { \
+#define JS_ASSERT(ENV, COND)                          JS_ASSERT_MSG((ENV), (COND), "failed condition " #COND)
+#define JS_ASSERT_MSG(ENV, COND, MSG)                 do { \
                                                         if (!(COND)) { \
-                                                          JS_THROW(MSG); \
+                                                          throw js_create_error(ENV, MSG); \
                                                         } \
                                                       } while (0)
-
-// Error
-#define JS_THROW(MSG)                                 throw create_error(env, (MSG))
 
 
 // solves comma problems: e.g. `MACRO({ InstanceMethod(...), ... })` -> `MACRO(ONE_ARG({ ... }))`
@@ -91,6 +88,7 @@ namespace chunklands {
   using JSBoolean     = Napi::Boolean;
   using JSNumber      = Napi::Number;
   using JSArray       = Napi::Array;
+  using JSString      = Napi::String;
   using JSHandleScope = Napi::HandleScope;
   using JSFunction    = Napi::Function;
   using JSError       = Napi::Error;
@@ -174,37 +172,60 @@ namespace chunklands {
     T* object_ = nullptr;
   };
 
-  JSError create_error(JSEnv env, const std::string& msg);
-
-  template<class A, class W>
-  JSArray js_abstract_wrap(W* wrap) {
-    A* abstract = dynamic_cast<A*>(wrap);
-    auto&& arr = JSArray::New(wrap->Env(), 2);
-
-    arr[(uint32_t)0] = wrap->Value();
-    arr[(uint32_t)1] = JSExternal<A>::New(wrap->Env(), abstract);
-
-    return arr;
-  }
+  JSError js_create_error(JSEnv env, const std::string& msg);
 
   template<class A>
   class JSAbstractUnwrap {
   public:
+    static constexpr uint32_t kWrapIndex = 0;
+    static constexpr uint32_t kAbstractIndex = 1;
+    static constexpr uint32_t kNameIndex = 2;
+  public:
     JSAbstractUnwrap() {}
     JSAbstractUnwrap(JSValue value) {
-      auto&& arr = value.As<JSArray>();
-      wrap_.Reset(arr.Get((uint32_t)0), 1);
-      abstract_.Reset(arr.Get((uint32_t)1).As<JSExternal<A>>(), 1);
+      JSArray arr = value.As<JSArray>();
+
+      std::string name = arr.Get(kNameIndex).ToString();
+      const char* name_of_a = typeid(A).name();
+      if (name != name_of_a) {
+        std::stringstream ss;
+        ss << "Cannot cast " << name << " to " << name_of_a << "!";
+        throw js_create_error(value.Env(), ss.str());
+      }
+
+      wrap_.Reset(arr.Get(kWrapIndex), 1);
+      abstract_.Reset(arr.Get(kAbstractIndex).As<JSExternal<A>>(), 1);
     }
 
     A* operator->() {
-      return abstract_.Value().Data();
+      assert(!abstract_.IsEmpty());
+      A* ptr = abstract_.Value().Data();
+
+      assert(ptr != nullptr);
+      return ptr;
+    }
+
+    JSValue GetWrap() const {
+      assert(!wrap_.IsEmpty());
+      return wrap_.Value();
     }
 
   private:
     JSRef<JSValue> wrap_;
     JSRef<JSExternal<A>> abstract_;
   };
+
+  template<class A, class W>
+  JSArray js_abstract_wrap(W* wrap) {
+    A* abstract = dynamic_cast<A*>(wrap);
+    auto&& arr = JSArray::New(wrap->Env(), 3);
+
+    arr[JSAbstractUnwrap<A>::kWrapIndex] = wrap->Value();
+    arr[JSAbstractUnwrap<A>::kAbstractIndex] = JSExternal<A>::New(wrap->Env(), abstract);
+    arr[JSAbstractUnwrap<A>::kNameIndex] = JSString::New(wrap->Env(), typeid(A).name());
+
+    return arr;
+  }
 }
 
 #endif
