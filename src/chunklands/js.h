@@ -174,6 +174,9 @@ namespace chunklands {
 
   JSError js_create_error(JSEnv env, const std::string& msg);
 
+  // Idea: more generic ObjectWrap has properties (maybe symbol keys) for all inherited classes
+  // object[Symbol(typeid(A).name())] is a External<A> => what you want
+  // that it's possible to `gameloop.setScene(scene)` and not `gameloop.setScene(scene.asIScene)`
   template<class A>
   class JSAbstractUnwrap {
   public:
