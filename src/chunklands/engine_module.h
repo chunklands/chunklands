@@ -407,6 +407,62 @@ namespace chunklands::engine {
 
     SkyboxTexture texture_;
   };
+
+  class Camera : public JSObjectWrap<Camera> {
+    JS_IMPL_WRAP(Camera, ONE_ARG({
+      JS_SETTER(Position)
+    }))
+  private:
+    void JSCall_SetPosition(JSCbi info);
+
+  public:
+    void UpdateViewportRatio(int width, int height);
+
+    void Update(double diff);
+    
+    void AddLook(float yaw_rad, float pitch_rad);
+    void AddPos(const glm::vec3& v) {
+      pos_ += v;
+    }
+
+    const glm::vec3& GetPosition() const {
+      return pos_;
+    }
+
+    const glm::vec2& GetLook() const {
+      return look_;
+    }
+
+    const glm::mat4& GetProjection() const {
+      return proj_;
+    }
+
+    const glm::mat4& GetView() const {
+      return view_;
+    }
+
+    const glm::mat4& GetViewSkybox() const {
+      return view_skybox_;
+    }
+  private:
+
+    glm::vec3 pos_ {0.f, 0.f, 0.f};
+    glm::vec2 look_ {0.f, 0.f};
+
+    glm::mat4 view_;
+    glm::mat4 proj_;
+    
+    glm::mat4 view_skybox_;
+  };
+
+  namespace math {
+    inline glm::ivec3 get_center_chunk(const glm::vec3& pos, unsigned chunk_size) {
+      return glm::ivec3(pos.x >= 0 ? pos.x : pos.x - chunk_size,
+                        pos.y >= 0 ? pos.y : pos.y - chunk_size,
+                        pos.z >= 0 ? pos.z : pos.z - chunk_size
+      ) / (int)chunk_size;
+    }
+  }
 }
 
 #endif

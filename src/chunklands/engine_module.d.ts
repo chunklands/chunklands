@@ -41,3 +41,7 @@ export declare class Window {
 export declare class Skybox {
   initialize(texturePath: string): void
 }
+
+export declare class Camera {
+  setPosition(x: number, y: number, z: number): void
+}

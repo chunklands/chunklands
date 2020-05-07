@@ -182,45 +182,14 @@ namespace chunklands::game {
 
   public:
     void Prepare();
-    void Update(double diff);
-    void RenderChunks(double diff);
-
-    void UpdateViewportRatio(int width, int height);
-
-    void AddLook(float yaw_rad, float pitch_rad);
-    void AddPos(const glm::vec3& v) {
-      pos_ += v;
-    }
-
-    const glm::vec2& GetLook() const {
-      return look_;
-    }
-
-    const glm::mat4& GetProjection() const {
-      return proj_;
-    }
-
-    const glm::mat4& GetView() const {
-      return view_;
-    }
-
-    const glm::mat4& GetViewSkybox() const {
-      return view_skybox_;
-    }
+    void Update(double diff, const engine::Camera& camera);
+    void Render(double diff, const engine::Camera& camera);
 
     int GetRenderDistance() const;
 
   private:
 
     std::unordered_map<glm::ivec3, std::shared_ptr<Chunk>, ivec3_hasher> chunk_map_;
-
-    glm::vec3 pos_ = glm::vec3(8.f, 0.7f, 60.f);
-    glm::vec2 look_;
-
-    glm::mat4 view_;
-    glm::mat4 proj_;
-
-    glm::mat4 view_skybox_;
 
     std::vector<glm::ivec3> nearest_chunks_;
   };
@@ -235,6 +204,7 @@ namespace chunklands::game {
       JS_SETTER(LightingPass),
       JS_SETTER(SkyboxPass),
       JS_SETTER(Skybox),
+      JS_SETTER(Camera),
       JS_ABSTRACT_WRAP(engine::IScene, IScene),
     }))
 
@@ -246,6 +216,7 @@ namespace chunklands::game {
     JS_IMPL_SETTER_WRAP(engine::LightingPass, LightingPass)
     JS_IMPL_SETTER_WRAP(engine::SkyboxPass, SkyboxPass)
     JS_IMPL_SETTER_WRAP(engine::Skybox, Skybox)
+    JS_IMPL_SETTER_WRAP(engine::Camera, Camera)
     JS_IMPL_ABSTRACT_WRAP(engine::IScene, IScene)
   
   public:

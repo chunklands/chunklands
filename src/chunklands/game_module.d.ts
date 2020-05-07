@@ -27,6 +27,8 @@ export declare class Scene implements engine.IScene {
   setSkyboxPass(pass: engine.SkyboxPass): void
 
   setSkybox(skybox: engine.Skybox): void
+
+  setCamera(camera: engine.Camera): void
 }
 
 export declare class World {

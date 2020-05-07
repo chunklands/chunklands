@@ -80,6 +80,10 @@ const blocks          = require('./game/blocks');
   skybox.initialize(`${__dirname}/game/skyboxes/skyboxsun5deg2/`);
   scene.setSkybox(skybox);
 
+  const camera = new chunklands.engine.Camera();
+  camera.setPosition(5, 1, -5);
+  scene.setCamera(camera);
+
   // TODO(daaitch): add preparation phase: this has to be at the end to update buffers
   scene.setWindow(window);
 

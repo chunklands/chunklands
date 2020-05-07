@@ -369,7 +369,7 @@ namespace chunklands::game {
       const float yaw_rad   = .005f * cursor_diff.x;
       const float pitch_rad = .005f * cursor_diff.y;
 
-      js_World->AddLook(yaw_rad, pitch_rad);
+      js_Camera->AddLook(yaw_rad, pitch_rad);
     });
   }
 
@@ -392,34 +392,34 @@ namespace chunklands::game {
   void Scene::Update(double diff) {
     constexpr float move_factor = 20.f;
 
-    auto&& look = js_World->GetLook();
+    auto&& look = js_Camera->GetLook();
 
     if (js_Window->GetKey(GLFW_KEY_W) == GLFW_PRESS) {
       glm::vec3 move(-sinf(look.x) * cosf(look.y),
                      sinf(look.y),
                      -cosf(look.x) * cosf(look.y));
-      js_World->AddPos(move_factor * (float)diff * move);
+      js_Camera->AddPos(move_factor * (float)diff * move);
     }
 
     if (js_Window->GetKey(GLFW_KEY_S) == GLFW_PRESS) {
       glm::vec3 move(-sinf(look.x) * cosf(look.y),
                      sinf(look.y),
                      -cosf(look.x) * cosf(look.y));
-      js_World->AddPos(-move_factor * (float)diff * move);
+      js_Camera->AddPos(-move_factor * (float)diff * move);
     }
 
     if (js_Window->GetKey(GLFW_KEY_A) == GLFW_PRESS) {
       glm::vec3 move(-cosf(look.x) * cosf(look.y),
                      0.f,
                      sinf(look.x) * cosf(look.y));
-      js_World->AddPos(move_factor * (float)diff * move);
+      js_Camera->AddPos(move_factor * (float)diff * move);
     }
 
     if (js_Window->GetKey(GLFW_KEY_D) == GLFW_PRESS) {
       glm::vec3 move(-cosf(look.x) * cosf(look.y),
                      0.f,
                      sinf(look.x) * cosf(look.y));
-      js_World->AddPos(-move_factor * (float)diff * move);
+      js_Camera->AddPos(-move_factor * (float)diff * move);
     }
 
     if (js_Window->GetMouseButton(GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
@@ -431,7 +431,8 @@ namespace chunklands::game {
       js_Window->StopMouseGrab();
     }
 
-    js_World->Update(diff);
+    js_Camera->Update(diff);
+    js_World->Update(diff, *js_Camera);
   }
 
   void Scene::Render(double diff) {
@@ -441,12 +442,11 @@ namespace chunklands::game {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     { // g-buffer pass
-      
       CHECK_GL_HERE();
       js_GBufferPass->Begin();
-      js_GBufferPass->UpdateProjection(js_World->GetProjection());
-      js_GBufferPass->UpdateView(js_World->GetView());
-      js_World->RenderChunks(diff);
+      js_GBufferPass->UpdateProjection(js_Camera->GetProjection());
+      js_GBufferPass->UpdateView(js_Camera->GetView());
+      js_World->Render(diff, *js_Camera);
       js_GBufferPass->End();
       CHECK_GL_HERE();
     }
@@ -454,7 +454,7 @@ namespace chunklands::game {
     { // SSAO
       CHECK_GL_HERE();
       js_SSAOPass->Begin();
-      js_SSAOPass->UpdateProjection(js_World->GetProjection());
+      js_SSAOPass->UpdateProjection(js_Camera->GetProjection());
       js_SSAOPass->BindPositionTexture(js_GBufferPass->textures_.position);
       js_SSAOPass->BindNormalTexture(js_GBufferPass->textures_.normal);
       render_quad_.Render();
@@ -481,7 +481,7 @@ namespace chunklands::game {
 
       js_LightingPass->UpdateRenderDistance(((float)js_World->GetRenderDistance() - 0.5f) * Chunk::SIZE);
 
-      glm::vec3 sun_position = glm::normalize(glm::mat3(js_World->GetView()) * glm::vec3(-3, 1, 3));
+      glm::vec3 sun_position = glm::normalize(glm::mat3(js_Camera->GetView()) * glm::vec3(-3, 1, 3));
       js_LightingPass->UpdateSunPosition(sun_position);
       render_quad_.Render();
       js_LightingPass->End();
@@ -492,8 +492,8 @@ namespace chunklands::game {
       CHECK_GL_HERE();
       js_SkyboxPass->Begin();
       js_SkyboxPass->BindSkyboxTexture(js_GBufferPass->textures_.position);
-      js_SkyboxPass->UpdateProjection(js_World->GetProjection());
-      js_SkyboxPass->UpdateView(js_World->GetViewSkybox());
+      js_SkyboxPass->UpdateProjection(js_Camera->GetProjection());
+      js_SkyboxPass->UpdateView(js_Camera->GetViewSkybox());
       js_Skybox->Render();
       js_SkyboxPass->End();
       CHECK_GL_HERE();
@@ -519,8 +519,8 @@ namespace chunklands::game {
 
   void Scene::UpdateViewport(int width, int height) {
     glViewport(0, 0, width, height);
-    if (!js_World.IsEmpty()) {
-      js_World->UpdateViewportRatio(width, height);
+    if (!js_Camera.IsEmpty()) {
+      js_Camera->UpdateViewportRatio(width, height);
     }
 
     InitializeGLBuffers(width, height);
@@ -589,7 +589,7 @@ namespace chunklands::game {
   }
 
 
-  void World::Update(double) {
+  void World::Update(double, const engine::Camera& camera) {
     PROF();
 
     // Calculation of the current chunk we are standing on:
@@ -597,10 +597,7 @@ namespace chunklands::game {
     //   - 1. for n = [0;+16[ => 0
     //   - 2. for n = ]-16;0[ => -1
     // thus for negative dimension values we need to subtract chunk size
-    glm::ivec3 center_chunk_pos = glm::ivec3(pos_.x >= 0 ? pos_.x : pos_.x - Chunk::SIZE,
-                                             pos_.y >= 0 ? pos_.y : pos_.y - Chunk::SIZE,
-                                             pos_.z >= 0 ? pos_.z : pos_.z - Chunk::SIZE
-                                            ) / (int)Chunk::SIZE;
+    glm::ivec3 center_chunk_pos = engine::math::get_center_chunk(camera.GetPosition(), Chunk::SIZE);
 
     // map cleanup: remove chunks outside prefetch distance
     for (auto&& it = chunk_map_.begin(); it != chunk_map_.end(); ) {
@@ -689,25 +686,13 @@ namespace chunklands::game {
         break;
       }
     }
-    
-    glm::vec3 look_center(-sinf(look_.x) * cosf(look_.y),
-                          sinf(look_.y),
-                          -cosf(look_.x) * cosf(look_.y));
-
-    view_        = glm::lookAt(pos_, pos_ + look_center, glm::vec3(0.f, 1.f, 0.f));
-    view_skybox_ = glm::lookAt(glm::vec3(0, 0, 0), look_center, glm::vec3(0.f, 1.f, 0.f));
   }
 
-  void World::RenderChunks(double) {
+  void World::Render(double, const engine::Camera& camera) {
     PROF();
     CHECK_GL();
 
-    
-
-    glm::ivec3 center_chunk_pos = glm::ivec3(pos_.x >= 0 ? pos_.x : pos_.x - Chunk::SIZE,
-                                             pos_.y >= 0 ? pos_.y : pos_.y - Chunk::SIZE,
-                                             pos_.z >= 0 ? pos_.z : pos_.z - Chunk::SIZE
-                                            ) / (int)Chunk::SIZE;
+    glm::ivec3 center_chunk_pos = engine::math::get_center_chunk(camera.GetPosition(), Chunk::SIZE);
 
     // TODO(daaitch): should be set by g_buffer_pass
     js_ChunkGenerator->BindTexture();
@@ -734,21 +719,6 @@ namespace chunklands::game {
     std::cout << "Rendered index count: " << rendered_index_count << ", chunk count: " << rendered_chunk_count << std::endl;
   }
 
-  void World::UpdateViewportRatio(int width, int height) {
-    constexpr float fovy_degree = 75.f;
-    
-    proj_ = glm::perspective(glm::radians(fovy_degree), (float)width / height, 0.1f, 1000.0f);
-  }
-
-  void World::AddLook(float yaw_rad, float pitch_rad) {
-    constexpr float pitch_break = (.5f * M_PI) - .1;
-    
-    look_.x += yaw_rad;
-    look_.x = fmodf(look_.x, 2.f * M_PI);
-
-    look_.y += pitch_rad;
-    look_.y = std::max(std::min(look_.y, pitch_break), -pitch_break);
-  }
 
   int World::GetRenderDistance() const {
     return RENDER_DISTANCE;

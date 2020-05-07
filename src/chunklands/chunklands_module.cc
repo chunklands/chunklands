@@ -41,6 +41,7 @@ namespace chunklands {
     EXPORT(SSAOBlurPass);
     EXPORT(SSAOPass);
     EXPORT(Window);
+    EXPORT(Camera);
     return exports;
   }
 }
