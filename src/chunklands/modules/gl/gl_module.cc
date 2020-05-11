@@ -3,7 +3,7 @@
 #include <sstream>
 #include <stdexcept>
 
-#include "misc_module.h"
+#include <chunklands/modules/misc/misc_module.h>
 
 namespace chunklands {
   GLCheck::GLCheck(const char* hint) {
@@ -43,7 +43,7 @@ namespace chunklands {
   }
 }
 
-namespace chunklands::gl {
+namespace chunklands::modules::gl {
 
   /////////////////////////////////////////////////////////////////////////////
   // ProgramBase //////////////////////////////////////////////////////////////

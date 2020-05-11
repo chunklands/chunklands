@@ -1,4 +1,4 @@
-import * as gl from './gl_module'
+import * as gl from '../gl/gl_module'
 
 export interface IScene {}
 export declare class RenderPass {

@@ -4,10 +4,12 @@
 #include <glm/vector_relational.hpp>
 #include <glm/geometric.hpp>
 
-#include "misc_module.h"
+#include "math.h"
+#include <chunklands/modules/misc/misc_module.h>
 #include <iostream>
+#include <chunklands/math.h>
 
-namespace chunklands::game {
+namespace chunklands::modules::game {
 
   /////////////////////////////////////////////////////////////////////////////
   // BlockDefinition //////////////////////////////////////////////////////////
@@ -597,7 +599,7 @@ namespace chunklands::game {
     //   - 1. for n = [0;+16[ => 0
     //   - 2. for n = ]-16;0[ => -1
     // thus for negative dimension values we need to subtract chunk size
-    glm::ivec3 center_chunk_pos = engine::math::get_center_chunk(camera.GetPosition(), Chunk::SIZE);
+    glm::ivec3 center_chunk_pos = chunklands::math::get_center_chunk(camera.GetPosition(), Chunk::SIZE);
 
     // map cleanup: remove chunks outside prefetch distance
     for (auto&& it = chunk_map_.begin(); it != chunk_map_.end(); ) {
@@ -692,7 +694,7 @@ namespace chunklands::game {
     PROF();
     CHECK_GL();
 
-    glm::ivec3 center_chunk_pos = engine::math::get_center_chunk(camera.GetPosition(), Chunk::SIZE);
+    glm::ivec3 center_chunk_pos = chunklands::math::get_center_chunk(camera.GetPosition(), Chunk::SIZE);
 
     // TODO(daaitch): should be set by g_buffer_pass
     js_ChunkGenerator->BindTexture();

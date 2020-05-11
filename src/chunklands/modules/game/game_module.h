@@ -1,14 +1,14 @@
 #ifndef __CHUNKLANDS_GAME_H__
 #define __CHUNKLANDS_GAME_H__
 
-#include "js.h"
-#include "gl_module.h"
-#include "engine_module.h"
+#include <chunklands/js.h>
+#include <chunklands/modules/gl/gl_module.h>
+#include <chunklands/modules/engine/engine_module.h>
 #include <glm/vec3.hpp>
 #include <queue>
 #include <boost/functional/hash.hpp>
 
-namespace chunklands::game {
+namespace chunklands::modules::game {
 
   class BlockDefinition {
   public:

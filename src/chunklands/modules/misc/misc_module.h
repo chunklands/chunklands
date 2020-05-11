@@ -12,10 +12,10 @@
 #include <stdexcept>
 #include <type_traits>
 
-#include "js.h"
+#include <chunklands/js.h>
 
-#define PROF() ::chunklands::misc::prof profiler(BOOST_CURRENT_FUNCTION)
-#define PROF_NAME(NAME) ::chunklands::misc::prof profiler(NAME)
+#define PROF() ::chunklands::modules::misc::prof profiler(BOOST_CURRENT_FUNCTION)
+#define PROF_NAME(NAME) ::chunklands::modules::misc::prof profiler(NAME)
 #define PROF_MOVE() std::move(profiler)
 
 
@@ -63,7 +63,7 @@
     THROW_RT(msg);                          \
   }} while (0)
 
-namespace chunklands::misc {
+namespace chunklands::modules::misc {
 
   class Profiler : public JSObjectWrap<Profiler> {
     JS_IMPL_WRAP(Profiler, ONE_ARG({

@@ -5,10 +5,10 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <boost/preprocessor/stringize.hpp>
-#include "js.h"
+#include <chunklands/js.h>
 #include <stb_image.h>
 #include <glm/vec3.hpp>
-#include "misc_module.h"
+#include <chunklands/modules/misc/misc_module.h>
 #include <glm/gtc/type_ptr.hpp>
 
 #define POSITION __FILE__ ":" BOOST_PP_STRINGIZE(__LINE__)
@@ -41,7 +41,7 @@ namespace chunklands {
   };
 }
 
-namespace chunklands::gl {
+namespace chunklands::modules::gl {
   class ProgramBase : public JSObjectWrap<ProgramBase> {
     JS_IMPL_WRAP(ProgramBase, ONE_ARG({
       JS_CB(compile)

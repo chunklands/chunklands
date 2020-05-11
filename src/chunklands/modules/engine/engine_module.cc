@@ -4,9 +4,9 @@
 #include <glm/gtx/compatibility.hpp>
 #include <random>
 
-#include "misc_module.h"
+#include <chunklands/modules/misc/misc_module.h>
 
-namespace chunklands::engine {
+namespace chunklands::modules::engine {
   
   /////////////////////////////////////////////////////////////////////////////
   // Environment //////////////////////////////////////////////////////////////

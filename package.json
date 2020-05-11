@@ -10,7 +10,9 @@
     "_build:dev": "cross-env CMAKE_BUILD_PARALLEL_LEVEL=8 cmake-js build --debug",
     "_native:dev": "nodemon --watch src -e h,cc --exec \"npm run _build:dev\"",
     "_app:dev": "nodemon --delay 3 --watch src --watch build/Debug --watch resource -e js,node,glsl --exec \"node src/app.js\"",
-    "debug": "gdb -ex=r --args node src/app.js"
+    "debug": "gdb -ex=r --args node src/app.js",
+    "test": "./build/chunklands_test",
+    "pretest": "npm run _build:dev"
   },
   "keywords": [
     "game",

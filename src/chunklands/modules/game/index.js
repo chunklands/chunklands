@@ -1,11 +1,11 @@
 const game = require('./game_module');
-const engine = require('./engine');
+const engine = require('../engine');
 const assert = require('assert');
 const {promisify} = require('util');
 const imageSize = promisify(require('image-size'));
 const Jimp = require('jimp');
 
-const files = require('../files');
+const files = require('../../../files');
 
 class BlockRegistrar extends game.BlockRegistrarBase {
 

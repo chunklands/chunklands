@@ -1,13 +1,15 @@
 #ifndef __CHUNKLANDS_ENGINE_H__
 #define __CHUNKLANDS_ENGINE_H__
 
-#include "js.h"
-#include "gl_module.h"
+#include <chunklands/js.h>
+#include <chunklands/modules/gl/gl_module.h>
 #include <glm/vec3.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <boost/signals2.hpp>
+#include "math.h"
 
-namespace chunklands::engine {
+namespace chunklands::modules::engine {
+  
   class IScene {
   public:
     virtual ~IScene() {}
@@ -455,14 +457,33 @@ namespace chunklands::engine {
     glm::mat4 view_skybox_;
   };
 
-  namespace math {
-    inline glm::ivec3 get_center_chunk(const glm::vec3& pos, unsigned chunk_size) {
-      return glm::ivec3(pos.x >= 0 ? pos.x : pos.x - chunk_size,
-                        pos.y >= 0 ? pos.y : pos.y - chunk_size,
-                        pos.z >= 0 ? pos.z : pos.z - chunk_size
-      ) / (int)chunk_size;
-    }
-  }
+  class ICollisionSystem {
+
+  };
+  
+
+  class MovementController : public JSObjectWrap<MovementController> {
+    JS_IMPL_WRAP(MovementController, ONE_ARG({
+      JS_SETTER(CollisionSystem),
+      JS_SETTER(Camera)
+    }))
+
+    JS_IMPL_ABSTRACT_WRAP_SETTER(ICollisionSystem, CollisionSystem)
+    JS_IMPL_SETTER_WRAP(Camera, Camera)
+
+  public:
+    // void AddMovement(const glm::vec3& move) {
+    //   auto&& pos = js_Camera->GetPosition();
+    //   auto&& target = pos + move;
+    //   auto&& target_player_box_ = player_box_ + target;
+    // }
+  // private:
+  //   math::AABB player_box_ {
+  //     .origin {-.5f, -1.75f, -.5f},
+  //     .span {1.f, 2.f, 1.f}
+  //   };
+  };
+
 }
 
 #endif
