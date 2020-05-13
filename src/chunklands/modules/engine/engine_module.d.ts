@@ -1,6 +1,8 @@
 import * as gl from '../gl/gl_module'
 
 export interface IScene {}
+export interface ICollisionSystem {}
+
 export declare class RenderPass {
   setProgram(program: gl.ProgramBase): void
 }
@@ -44,4 +46,9 @@ export declare class Skybox {
 
 export declare class Camera {
   setPosition(x: number, y: number, z: number): void
+}
+
+export declare class MovementController {
+  setCamera(camera: Camera): void
+  setCollisionSystem(collisionSystem: ICollisionSystem): void
 }

@@ -84,6 +84,11 @@ const blocks          = require('./game/blocks');
   camera.setPosition(5, 1, -5);
   scene.setCamera(camera);
 
+  const movementController = new chunklands.engine.MovementController();
+  movementController.setCamera(camera);
+  movementController.setCollisionSystem(world);
+  scene.setMovementController(movementController);
+
   // TODO(daaitch): add preparation phase: this has to be at the end to update buffers
   scene.setWindow(window);
 

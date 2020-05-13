@@ -1,5 +1,5 @@
-import * as engine from './engine_module'
-import * as gl from './gl_module'
+import * as engine from '../engine/engine_module'
+import * as gl from '../gl/gl_module'
 
 export declare class BlockRegistrarBase {
   addBlock(): void
@@ -28,9 +28,10 @@ export declare class Scene implements engine.IScene {
 
   setSkybox(skybox: engine.Skybox): void
 
+  setMovementController(controller: engine.MovementController): void
   setCamera(camera: engine.Camera): void
 }
 
-export declare class World {
+export declare class World implements engine.ICollisionSystem {
   setChunkGenerator(chunkGenerator: ChunkGenerator): void
 }

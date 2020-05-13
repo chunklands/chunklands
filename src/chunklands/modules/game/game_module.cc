@@ -396,32 +396,34 @@ namespace chunklands::modules::game {
 
     auto&& look = js_Camera->GetLook();
 
+    math::vec3 movement {0.f, 0.f, 0.f};
+
     if (js_Window->GetKey(GLFW_KEY_W) == GLFW_PRESS) {
       glm::vec3 move(-sinf(look.x) * cosf(look.y),
                      sinf(look.y),
                      -cosf(look.x) * cosf(look.y));
-      js_Camera->AddPos(move_factor * (float)diff * move);
+      movement += move_factor * (float)diff * move;
     }
 
     if (js_Window->GetKey(GLFW_KEY_S) == GLFW_PRESS) {
       glm::vec3 move(-sinf(look.x) * cosf(look.y),
                      sinf(look.y),
                      -cosf(look.x) * cosf(look.y));
-      js_Camera->AddPos(-move_factor * (float)diff * move);
+      movement += -move_factor * (float)diff * move;
     }
 
     if (js_Window->GetKey(GLFW_KEY_A) == GLFW_PRESS) {
       glm::vec3 move(-cosf(look.x) * cosf(look.y),
                      0.f,
                      sinf(look.x) * cosf(look.y));
-      js_Camera->AddPos(move_factor * (float)diff * move);
+      movement += move_factor * (float)diff * move;
     }
 
     if (js_Window->GetKey(GLFW_KEY_D) == GLFW_PRESS) {
       glm::vec3 move(-cosf(look.x) * cosf(look.y),
                      0.f,
                      sinf(look.x) * cosf(look.y));
-      js_Camera->AddPos(-move_factor * (float)diff * move);
+      movement += -move_factor * (float)diff * move;
     }
 
     if (js_Window->GetMouseButton(GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
@@ -432,6 +434,8 @@ namespace chunklands::modules::game {
     if (js_Window->GetKey(GLFW_KEY_ESCAPE)) {
       js_Window->StopMouseGrab();
     }
+
+    js_MovementController->AddMovement(movement);
 
     js_Camera->Update(diff);
     js_World->Update(diff, *js_Camera);

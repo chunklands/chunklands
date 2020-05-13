@@ -575,7 +575,7 @@ namespace chunklands::modules::engine {
     glm::vec3 look_center(-sinf(look_.x) * cosf(look_.y),
                           sinf(look_.y),
                           -cosf(look_.x) * cosf(look_.y));
-    std::cout << look_center << std::endl;
+
     view_        = glm::lookAt(pos_, pos_ + look_center, glm::vec3(0.f, 1.f, 0.f));
     view_skybox_ = glm::lookAt(glm::vec3(0, 0, 0), look_center, glm::vec3(0.f, 1.f, 0.f));
   }
@@ -585,4 +585,12 @@ namespace chunklands::modules::engine {
     pos_.y = info[1].ToNumber().FloatValue();
     pos_.z = info[2].ToNumber().FloatValue();
   }
+
+
+
+  /////////////////////////////////////////////////////////////////////////////
+  // MovementController ///////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////
+
+  JS_DEF_WRAP(MovementController)
 }

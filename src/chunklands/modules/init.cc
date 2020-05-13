@@ -22,6 +22,7 @@ namespace chunklands::modules {
     EXPORT(SSAOPass);
     EXPORT(Window);
     EXPORT(Camera);
+    EXPORT(MovementController);
     return exports;
   }
 

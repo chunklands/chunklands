@@ -2,10 +2,11 @@
 #ifndef __CHUNKLANDS_MATH_H__
 #define __CHUNKLANDS_MATH_H__
 
+#include <boost/functional/hash.hpp>
+#include <cmath>
 #include <glm/ext/vector_float1.hpp>
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
-#include <cmath>
 
 namespace chunklands::math {
 
@@ -21,6 +22,17 @@ namespace chunklands::math {
   using ivec1 = ivec<1>;
   using ivec2 = ivec<2>;
   using ivec3 = ivec<3>;
+
+  struct ivec3_hasher {
+    std::size_t operator()(const ivec3& v) const {
+      std::size_t seed = 0;
+      boost::hash_combine(seed, boost::hash_value(v.x));
+      boost::hash_combine(seed, boost::hash_value(v.y));
+      boost::hash_combine(seed, boost::hash_value(v.z));
+
+      return seed;
+    }
+  };
 
   inline ivec3 get_center_chunk(const vec3& pos, unsigned chunk_size) {
     return ivec3(pos.x >= 0 ? pos.x : pos.x - chunk_size,
@@ -53,7 +65,7 @@ namespace chunklands::math {
       };
     }
 
-    AABB<N> operator|(const vec<N>& v);    
+    AABB<N> operator|(const vec<N>& v) const;    
 
     vec<N>  origin,
             span;
@@ -183,40 +195,88 @@ namespace chunklands::math {
   // inline float calculate_collision_3d(const AABB3& moving, const glm::vec3& velo, const AABB3& fixed) {
     
   // }
-  
-  class CollisionSystem {
+
+  class chunk_pos_in_box_iterator {
   public:
-    template<class R>
-    void ForEachObjectIn(const AABB<3>& box, R&& fn) {
-      
-      glm::ivec3 mn {
-        (int)floorf(box.origin.x),
-        (int)floorf(box.origin.y),
-        (int)floorf(box.origin.z)
-      };
+    chunk_pos_in_box_iterator() = default;
+    chunk_pos_in_box_iterator(const ivec3& chunk_min, const ivec3& chunk_max)
+      : chunk_min_(chunk_min), chunk_max_(chunk_max), current_(chunk_min) {
 
-      glm::ivec3 mx {
-        mn.x + (int)floorf(box.span.x),
-        mn.y + (int)floorf(box.span.y),
-        mn.z + (int)floorf(box.span.z)
-      };
-
-
-      int mod_x = mn.x % 16;
-      if (mn.x >= 0) {
-        // e.g. 6 = 22 % 16
-        // 22 -= 6
-        // => 16
-        mn.x -= mod_x;
-      } else {
-        // e.g. -3 = -19 % 16
-        // -19 -= 16 + (-3)
-        // => -32
-        mn.x -= 16 + mod_x;
-      }
+      assert(chunk_min_.x <= chunk_max_.x);
+      assert(chunk_min_.y <= chunk_max_.y);
+      assert(chunk_min_.z <= chunk_max_.z);
     }
+
+    bool operator==(const chunk_pos_in_box_iterator& rhs) const {
+      return current_ == rhs.current_;
+    }
+
+    bool operator!=(const chunk_pos_in_box_iterator& rhs) const {
+      return !(*this == rhs);
+    }
+
+    chunk_pos_in_box_iterator& operator++() {
+      assert(current_.z <= chunk_max_.z);
+
+      current_.x++;
+      if (current_.x > chunk_max_.x) {
+        current_.x = chunk_min_.x;
+        current_.y++;
+        if (current_.y > chunk_max_.y) {
+          current_.y = chunk_min_.y;
+          current_.z++;
+        }
+      }
+
+      return *this;
+    }
+
+    const ivec3& operator*() const {
+      return current_;
+    }
+
+  private:
+    ivec3 chunk_min_,
+          chunk_max_,
+          current_;
   };
-  
+
+  class chunk_pos_in_box {
+  public:
+    chunk_pos_in_box(const AABB3& box, unsigned chunk_size) {
+      chunk_min_ = get_center_chunk(box.origin           , chunk_size);
+      chunk_max_ = get_center_chunk(box.origin + box.span, chunk_size);
+
+      ivec3 chunk_end = {chunk_min_.x, chunk_min_.y, chunk_max_.z + 1};
+      end_ = {chunk_end, chunk_end};
+    }
+
+  public:
+    chunk_pos_in_box_iterator begin() const {
+      return {chunk_min_, chunk_max_};
+    }
+
+    const chunk_pos_in_box_iterator& end() const {
+      return end_;
+    }
+  private:
+    ivec3 chunk_min_,
+          chunk_max_;
+
+    chunk_pos_in_box_iterator end_;
+  };
+
+  inline float chess_distance(const vec1& a, const vec1& b) {
+    return std::fabs(a.x - b.x);
+  }
+
+  inline float chess_distance(const vec2& a, const vec2& b) {
+    return std::fabs(a.x - b.x + a.y - b.y);
+  }
+
+  inline float chess_distance(const vec3& a, const vec3& b) {
+    return std::fabs(a.x - b.x + a.y - b.y + a.z - b.z);
+  }
 }
 
 #endif

@@ -6,7 +6,7 @@
 #include <glm/vec3.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <boost/signals2.hpp>
-#include "math.h"
+#include <chunklands/math.h>
 
 namespace chunklands::modules::engine {
   
@@ -457,31 +457,45 @@ namespace chunklands::modules::engine {
     glm::mat4 view_skybox_;
   };
 
-  class ICollisionSystem {
-
+  struct collision_result {
+    bool is_collision;
+    math::vec3 collisionfree_movement;
+    math::vec3 outstanding_movement;
   };
-  
+
+  class ICollisionSystem {
+  public:
+    virtual collision_result ProcessNextCollision(const math::AABB3 &box, const math::vec3 &movement) = 0;
+  };
 
   class MovementController : public JSObjectWrap<MovementController> {
     JS_IMPL_WRAP(MovementController, ONE_ARG({
       JS_SETTER(CollisionSystem),
-      JS_SETTER(Camera)
+      JS_SETTER(Camera),
     }))
 
     JS_IMPL_ABSTRACT_WRAP_SETTER(ICollisionSystem, CollisionSystem)
     JS_IMPL_SETTER_WRAP(Camera, Camera)
 
   public:
-    // void AddMovement(const glm::vec3& move) {
-    //   auto&& pos = js_Camera->GetPosition();
-    //   auto&& target = pos + move;
-    //   auto&& target_player_box_ = player_box_ + target;
-    // }
-  // private:
-  //   math::AABB player_box_ {
-  //     .origin {-.5f, -1.75f, -.5f},
-  //     .span {1.f, 2.f, 1.f}
-  //   };
+    void AddMovement(glm::vec3 outstanding_movement) {
+      while(math::chess_distance(outstanding_movement, math::vec3(0, 0, 0)) > 0.01f) {
+        collision_result result = js_CollisionSystem->ProcessNextCollision(player_box_, outstanding_movement);
+        if (!result.is_collision) {
+          js_Camera->AddPos(result.collisionfree_movement);
+          break;
+        }
+
+        js_Camera->AddPos(result.collisionfree_movement);
+        outstanding_movement = result.outstanding_movement;
+      }
+    }
+
+  private:
+    math::AABB3 player_box_ {
+      -.5f, -1.75f, -.5f, // origin
+      1.f, 2.f, 1.f       // span
+    };
   };
 
 }

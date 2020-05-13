@@ -4,9 +4,9 @@
 #include <chunklands/js.h>
 #include <chunklands/modules/gl/gl_module.h>
 #include <chunklands/modules/engine/engine_module.h>
+#include <chunklands/math.h>
 #include <glm/vec3.hpp>
 #include <queue>
-#include <boost/functional/hash.hpp>
 
 namespace chunklands::modules::game {
 
@@ -161,24 +161,25 @@ namespace chunklands::modules::game {
     std::queue<detail::loaded_chunks_data> loaded_chunks_;
   };
 
-  class World : public JSObjectWrap<World> {
+  class World : public JSObjectWrap<World>, public engine::ICollisionSystem {
     JS_IMPL_WRAP(World, ONE_ARG({
       JS_SETTER(ChunkGenerator),
+      JS_ABSTRACT_WRAP(engine::ICollisionSystem, ICollisionSystem),
     }))
 
     JS_IMPL_SETTER_WRAP(ChunkGenerator, ChunkGenerator)
+    JS_IMPL_ABSTRACT_WRAP(engine::ICollisionSystem, ICollisionSystem)
 
-  private:
-    struct ivec3_hasher {
-      std::size_t operator()(const glm::ivec3& v) const {
-        std::size_t seed = 0;
-        boost::hash_combine(seed, boost::hash_value(v.x));
-        boost::hash_combine(seed, boost::hash_value(v.y));
-        boost::hash_combine(seed, boost::hash_value(v.z));
+  public:
+    engine::collision_result ProcessNextCollision(const math::AABB3 &, const math::vec3 &movement) {
+      // math::AABB3 movement_box = box | movement;
 
-        return seed;
-      }
-    };
+      return {
+        .is_collision = false,
+        .collisionfree_movement = movement,
+        .outstanding_movement = math::vec3 {0.f, 0.f, 0.f}
+      };
+    }
 
   public:
     void Prepare();
@@ -189,7 +190,7 @@ namespace chunklands::modules::game {
 
   private:
 
-    std::unordered_map<glm::ivec3, std::shared_ptr<Chunk>, ivec3_hasher> chunk_map_;
+    std::unordered_map<glm::ivec3, std::shared_ptr<Chunk>, math::ivec3_hasher> chunk_map_;
 
     std::vector<glm::ivec3> nearest_chunks_;
   };
@@ -206,6 +207,7 @@ namespace chunklands::modules::game {
       JS_SETTER(Skybox),
       JS_SETTER(Camera),
       JS_ABSTRACT_WRAP(engine::IScene, IScene),
+      JS_SETTER(MovementController),
     }))
 
     JS_DECL_SETTER_WRAP(engine::Window, Window)
@@ -218,6 +220,7 @@ namespace chunklands::modules::game {
     JS_IMPL_SETTER_WRAP(engine::Skybox, Skybox)
     JS_IMPL_SETTER_WRAP(engine::Camera, Camera)
     JS_IMPL_ABSTRACT_WRAP(engine::IScene, IScene)
+    JS_IMPL_SETTER_WRAP(engine::MovementController, MovementController)
   
   public:
     virtual void Prepare() override;

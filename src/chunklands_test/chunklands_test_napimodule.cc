@@ -1,11 +1,19 @@
 #include <chunklands/js.h>
 #include <chunklands/modules/init.h>
+#include <gtest/gtest.h>
 
 using namespace chunklands;
 
+JSValue Test(JSCbi info) {
+  testing::InitGoogleTest();
+  int result = RUN_ALL_TESTS();
+
+  return JSBoolean::New(info.Env(), result == 0);
+}
+
 JSObject Init(JSEnv env, JSObject exports) {
   chunklands::modules::Init(env, exports);
-  Init(env, exports);
+  exports["test"] = JSFunction::New(env, Test, "test");
 
   return exports;
 }

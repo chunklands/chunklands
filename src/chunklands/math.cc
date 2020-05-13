@@ -3,7 +3,7 @@
 namespace chunklands::math {
 
   template<>
-  AABB<1> AABB<1>::operator|(const vec<1>& v) {
+  AABB<1> AABB<1>::operator|(const vec<1>& v) const {
     if (v.x >= 0) {
       return AABB<1> {
         origin,
@@ -18,7 +18,7 @@ namespace chunklands::math {
   }
 
   template<>
-  AABB<2> AABB<2>::operator|(const vec<2>& v) {
+  AABB<2> AABB<2>::operator|(const vec<2>& v) const {
     vec<1> v_x = vec<1> {v.x};
     vec<1> v_y = vec<1> {v.y};
 
@@ -39,7 +39,7 @@ namespace chunklands::math {
   }
 
   template<>
-  AABB<3> AABB<3>::operator|(const vec<3>& v) {
+  AABB<3> AABB<3>::operator|(const vec<3>& v) const {
     vec<1> v_x = vec<1> {v.x};
     vec<1> v_y = vec<1> {v.y};
     vec<1> v_z = vec<1> {v.z};
