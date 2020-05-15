@@ -459,13 +459,13 @@ namespace chunklands::modules::engine {
 
   struct collision_result {
     bool is_collision;
-    math::vec3 collisionfree_movement;
-    math::vec3 outstanding_movement;
+    math::fvec3 collisionfree_movement;
+    math::fvec3 outstanding_movement;
   };
 
   class ICollisionSystem {
   public:
-    virtual collision_result ProcessNextCollision(const math::AABB3 &box, const math::vec3 &movement) = 0;
+    virtual collision_result ProcessNextCollision(const math::fAABB3 &box, const math::fvec3 &movement) = 0;
   };
 
   class MovementController : public JSObjectWrap<MovementController> {
@@ -478,9 +478,9 @@ namespace chunklands::modules::engine {
     JS_IMPL_SETTER_WRAP(Camera, Camera)
 
   public:
-    void AddMovement(glm::vec3 outstanding_movement) {
-      while(math::chess_distance(outstanding_movement, math::vec3(0, 0, 0)) > 0.01f) {
-        collision_result result = js_CollisionSystem->ProcessNextCollision(player_box_, outstanding_movement);
+    void AddMovement(math::fvec3 outstanding_movement) {
+      while(math::chess_distance(outstanding_movement, math::fvec3(0, 0, 0)) > 0.01f) {
+        collision_result result = js_CollisionSystem->ProcessNextCollision(player_box_ + js_Camera->GetPosition(), outstanding_movement);
         if (!result.is_collision) {
           js_Camera->AddPos(result.collisionfree_movement);
           break;
@@ -492,9 +492,9 @@ namespace chunklands::modules::engine {
     }
 
   private:
-    math::AABB3 player_box_ {
-      -.5f, -1.75f, -.5f, // origin
-      1.f, 2.f, 1.f       // span
+    math::fAABB3 player_box_ {
+      {-.5f, -1.75f, -.5f},
+      {1.f,   2.f,   1.f}
     };
   };
 

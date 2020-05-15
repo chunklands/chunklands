@@ -109,6 +109,18 @@ namespace chunklands::modules::game {
       return pos_;
     }
 
+    inline const BlockDefinition* BlockAt(const glm::uvec3& at) const {
+      assert(at.x < SIZE && at.y < SIZE && at.z < SIZE);
+      return blocks_[at.z][at.y][at.x];
+    }
+
+    inline const BlockDefinition* BlockAt(const glm::ivec3& at) const {
+      assert(at.x >= 0 && at.y >= 0 && at.z >= 0);
+      assert(at.x < (int)SIZE && at.y < (int)SIZE && at.z < (int)SIZE);
+      
+      return blocks_[at.z][at.y][at.x];
+    }
+
   private:
     ChunkState state_ = kEmpty;
     glm::ivec3 pos_;
@@ -171,14 +183,42 @@ namespace chunklands::modules::game {
     JS_IMPL_ABSTRACT_WRAP(engine::ICollisionSystem, ICollisionSystem)
 
   public:
-    engine::collision_result ProcessNextCollision(const math::AABB3 &, const math::vec3 &movement) {
-      // math::AABB3 movement_box = box | movement;
+    engine::collision_result ProcessNextCollision(const math::fAABB3 &box, const math::fvec3 &movement) {
+      math::fAABB3 movement_box = box | movement;
 
-      return {
+      for (auto&& chunk_pos : math::chunk_pos_in_box {movement_box, Chunk::SIZE}) {
+        const auto&& chunk_result = chunk_map_.find(chunk_pos);
+        if (chunk_result == chunk_map_.cend()) {
+          return {
+            .is_collision = true,
+            .collisionfree_movement = math::fvec3 {0.f, 0.f, 0.f},
+            .outstanding_movement = math::fvec3 {0.f, 0.f, 0.f}
+          };
+        }
+
+        auto&& chunk = chunk_result->second;
+
+        for (auto&& block_pos : math::block_pos_in_box {movement_box, chunk_pos, Chunk::SIZE}) {
+          auto&& block_def = chunk->BlockAt(block_pos);
+          assert(block_def != nullptr);
+
+          if (block_def->IsOpaque()) {
+            return {
+              .is_collision = true,
+              .collisionfree_movement = math::fvec3 {0.f, 0.f, 0.f},
+              .outstanding_movement = math::fvec3 {0.f, 0.f, 0.f}
+            };
+          }
+        }
+      }
+
+      engine::collision_result result {
         .is_collision = false,
         .collisionfree_movement = movement,
-        .outstanding_movement = math::vec3 {0.f, 0.f, 0.f}
+        .outstanding_movement = math::fvec3 {0.f, 0.f, 0.f}
       };
+
+      return result;
     }
 
   public:

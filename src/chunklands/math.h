@@ -7,276 +7,201 @@
 #include <glm/ext/vector_float1.hpp>
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
+#include <ostream>
 
 namespace chunklands::math {
 
-  template<int N>
-  using vec = glm::vec<N, float, glm::defaultp>;
-  template<int N>
-  using ivec = glm::vec<N, int, glm::defaultp>;
+  template<int N, class T> using vec = glm::vec<N, T, glm::defaultp>;
+  template<int N> using fvec = vec<N, float>;
+  template<int N> using ivec = vec<N, int>;
+  template<class T> using vec1 = vec<1, T>;
+  template<class T> using vec2 = vec<2, T>;
+  template<class T> using vec3 = vec<3, T>;
 
-  using vec1 = vec<1>;
-  using vec2 = vec<2>;
-  using vec3 = vec<3>;
+  using fvec1 = fvec<1>;
+  using fvec2 = fvec<2>;
+  using fvec3 = fvec<3>;
 
   using ivec1 = ivec<1>;
   using ivec2 = ivec<2>;
   using ivec3 = ivec<3>;
 
   struct ivec3_hasher {
-    std::size_t operator()(const ivec3& v) const {
-      std::size_t seed = 0;
-      boost::hash_combine(seed, boost::hash_value(v.x));
-      boost::hash_combine(seed, boost::hash_value(v.y));
-      boost::hash_combine(seed, boost::hash_value(v.z));
-
-      return seed;
-    }
+    std::size_t operator()(const ivec3& v) const;
   };
 
-  inline ivec3 get_center_chunk(const vec3& pos, unsigned chunk_size) {
-    return ivec3(pos.x >= 0 ? pos.x : pos.x - chunk_size,
-                      pos.y >= 0 ? pos.y : pos.y - chunk_size,
-                      pos.z >= 0 ? pos.z : pos.z - chunk_size
-    ) / (int)chunk_size;
-  }
+  inline ivec3 get_center_chunk(const fvec3& pos, unsigned chunk_size);
 
-  template<int N>
+  template<int N, class T>
   struct AABB {
-    AABB(float ox, float sx) : AABB(vec1 {ox}, vec1 {sx}) {}
-    AABB(float ox, float oy, float sx, float sy) : AABB(vec2 {ox, oy}, vec2 {sx, sy}) {}
-    AABB(float ox, float oy, float oz, float sx, float sy, float sz) : AABB(vec3 {ox, oy, oz}, vec3 {sx, sy, sz}) {}
-    AABB(vec<N> origin, vec<N> span) : origin(std::move(origin)), span(std::move(span)) {
+    AABB(vec<N, T> origin, vec<N, T> span) : origin(std::move(origin)), span(std::move(span)) {
 #ifndef NDEBUG
       for (unsigned i = 0; i < N; i++) {
-        assert(span[i] >= 0.f);
+        assert(span[i] >= (T)0);
       }
 #endif
     }
 
-    bool operator==(const AABB<N>& rhs) const {
-      return origin == rhs.origin && span == rhs.span;
+    AABB() {
+      span.x = (T)-1;
     }
 
-    AABB<N> operator+(const vec<N>& v) {
-      return AABB<N> {
-        .origin = origin + v,
-        .span = span
-      };
+    bool IsEmpty() const {
+      return span.x == (T)-1;
     }
 
-    AABB<N> operator|(const vec<N>& v) const;    
+    bool operator!() const {
+      return IsEmpty();
+    }
 
-    vec<N>  origin,
-            span;
+    operator bool() const {
+      return !IsEmpty();
+    }
+
+    bool operator==(const AABB<N, T>& rhs) const {
+      return (IsEmpty() && rhs.IsEmpty()) || origin == rhs.origin && span == rhs.span;
+    }
+
+    vec<N, T> origin,
+              span;
   };
 
-  using AABB1 = AABB<1>;
-  using AABB2 = AABB<2>;
-  using AABB3 = AABB<3>;
+  template<class T>
+  using AABB1 = AABB<1, T>;
+  template<class T>
+  using AABB2 = AABB<2, T>;
+  template<class T>
+  using AABB3 = AABB<3, T>;
+
+  using fAABB1 = AABB<1, float>;
+  using fAABB2 = AABB<2, float>;
+  using fAABB3 = AABB<3, float>;
+
+  using iAABB1 = AABB<1, int>;
+  using iAABB2 = AABB<2, int>;
+  using iAABB3 = AABB<3, int>;
 
 
-  // enum CollisionType {
-  //   kNoCollision,
-  //   kIsColliding,
-  //   kWillCollide,
-  // };
+  class box_iterator {
+    friend std::ostream& operator<<(std::ostream& os, const box_iterator& it);
 
-  // struct collision {
-  //   CollisionType collision;
-  //   float distance;
-  // };
-
-  // constexpr float REL_DISTANCE_COLLISION = 0.f;
-
-  // inline float rel_distance(const AABB<1>& moving, const AABB<1>& fixed) {
-  //   float a = moving.origin.x,
-  //         b = moving.origin.x + moving.span.x,
-  //         c = fixed.origin.x,
-  //         d = fixed.origin.x + fixed.span.x;
-
-  //   //  a-------b
-  //   //               c-----d
-  //   float cb = c - b;
-  //   if (cb > 0) {
-  //     return cb; // + distance
-  //   }
-
-  //   //               a-----b
-  //   //  c-------d
-  //   float da = d - a;
-  //   if (da < 0) {
-  //     return da; // - distance
-  //   }
-
-  //   return REL_DISTANCE_COLLISION;
-  // }
-
-  // inline collision calculate_collision_1d(const AABB<1>& moving, const vec<1>& velo, const AABB<1>& fixed) {
-  //   float dist = rel_distance(moving, fixed);
-  //   if (dist == REL_DISTANCE_COLLISION) {
-  //     return {
-  //       .collision = kIsColliding,
-  //       .distance  = 0.f
-  //     };
-  //   }
-  //   // CHECK moving => fixed -neg, +pos values is this correct? I'm too drunk right now :(
-  //   if (velo.x >= 0) {
-  //     if (dist < velo.x) {
-  //       return {
-  //         .collision = kWillCollide,
-  //         .distance  = dist,
-  //       };
-  //     } else {
-  //       return {
-  //         .collision = kNoCollision,
-  //         .distance  = velo.x,
-  //       };
-  //     }
-  //   } else {
-  //     if (dist > velo.x) {
-  //       return {
-  //         .collision = kWillCollide,
-  //         .distance  = dist,
-  //       };
-  //     } else {
-  //       return {
-  //         .collision = kNoCollision,
-  //         .distance  = velo.x,
-  //       };
-  //     }
-  //   }
-  // }
-
-  // inline collision calculate_collision_2d(const AABB<2>& moving, const vec<2>& velo, const AABB<2>& fixed) {
-  //   auto&& x_coll = calculate_collision_1d(
-  //     AABB<1> {
-  //       vec<1> {moving.origin.x},
-  //       vec<1> {moving.span.x}
-  //     },
-  //     vec<1>{velo.x},
-  //     AABB<1>{
-  //       vec<1> {fixed.origin.x},
-  //       vec<1> {fixed.span.x}
-  //     }
-  //   );
-
-  //   if (x_coll.collision == kIsColliding) {
-  //     return x_coll;
-  //   }
-
-  //   auto&& y_coll = calculate_collision_1d(
-  //     AABB<1> {
-  //       vec<1> {moving.origin.y},
-  //       vec<1> {moving.span.y}
-  //     },
-  //     vec<1>{velo.y},
-  //     AABB<1>{
-  //       vec<1> {fixed.origin.y},
-  //       vec<1> {fixed.span.y}
-  //     }
-  //   );
-
-  //   if (y_coll.collision == kIsColliding) {
-  //     return y_coll;
-  //   }
-
-  //   if (x_coll.collision == kWillCollide) {
-  //     if (y_coll.collision == kNoCollision) {
-  //       return x_coll;
-  //     } else {
-  //       if (x_coll.distance <)
-  //     }
-  //   }
-
-  //   if (x_coll.collision == kNoCollision && y_coll.collision == )
-  // }
-
-  // inline float calculate_collision_3d(const AABB3& moving, const glm::vec3& velo, const AABB3& fixed) {
-    
-  // }
-
-  class chunk_pos_in_box_iterator {
   public:
-    chunk_pos_in_box_iterator() = default;
-    chunk_pos_in_box_iterator(const ivec3& chunk_min, const ivec3& chunk_max)
-      : chunk_min_(chunk_min), chunk_max_(chunk_max), current_(chunk_min) {
+    box_iterator() = default;
+    box_iterator(const ivec3& a, const ivec3& b)
+      : a_(a), b_(b), current_(a) {
 
-      assert(chunk_min_.x <= chunk_max_.x);
-      assert(chunk_min_.y <= chunk_max_.y);
-      assert(chunk_min_.z <= chunk_max_.z);
+      assert(a_.x <= b_.x);
+      assert(a_.y <= b_.y);
+      assert(a_.z <= b_.z);
     }
 
-    bool operator==(const chunk_pos_in_box_iterator& rhs) const {
+    bool operator==(const box_iterator& rhs) const {
       return current_ == rhs.current_;
     }
 
-    bool operator!=(const chunk_pos_in_box_iterator& rhs) const {
+    bool operator!=(const box_iterator& rhs) const {
       return !(*this == rhs);
     }
 
-    chunk_pos_in_box_iterator& operator++() {
-      assert(current_.z <= chunk_max_.z);
-
-      current_.x++;
-      if (current_.x > chunk_max_.x) {
-        current_.x = chunk_min_.x;
-        current_.y++;
-        if (current_.y > chunk_max_.y) {
-          current_.y = chunk_min_.y;
-          current_.z++;
-        }
-      }
-
-      return *this;
-    }
+    box_iterator& operator++();
 
     const ivec3& operator*() const {
       return current_;
     }
 
+    static box_iterator end(const ivec3& min, const ivec3& max);
+
   private:
-    ivec3 chunk_min_,
-          chunk_max_,
+    ivec3 a_,
+          b_,
           current_;
   };
 
+  std::ostream& operator<<(std::ostream& os, const box_iterator& it);
+
   class chunk_pos_in_box {
   public:
-    chunk_pos_in_box(const AABB3& box, unsigned chunk_size) {
-      chunk_min_ = get_center_chunk(box.origin           , chunk_size);
-      chunk_max_ = get_center_chunk(box.origin + box.span, chunk_size);
-
-      ivec3 chunk_end = {chunk_min_.x, chunk_min_.y, chunk_max_.z + 1};
-      end_ = {chunk_end, chunk_end};
-    }
+    chunk_pos_in_box(const fAABB3& box, unsigned chunk_size);
 
   public:
-    chunk_pos_in_box_iterator begin() const {
+    box_iterator begin() const {
       return {chunk_min_, chunk_max_};
     }
 
-    const chunk_pos_in_box_iterator& end() const {
+    const box_iterator& end() const {
       return end_;
     }
   private:
     ivec3 chunk_min_,
           chunk_max_;
 
-    chunk_pos_in_box_iterator end_;
+    box_iterator end_;
   };
 
-  inline float chess_distance(const vec1& a, const vec1& b) {
-    return std::fabs(a.x - b.x);
-  }
+  class block_pos_in_box {
+  public:
+    block_pos_in_box(const fAABB3& box, const ivec3& chunk_pos, unsigned chunk_size);
 
-  inline float chess_distance(const vec2& a, const vec2& b) {
-    return std::fabs(a.x - b.x + a.y - b.y);
-  }
+  public:
+    box_iterator begin() const {
+      if (empty_) {
+        return end();
+      }
 
-  inline float chess_distance(const vec3& a, const vec3& b) {
-    return std::fabs(a.x - b.x + a.y - b.y + a.z - b.z);
-  }
+      return {block_min_, block_max_};
+    }
+
+    const box_iterator& end() const {
+      return end_;
+    }
+  private:
+    bool  empty_;
+    ivec3 block_min_,
+          block_max_;
+
+    box_iterator end_;
+  };
+
+
+  
+
+  // vec<>
+  template<class T> std::ostream& operator<<(std::ostream& os, const vec1<T>& v);
+  template<class T> std::ostream& operator<<(std::ostream& os, const vec2<T>& v);
+  template<class T> std::ostream& operator<<(std::ostream& os, const vec3<T>& v);
+
+  template<int N, class T> inline vec1<T> x_vec(const vec<N, T>& v);
+  template<int N, class T> inline vec1<T> y_vec(const vec<N, T>& v);
+  template<int N, class T> inline vec1<T> z_vec(const vec<N, T>& v);
+
+  // AABB<N, T>
+  template<int N, class T> AABB<N, T> operator+(const AABB<N, T>& box, const vec<N, T>& v);
+  template<int N, class T> std::ostream& operator<<(std::ostream& os, const AABB<N, T>& box);
+
+  template<int N, class T> inline AABB<1, T> x_aabb(const AABB<N, T>& b);
+  template<int N, class T> inline AABB<1, T> y_aabb(const AABB<N, T>& b);
+  template<int N, class T> inline AABB<1, T> z_aabb(const AABB<N, T>& b);
+
+  // AABB<1, T>
+  template<class T> AABB<1, T> operator|(const AABB<1, T>& box, const vec1<T>& v);
+  template<class T> AABB<1, T> operator&(const AABB<1, T>& a, const AABB<1, T>& b);
+
+  // AABB<2, T>
+  template<class T> AABB<2, T> operator|(const AABB<2, T>& b, const vec2<T>& v);
+  template<class T> AABB<2, T> operator&(const AABB<2, T>& a, const AABB<2, T>& b);
+
+  // AABB<3, T>
+  template<class T> AABB<3, T> operator|(const AABB<3, T>& box, const vec3<T>& v);
+  template<class T> AABB<3, T> operator&(const AABB<3, T>& a, const AABB<3, T>& b);
+
+  // util
+  template<class T> inline ivec3 floor(const vec3<T>& v);
+  template<class T> inline ivec3 ceil(const vec3<T>& v);
+  template<class T> iAABB3 bound(const AABB<3, T>& box);
+
+  template<int N, class T> inline T chess_distance(const vec<N, T>& a, const vec<N, T>& b);
 }
+
+#include "math.inl"
 
 #endif

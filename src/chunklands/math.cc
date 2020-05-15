@@ -1,67 +1,64 @@
 #include "math.h"
 
 namespace chunklands::math {
+  std::size_t ivec3_hasher::operator()(const ivec3& v) const {
+    std::size_t seed = 0;
+    boost::hash_combine(seed, boost::hash_value(v.x));
+    boost::hash_combine(seed, boost::hash_value(v.y));
+    boost::hash_combine(seed, boost::hash_value(v.z));
 
-  template<>
-  AABB<1> AABB<1>::operator|(const vec<1>& v) const {
-    if (v.x >= 0) {
-      return AABB<1> {
-        origin,
-        span + v
-      };
-    } else {
-      return AABB<1> {
-        origin + v, // v < 0
-        span   - v  // v < 0
-      };
+    return seed;
+  }
+
+  box_iterator& box_iterator::operator++() {
+    assert(current_.z <= b_.z);
+
+    current_.x++;
+    if (current_.x > b_.x) {
+      current_.x = a_.x;
+      current_.y++;
+      if (current_.y > b_.y) {
+        current_.y = a_.y;
+        current_.z++;
+      }
     }
+
+    return *this;
   }
 
-  template<>
-  AABB<2> AABB<2>::operator|(const vec<2>& v) const {
-    vec<1> v_x = vec<1> {v.x};
-    vec<1> v_y = vec<1> {v.y};
-
-    AABB<1> b_x = AABB<1> {
-      vec<1> {origin.x},
-      vec<1> {span.x}
-    } | v_x;
-
-    AABB<1> b_y = AABB<1> {
-      vec<1> {origin.y},
-      vec<1> {span.y}
-    } | v_y;
-
-    return AABB<2> {
-      vec<2> {b_x.origin.x, b_y.origin.x},
-      vec<2> {b_x.span.x,   b_y.span.x}
-    };
+  box_iterator box_iterator::end(const ivec3& min, const ivec3& max) {
+    ivec3 end{min.x, min.y, max.z + 1};
+    return box_iterator{end, end};
   }
 
-  template<>
-  AABB<3> AABB<3>::operator|(const vec<3>& v) const {
-    vec<1> v_x = vec<1> {v.x};
-    vec<1> v_y = vec<1> {v.y};
-    vec<1> v_z = vec<1> {v.z};
+  chunk_pos_in_box::chunk_pos_in_box(const fAABB3& box, unsigned chunk_size) {
+    chunk_min_ = get_center_chunk(box.origin           , chunk_size);
+    chunk_max_ = get_center_chunk(box.origin + box.span, chunk_size);
+    end_       = box_iterator::end(chunk_min_, chunk_max_);
+  }
 
-    AABB<1> b_x = AABB<1> {
-      vec<1> {origin.x},
-      vec<1> {span.x}
-    } | v_x;
-
-    AABB<1> b_y = AABB<1> {
-      vec<1> {origin.y},
-      vec<1> {span.y}
-    } | v_y;
-
-    AABB<1> b_z = AABB<1> {
-      vec<1> {origin.z},
-      vec<1> {span.z}
-    } | v_z;
-
-    return AABB<3> {
-      vec<3> {b_x.origin.x, b_y.origin.x, b_z.origin.x},
-      vec<3> {b_x.span.x,   b_y.span.x  , b_z.span.x}
+  block_pos_in_box::block_pos_in_box(const fAABB3& box, const ivec3& chunk_pos, unsigned chunk_size) {
+    iAABB3 bound_box = bound(box);
+    iAABB3 chunk_box{
+      chunk_pos * (int)chunk_size,
+      ivec3{chunk_size, chunk_size, chunk_size}
     };
+
+    iAABB3 intersection = bound_box & chunk_box;
+    if (!intersection) {
+      empty_ = true;
+      block_min_ = ivec3{0, 0, 0};
+      block_max_ = ivec3{0, 0, 0};
+    } else {
+      empty_ = false;
+      block_min_ = intersection.origin - chunk_box.origin;
+      block_max_ = block_min_ + intersection.span - ivec3(1, 1, 1);
+    }
+
+    end_ = box_iterator::end(block_min_, block_max_);
+  }
+
+  std::ostream& operator<<(std::ostream& os, const box_iterator& it) {
+    return os << "box_iterator{ a=" << it.a_ << ", b=" << it.b_ << ", current=" << it.current_ << " }";
   }
 }

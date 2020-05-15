@@ -396,7 +396,7 @@ namespace chunklands::modules::game {
 
     auto&& look = js_Camera->GetLook();
 
-    math::vec3 movement {0.f, 0.f, 0.f};
+    math::fvec3 movement {0.f, 0.f, 0.f};
 
     if (js_Window->GetKey(GLFW_KEY_W) == GLFW_PRESS) {
       glm::vec3 move(-sinf(look.x) * cosf(look.y),
