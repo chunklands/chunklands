@@ -729,4 +729,42 @@ namespace chunklands::modules::game {
   int World::GetRenderDistance() const {
     return RENDER_DISTANCE;
   }
+
+  engine::collision_result World::ProcessNextCollision(const math::fAABB3 &box, const math::fvec3 &movement) {
+      math::fAABB3 movement_box = box | movement;
+
+      for (auto&& chunk_pos : math::chunk_pos_in_box {movement_box, Chunk::SIZE}) {
+        const auto&& chunk_result = chunk_map_.find(chunk_pos);
+        if (chunk_result == chunk_map_.cend()) {
+          return {
+            .is_collision = true,
+            .collisionfree_movement = math::fvec3 {0.f, 0.f, 0.f},
+            .outstanding_movement = math::fvec3 {0.f, 0.f, 0.f}
+          };
+        }
+
+        auto&& chunk = chunk_result->second;
+
+        for (auto&& block_pos : math::block_pos_in_box {movement_box, chunk_pos, Chunk::SIZE}) {
+          auto&& block_def = chunk->BlockAt(block_pos);
+          assert(block_def != nullptr);
+
+          if (block_def->IsOpaque()) {
+            return {
+              .is_collision = true,
+              .collisionfree_movement = math::fvec3 {0.f, 0.f, 0.f},
+              .outstanding_movement = math::fvec3 {0.f, 0.f, 0.f}
+            };
+          }
+        }
+      }
+
+      engine::collision_result result {
+        .is_collision = false,
+        .collisionfree_movement = movement,
+        .outstanding_movement = math::fvec3 {0.f, 0.f, 0.f}
+      };
+
+      return result;
+    }
 }
