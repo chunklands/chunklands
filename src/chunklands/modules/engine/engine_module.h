@@ -458,7 +458,7 @@ namespace chunklands::modules::engine {
   };
 
   struct collision_result {
-    bool is_collision;
+    float ctime;
     math::fvec3 collisionfree_movement;
     math::fvec3 outstanding_movement;
   };
@@ -481,11 +481,6 @@ namespace chunklands::modules::engine {
     void AddMovement(math::fvec3 outstanding_movement) {
       while(math::chess_distance(outstanding_movement, math::fvec3(0, 0, 0)) > 0.01f) {
         collision_result result = js_CollisionSystem->ProcessNextCollision(player_box_ + js_Camera->GetPosition(), outstanding_movement);
-        if (!result.is_collision) {
-          js_Camera->AddPos(result.collisionfree_movement);
-          break;
-        }
-
         js_Camera->AddPos(result.collisionfree_movement);
         outstanding_movement = result.outstanding_movement;
       }

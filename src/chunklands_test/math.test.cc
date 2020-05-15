@@ -332,4 +332,76 @@ namespace chunklands::math {
       }
     }
   }
+
+  TEST(chunklands__math, collision_time) {
+    // 1D
+    ASSERT_EQ(
+      (collision(fAABB1{ fvec1{4}, fvec1{2} }, fvec1{2}, fAABB1{ fvec1{0}, fvec1{2} })),
+      (collision_time<float>{})
+    );
+
+    ASSERT_EQ(
+      (collision(fAABB1{ fvec1{0}, fvec1{2} }, fvec1{-2}, fAABB1{ fvec1{4}, fvec1{2} })),
+      (collision_time<float>{})
+    );
+
+    ASSERT_EQ(
+      (collision(fAABB1{ fvec1{4}, fvec1{2} }, fvec1{2}, fAABB1{ fvec1{2}, fvec1{2} })),
+      (collision_time<float>{})
+    );
+
+    ASSERT_EQ(
+      (collision(fAABB1{ fvec1{0}, fvec1{4} }, fvec1{-2}, fAABB1{ fvec1{4}, fvec1{2} })),
+      (collision_time<float>{})
+    );
+
+    ASSERT_EQ(
+      (collision(fAABB1{ fvec1{0}, fvec1{2} }, fvec1{2}, fAABB1{ fvec1{4}, fvec1{2} })),
+      (collision_time<float>{ fvec1{1}, fvec1{2} })
+    );
+
+    ASSERT_EQ(
+      (collision(fAABB1{ fvec1{0}, fvec1{2} }, fvec1{1}, fAABB1{ fvec1{1}, fvec1{2} })),
+      (collision_time<float>{ fvec1{-1}, fvec1{4} })
+    );
+
+    ASSERT_EQ(
+      (collision(fAABB1{ fvec1{4}, fvec1{2} }, fvec1{-2}, fAABB1{ fvec1{0}, fvec1{2} })),
+      (collision_time<float>{ fvec1{1}, fvec1{2} })
+    );
+
+    ASSERT_EQ(
+      (collision(fAABB1{ fvec1{1}, fvec1{2} }, fvec1{-1}, fAABB1{ fvec1{0}, fvec1{2} })),
+      (collision_time<float>{ fvec1{-1}, fvec1{4} })
+    );
+
+    // special cases
+
+    ASSERT_EQ(
+      (collision(fAABB1{ fvec1{0}, fvec1{2} }, fvec1{0}, fAABB1{ fvec1{1}, fvec1{2} })),
+      (collision_time<float>{
+        fvec1{-std::numeric_limits<float>::infinity()},
+        fvec1{std::numeric_limits<float>::infinity()}
+      })
+    );
+
+    ASSERT_EQ(
+      (collision(fAABB1{ fvec1{0}, fvec1{2} }, fvec1{0}, fAABB1{ fvec1{3}, fvec1{2} })),
+      (collision_time<float>{})
+    );
+
+    ASSERT_EQ(
+      (collision(fAABB1{ fvec1{0}, fvec1{2} }, fvec1{0}, fAABB1{ fvec1{2}, fvec1{2} })),
+      (collision_time<float>{})
+    );
+
+    // 3D
+    ASSERT_EQ(
+      (collision_3d(fAABB3{ fvec3{0, 0, 0}, fvec3{1, 1, 1} }, fvec3{1, 2, -1}, fAABB3{ fvec3{-2, -2, -2}, fvec3{4, 4, 4} })),
+      (axis_collision<float>{
+        .axis = CollisionAxis::kY,
+        .time = collision_time<float>{ fvec1{-1.5}, fvec1{2.5} }
+      })
+    );
+  }
 }

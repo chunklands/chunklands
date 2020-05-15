@@ -97,6 +97,14 @@ namespace chunklands::math {
       return {};
     }
 
+    if (std::numeric_limits<T>::has_infinity) {
+      if (is_infinity(a.origin.x) && is_infinity(a.span.x)) {
+        return b;
+      } else if (is_infinity(b.origin.x) && is_infinity(b.span.x)) {
+        return a;
+      }
+    }
+
     if (a.origin.x + a.span.x <= b.origin.x || b.origin.x + b.span.x <= a.origin.x) {
       return {};
     }
@@ -228,6 +236,107 @@ namespace chunklands::math {
   template<class T>
   inline T chess_distance(const vec3<T>& a, const vec3<T>& b) {
     return std::abs((a.x - b.x) + (a.y - b.y) + (a.z - b.z));
+  }
+
+  template<class T>
+  collision_time<T> collision(const AABB1<T>& moving, const vec1<T>& v, const AABB1<T>& fixed) {
+    if (v.x > 0) {
+      
+      if (moving.origin.x >= fixed.origin.x + fixed.span.x) {
+        // [fixed]
+        //          [moving]--->
+        return {};
+      }
+
+      // A)      [fixed]
+      //    [moving]--->
+      //
+      // B)               [fixed]
+      //    [moving]--->
+      T dist_collision_start =  fixed.origin.x                 - (moving.origin.x + moving.span.x);
+      T dist_collision_end   = (fixed.origin.x + fixed.span.x) -  moving.origin.x;
+      assert(dist_collision_end >= dist_collision_start);
+
+      return collision_time<T>{
+        vec1<T>{  dist_collision_start                       / v.x },
+        vec1<T>{ (dist_collision_end - dist_collision_start) / v.x }
+      };
+    }
+    
+    if (v.x < 0) {
+      
+      if (moving.origin.x + moving.span.x <= fixed.origin.x) {
+        // <---[moving]
+        //               [fixed]
+        return {};
+      }
+
+      // C)  <---[moving]
+      //      [fixed]
+      //
+      // D)           <---[moving]
+      //      [fixed]
+      T dist_collision_start =  moving.origin.x                  - (fixed.origin.x + fixed.span.x);
+      T dist_collision_end   = (moving.origin.x + moving.span.x) - fixed.origin.x;
+      assert(dist_collision_end >= dist_collision_start);
+
+      return collision_time<T>{
+        vec1<T>{  dist_collision_start                         / -v.x },
+        vec1<T>{ (dist_collision_end   - dist_collision_start) / -v.x }
+      };
+    }
+
+    // v = 0
+
+    if (fixed & moving) {
+      return collision_time<T>{
+        vec1<T>{-std::numeric_limits<T>::infinity()},
+        vec1<T>{+std::numeric_limits<T>::infinity()}
+      };
+    }
+
+    return collision_time<T>{};
+  }
+
+  template<class T>
+  axis_collision<T> collision_3d(const AABB3<T>& moving, const vec3<T>& v, const AABB3<T>& fixed) {
+    auto&& x_result = collision(x_aabb(moving), x_vec(v), x_aabb(fixed));
+    auto&& y_result = collision(y_aabb(moving), y_vec(v), y_aabb(fixed));
+    auto&& z_result = collision(z_aabb(moving), z_vec(v), z_aabb(fixed));
+
+    axis_collision<T> result{
+      .axis = CollisionAxis::kNone,
+      .time = x_result & y_result & z_result
+    };
+
+    if (x_result.origin.x >= result.time.origin.x) {
+      result.axis |= CollisionAxis::kX;
+    }
+
+    if (y_result.origin.x >= result.time.origin.x) {
+      result.axis |= CollisionAxis::kY;
+    }
+
+    if (z_result.origin.x >= result.time.origin.x) {
+      result.axis |= CollisionAxis::kZ;
+    }
+
+    return result;
+  }
+
+  template<>
+  inline bool is_infinity<int>(const int&) {
+    return false;
+  }
+
+  template<>
+  inline bool is_infinity<long>(const long&) {
+    return false;
+  }
+
+  template<class T>
+  inline bool is_infinity(const T& value) {
+    return std::isinf(value);
   }
 }
 

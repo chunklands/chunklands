@@ -200,6 +200,31 @@ namespace chunklands::math {
   template<class T> iAABB3 bound(const AABB<3, T>& box);
 
   template<int N, class T> inline T chess_distance(const vec<N, T>& a, const vec<N, T>& b);
+
+  template<class T>
+  using collision_time = AABB1<T>;
+
+  enum CollisionAxis {
+    kNone = 0,
+    kX    = 1,
+    kY    = 2,
+    kZ    = 4,
+  };
+
+  template<class T>
+  struct axis_collision {
+    int axis;
+    collision_time<T> time;
+
+    bool operator==(const axis_collision<T>& rhs) const {
+      return axis == rhs.axis && time == rhs.time;
+    }
+  };
+
+  template<class T> collision_time<T> collision(const AABB1<T>& moving, const vec1<T>& v, const AABB1<T>& fixed);
+  template<class T> axis_collision<T> collision_3d(const AABB3<T>& moving, const vec3<T>& v, const AABB3<T>& fixed);
+
+  template<class T> inline bool is_infinity(const T& value);
 }
 
 #include "math.inl"
