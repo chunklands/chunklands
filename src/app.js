@@ -8,8 +8,8 @@ const blocks          = require('./game/blocks');
 
   const window = new chunklands.engine.Window();
   window.initialize({
-    width: 640,
-    height: 480,
+    width: 1280,
+    height: 720,
     title: 'Chunklands'
   });
 
@@ -107,7 +107,7 @@ const blocks          = require('./game/blocks');
       return;
     }
 
-    setTimeout(loop, 0);
+    setImmediate(loop);
   };
 
   loop();

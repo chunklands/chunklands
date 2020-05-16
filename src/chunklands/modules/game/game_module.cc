@@ -23,6 +23,7 @@ namespace chunklands::modules::game {
     if (!opaque_) {
       return {
         .prio{0},
+        .axis{ math::CollisionAxis::kNone },
         .ctime{1},
         .collisionfree_movement{movement},
         .outstanding_movement{0,0,0}
@@ -35,6 +36,7 @@ namespace chunklands::modules::game {
     if (!collision.time) {
       return {
         .prio{0},
+        .axis{ math::CollisionAxis::kNone },
         .ctime{1},
         .collisionfree_movement{movement},
         .outstanding_movement{0,0,0}
@@ -44,15 +46,17 @@ namespace chunklands::modules::game {
     if (collision.time.origin.x < 0) {
       return {
         .prio{0},
+        .axis{ collision.axis },
         .ctime{0},
         .collisionfree_movement{0, 0, 0},
-        .outstanding_movement{0,0,0}
+        .outstanding_movement{0, 0, 0}
       };
     }
 
     if (collision.time.origin.x > 1) {
       return {
         .prio{0},
+        .axis{ collision.axis },
         .ctime{1},
         .collisionfree_movement{movement},
         .outstanding_movement{0,0,0}
@@ -86,6 +90,7 @@ namespace chunklands::modules::game {
 
     return {
       .prio{prio},
+      .axis{ collision.axis },
       .ctime{ctime},
       .collisionfree_movement{good_movement},
       .outstanding_movement{bad_movement}
@@ -466,38 +471,80 @@ namespace chunklands::modules::game {
   }
 
   void Scene::Update(double diff) {
-    constexpr float move_factor = 20.f;
+    if (js_Window->GetKey(GLFW_KEY_F) == GLFW_PRESS) {
+      flight_mode_ = !flight_mode_;
+    }
+
+    
 
     auto&& look = js_Camera->GetLook();
 
     math::fvec3 movement {0.f, 0.f, 0.f};
 
-    if (js_Window->GetKey(GLFW_KEY_W) == GLFW_PRESS) {
-      glm::vec3 move(-sinf(look.x) * cosf(look.y),
-                     sinf(look.y),
-                     -cosf(look.x) * cosf(look.y));
-      movement += move_factor * (float)diff * move;
-    }
+    if (flight_mode_) {
+      constexpr float move_factor = 20.f;
 
-    if (js_Window->GetKey(GLFW_KEY_S) == GLFW_PRESS) {
-      glm::vec3 move(-sinf(look.x) * cosf(look.y),
-                     sinf(look.y),
-                     -cosf(look.x) * cosf(look.y));
-      movement += -move_factor * (float)diff * move;
-    }
+      if (js_Window->GetKey(GLFW_KEY_W) == GLFW_PRESS) {
+        glm::vec3 move(-sinf(look.x) * cosf(look.y),
+                      sinf(look.y),
+                      -cosf(look.x) * cosf(look.y));
+        movement += move_factor * (float)diff * move;
+      }
 
-    if (js_Window->GetKey(GLFW_KEY_A) == GLFW_PRESS) {
-      glm::vec3 move(-cosf(look.x) * cosf(look.y),
-                     0.f,
-                     sinf(look.x) * cosf(look.y));
-      movement += move_factor * (float)diff * move;
-    }
+      if (js_Window->GetKey(GLFW_KEY_S) == GLFW_PRESS) {
+        glm::vec3 move(-sinf(look.x) * cosf(look.y),
+                      sinf(look.y),
+                      -cosf(look.x) * cosf(look.y));
+        movement += -move_factor * (float)diff * move;
+      }
 
-    if (js_Window->GetKey(GLFW_KEY_D) == GLFW_PRESS) {
-      glm::vec3 move(-cosf(look.x) * cosf(look.y),
-                     0.f,
-                     sinf(look.x) * cosf(look.y));
-      movement += -move_factor * (float)diff * move;
+      if (js_Window->GetKey(GLFW_KEY_A) == GLFW_PRESS) {
+        glm::vec3 move(-cosf(look.x) * cosf(look.y),
+                      0.f,
+                      sinf(look.x) * cosf(look.y));
+        movement += move_factor * (float)diff * move;
+      }
+
+      if (js_Window->GetKey(GLFW_KEY_D) == GLFW_PRESS) {
+        glm::vec3 move(-cosf(look.x) * cosf(look.y),
+                      0.f,
+                      sinf(look.x) * cosf(look.y));
+        movement += -move_factor * (float)diff * move;
+      }
+    } else {
+      constexpr float move_factor = 10.f;
+
+      vy_ += 25.f * diff;
+      movement.y -= vy_ * diff;
+
+      if (js_Window->GetKey(GLFW_KEY_W) == GLFW_PRESS) {
+        glm::vec3 move(-sinf(look.x),
+                      0,
+                      -cosf(look.x));
+        movement += move_factor * (float)diff * move;
+      }
+
+      if (js_Window->GetKey(GLFW_KEY_S) == GLFW_PRESS) {
+        glm::vec3 move(-sinf(look.x),
+                      0,
+                      -cosf(look.x));
+        movement += -move_factor * (float)diff * move;
+      }
+
+      if (js_Window->GetKey(GLFW_KEY_A) == GLFW_PRESS) {
+        glm::vec3 move(-cosf(look.x),
+                      0.f,
+                      sinf(look.x));
+        movement += move_factor * (float)diff * move;
+      }
+
+      if (js_Window->GetKey(GLFW_KEY_D) == GLFW_PRESS) {
+        glm::vec3 move(-cosf(look.x),
+                      0.f,
+                      sinf(look.x));
+        movement += -move_factor * (float)diff * move;
+      }
+
     }
 
     if (js_Window->GetMouseButton(GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
@@ -509,7 +556,10 @@ namespace chunklands::modules::game {
       js_Window->StopMouseGrab();
     }
 
-    js_MovementController->AddMovement(movement);
+    int axis = js_MovementController->AddMovement(movement);
+    if (axis & math::CollisionAxis::kY) {
+      vy_ = 0.f;
+    }
 
     js_Camera->Update(diff);
     js_World->Update(diff, *js_Camera);
@@ -579,13 +629,9 @@ namespace chunklands::modules::game {
       CHECK_GL_HERE();
     }
 
-    // glBindFramebuffer(GL_READ_FRAMEBUFFER, g_buffer_.framebuffer);
-    // glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-
-    // glBlitFramebuffer(0, 0, buffer_size_.x, buffer_size_.y, 0, 0, buffer_size_.x, buffer_size_.y, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
-    // glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-    js_Window->SwapBuffers();
+    {
+      js_Window->SwapBuffers();
+    }
   }
 
   void Scene::UpdateViewport() {
@@ -623,16 +669,16 @@ namespace chunklands::modules::game {
   // World ////////////////////////////////////////////////////////////////////
   /////////////////////////////////////////////////////////////////////////////
 
-  constexpr int RENDER_DISTANCE   = 6;
+  constexpr int RENDER_DISTANCE   = 8;
   constexpr int PREFETCH_DISTANCE = RENDER_DISTANCE + 2;
   constexpr int RETAIN_DISTANCE   = RENDER_DISTANCE + 4;
 
   static_assert(PREFETCH_DISTANCE >  RENDER_DISTANCE,   "prefetch distance has to be greater than render distance");
   static_assert(RETAIN_DISTANCE   >= PREFETCH_DISTANCE, "retain distance has to be greater or equal than prefetch distance");
   
-  constexpr unsigned MAX_CHUNK_VIEW_UPDATES = 12;
-  constexpr unsigned MAX_CHUNK_MODEL_GENERATES = 10;
-  constexpr unsigned MAX_CHUNK_MODEL_PROCESSES = 20;
+  constexpr unsigned MAX_CHUNK_VIEW_UPDATES = 6;
+  constexpr unsigned MAX_CHUNK_MODEL_GENERATES = 6;
+  constexpr unsigned MAX_CHUNK_MODEL_PROCESSES = 6;
 
   JS_DEF_WRAP(World)
 
@@ -810,7 +856,8 @@ namespace chunklands::modules::game {
     math::fAABB3 movement_box = box | movement;
 
     engine::collision_result result{
-      .prio{std::numeric_limits<int>::max()},
+      .prio{ std::numeric_limits<int>::max() },
+      .axis{ math::CollisionAxis::kNone },
       .ctime{ std::numeric_limits<float>::max() },
       .collisionfree_movement{ movement },
       .outstanding_movement{ math::fvec3 {0.f, 0.f, 0.f} }

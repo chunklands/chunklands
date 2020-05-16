@@ -460,6 +460,7 @@ namespace chunklands::modules::engine {
 
   struct collision_result {
     int prio;
+    int axis;
     float ctime;
     math::fvec3 collisionfree_movement;
     math::fvec3 outstanding_movement;
@@ -482,7 +483,7 @@ namespace chunklands::modules::engine {
     JS_IMPL_SETTER_WRAP(Camera, Camera)
 
   public:
-    void AddMovement(math::fvec3 outstanding_movement);
+    int AddMovement(math::fvec3 outstanding_movement);
 
   private:
     math::fAABB3 player_box_ {

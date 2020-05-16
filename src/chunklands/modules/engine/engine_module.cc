@@ -61,17 +61,27 @@ namespace chunklands::modules::engine {
     JS_ASSERT(info.Env(), running_);
 
     const double time = glfwGetTime();
-    { // update
-      double update_diff = time - last_update_;
-      while (update_diff >= update_threshold) {
-        update_diff -= update_threshold;
-        js_Scene->Update(update_threshold);
-      }
+    // { // update
+    //   PROF_NAME("gameloop update");
+    //   double update_diff = time - last_update_;
+    //   while (update_diff >= update_threshold) {
+    //     update_diff -= update_threshold;
+    //     js_Scene->Update(update_threshold);
+    //   }
 
-      last_update_ = time - update_diff;
+    //   last_update_ = time - update_diff;
+    // }
+
+    { // update
+      PROF_NAME("gameloop update");
+      double update_diff = time - last_update_;
+      js_Scene->Update(update_diff);
+
+      last_update_ = time;
     }
 
     { // render
+      PROF_NAME("gameloop render");
       const double render_diff = time - last_render_;
       last_render_ = time;
       js_Scene->Render(render_diff);
@@ -302,7 +312,8 @@ namespace chunklands::modules::engine {
 
     std::uniform_real_distribution<GLfloat> random_floats(0.f, 1.f);
     std::default_random_engine generator;
-    for (int i = 0; i < 64; i++) {
+    const int kernel_size = 8;
+    for (int i = 0; i < kernel_size; i++) {
       glm::vec3 sample(
         random_floats(generator) * 2.f - 1.f,
         random_floats(generator) * 2.f - 1.f,
@@ -311,7 +322,7 @@ namespace chunklands::modules::engine {
 
       sample = glm::normalize(sample);
       sample *= random_floats(generator);
-      float scale = float(i) / 64.f;
+      float scale = float(i) / (float)kernel_size;
 
       scale = glm::lerp(.1f, 1.f, scale * scale);
       sample *= scale;
@@ -404,6 +415,8 @@ namespace chunklands::modules::engine {
 
     glfwSetInputMode(window_, GLFW_STICKY_KEYS, 1);
     glfwShowWindow(window_);
+
+    glfwSwapInterval(1);
   }
 
   void Window::JSCall_makeContextCurrent(JSCbi) {
@@ -605,8 +618,10 @@ namespace chunklands::modules::engine {
 
   JS_DEF_WRAP(MovementController)
 
-  void MovementController::AddMovement(math::fvec3 outstanding_movement) {
+  int MovementController::AddMovement(math::fvec3 outstanding_movement) {
     PROF();
+
+    int axis = math::CollisionAxis::kNone;
 
     int next_collision_index = 0;
     while(math::chess_distance(outstanding_movement, math::fvec3(0, 0, 0)) > 0.f) {
@@ -618,8 +633,11 @@ namespace chunklands::modules::engine {
       collision_result result = js_CollisionSystem->ProcessNextCollision(player_box_ + js_Camera->GetPosition(), outstanding_movement);
       js_Camera->AddPos(result.collisionfree_movement);
       outstanding_movement = result.outstanding_movement;
+      axis |= result.axis;
 
       ++next_collision_index;
     }
+
+    return axis;
   }
 }

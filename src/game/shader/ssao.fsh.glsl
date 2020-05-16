@@ -1,5 +1,7 @@
 #version 330 core
 
+const int kernelSize = 8;
+
 out float color;
 in  vec2  frag_coord;
 
@@ -7,11 +9,10 @@ uniform sampler2D u_position;
 uniform sampler2D u_normal;
 uniform sampler2D u_noise;
 
-uniform vec3 u_samples[64];
+uniform vec3 u_samples[kernelSize];
 
 uniform mat4 u_proj;
 
-int kernelSize = 64;
 float radius = 0.5;
 float bias = 0.025;
 

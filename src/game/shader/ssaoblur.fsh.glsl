@@ -5,7 +5,7 @@ in  vec2 frag_coord;
 
 uniform sampler2D u_ssao;
 
-const int blur_size = 3;
+const int blur_size = 10;
 
 void main() {
   vec2 texel_size = 1.f / vec2(textureSize(u_ssao, 0));

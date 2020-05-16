@@ -249,6 +249,9 @@ namespace chunklands::modules::game {
     glm::ivec2 buffer_size_;
 
     gl::RenderQuad render_quad_;
+
+    bool flight_mode_ = true;
+    float vy_ = 0.f;
   };
 }
 
