@@ -221,6 +221,9 @@ namespace chunklands::math {
     }
   };
 
+  template<class T>
+  std::ostream& operator<<(std::ostream& os, const axis_collision<T>& c);
+
   template<class T> collision_time<T> collision(const AABB1<T>& moving, const vec1<T>& v, const AABB1<T>& fixed);
   template<class T> axis_collision<T> collision_3d(const AABB3<T>& moving, const vec3<T>& v, const AABB3<T>& fixed);
 

@@ -239,6 +239,28 @@ namespace chunklands::math {
   }
 
   template<class T>
+  std::ostream& operator<<(std::ostream& os, const axis_collision<T>& c) {
+    os << "axis_collision { axis=";
+    if (c.axis == kNone) {
+      os << "None";
+    } else {
+      if (c.axis & kX) {
+        os << "X";
+      }
+
+      if (c.axis & kY) {
+        os << "Y";
+      }
+
+      if (c.axis & kZ) {
+        os << "Z";
+      }
+    }
+
+    return os << ", time=" << c.time << " }";
+  }
+
+  template<class T>
   collision_time<T> collision(const AABB1<T>& moving, const vec1<T>& v, const AABB1<T>& fixed) {
     if (v.x > 0) {
       

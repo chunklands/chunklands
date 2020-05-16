@@ -458,10 +458,13 @@ namespace chunklands::modules::engine {
   };
 
   struct collision_result {
+    int prio;
     float ctime;
     math::fvec3 collisionfree_movement;
     math::fvec3 outstanding_movement;
   };
+
+  std::ostream& operator<<(std::ostream& os, const collision_result& c);
 
   class ICollisionSystem {
   public:
@@ -479,17 +482,21 @@ namespace chunklands::modules::engine {
 
   public:
     void AddMovement(math::fvec3 outstanding_movement) {
-      while(math::chess_distance(outstanding_movement, math::fvec3(0, 0, 0)) > 0.01f) {
+      int next_collision_index = 0;
+      while(math::chess_distance(outstanding_movement, math::fvec3(0, 0, 0)) > 0.f) {
+        std::cout << "Next collision #" << next_collision_index << std::endl;
         collision_result result = js_CollisionSystem->ProcessNextCollision(player_box_ + js_Camera->GetPosition(), outstanding_movement);
         js_Camera->AddPos(result.collisionfree_movement);
         outstanding_movement = result.outstanding_movement;
+
+        ++next_collision_index;
       }
     }
 
   private:
     math::fAABB3 player_box_ {
-      {-.5f, -1.75f, -.5f},
-      {1.f,   2.f,   1.f}
+      {-.4f, -1.4f, -.4f},
+      { .8f,  1.6f,  .8f}
     };
   };
 

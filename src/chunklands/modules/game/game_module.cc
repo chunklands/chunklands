@@ -233,7 +233,7 @@ namespace chunklands::modules::game {
     item.chunk->state_ = kModelPrepared;
     loaded_chunks_.pop();
 
-    std::cout << "models queue: " << loaded_chunks_.size() << " items.";
+    // std::cout << "models queue: " << loaded_chunks_.size() << " items.";
 
     return !loaded_chunks_.empty();
   }
@@ -722,7 +722,7 @@ namespace chunklands::modules::game {
       chunk->Render();
     }
 
-    std::cout << "Rendered index count: " << rendered_index_count << ", chunk count: " << rendered_chunk_count << std::endl;
+    // std::cout << "Rendered index count: " << rendered_index_count << ", chunk count: " << rendered_chunk_count << std::endl;
   }
 
 
@@ -731,14 +731,16 @@ namespace chunklands::modules::game {
   }
 
   engine::collision_result World::ProcessNextCollision(const math::fAABB3 &box, const math::fvec3 &movement) {
-    PROF();
     math::fAABB3 movement_box = box | movement;
 
     engine::collision_result result{
-      .ctime = std::numeric_limits<float>::max(),
-      .collisionfree_movement = movement,
-      .outstanding_movement = math::fvec3 {0.f, 0.f, 0.f}
+      .prio{std::numeric_limits<int>::max()},
+      .ctime{ std::numeric_limits<float>::max() },
+      .collisionfree_movement{ movement },
+      .outstanding_movement{ math::fvec3 {0.f, 0.f, 0.f} }
     };
+
+    int collision_index = 0;
 
     for (auto&& chunk_pos : math::chunk_pos_in_box {movement_box, Chunk::SIZE}) {
       const auto&& chunk_result = chunk_map_.find(chunk_pos);
@@ -755,11 +757,16 @@ namespace chunklands::modules::game {
         assert(block_def != nullptr);
 
         math::ivec3 block_coord{ chunk_coord + block_pos };
+        
+        std::cout << "collision #" << collision_index << std::endl;
 
         auto&& block_collision = block_def->ProcessCollision(block_coord, box, movement);
-        if (block_collision.ctime < result.ctime) {
+        if (block_collision.ctime < result.ctime || (block_collision.ctime == result.ctime && block_collision.prio < result.prio)) {
+          // std::cout << "Block collision: " << block_collision << std::endl;
           result = block_collision;
         }
+
+        ++collision_index;
       }
     }
 
