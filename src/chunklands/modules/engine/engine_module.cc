@@ -604,4 +604,22 @@ namespace chunklands::modules::engine {
   /////////////////////////////////////////////////////////////////////////////
 
   JS_DEF_WRAP(MovementController)
+
+  void MovementController::AddMovement(math::fvec3 outstanding_movement) {
+    PROF();
+
+    int next_collision_index = 0;
+    while(math::chess_distance(outstanding_movement, math::fvec3(0, 0, 0)) > 0.f) {
+
+      if (DEBUG_COLLISION) {
+        std::cout << "Next collision #" << next_collision_index << std::endl;
+      }
+
+      collision_result result = js_CollisionSystem->ProcessNextCollision(player_box_ + js_Camera->GetPosition(), outstanding_movement);
+      js_Camera->AddPos(result.collisionfree_movement);
+      outstanding_movement = result.outstanding_movement;
+
+      ++next_collision_index;
+    }
+  }
 }

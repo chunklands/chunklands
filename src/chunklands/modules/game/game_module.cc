@@ -19,6 +19,78 @@ namespace chunklands::modules::game {
     : id_(std::move(id)), opaque_(opaque), faces_vertex_data_(std::move(faces_vertex_data)) {
   }
 
+  engine::collision_result BlockDefinition::ProcessCollision(const math::ivec3& block_coord, const math::fAABB3& box, const math::fvec3& movement) const {
+    if (!opaque_) {
+      return {
+        .prio{0},
+        .ctime{1},
+        .collisionfree_movement{movement},
+        .outstanding_movement{0,0,0}
+      };
+    }
+
+    math::fAABB3 block_box{ block_coord, math::fvec3{1, 1, 1} };
+    auto&& collision = math::collision_3d(box, movement, block_box);
+
+    if (!collision.time) {
+      return {
+        .prio{0},
+        .ctime{1},
+        .collisionfree_movement{movement},
+        .outstanding_movement{0,0,0}
+      };
+    }
+    
+    if (collision.time.origin.x < 0) {
+      return {
+        .prio{0},
+        .ctime{0},
+        .collisionfree_movement{0, 0, 0},
+        .outstanding_movement{0,0,0}
+      };
+    }
+
+    if (collision.time.origin.x > 1) {
+      return {
+        .prio{0},
+        .ctime{1},
+        .collisionfree_movement{movement},
+        .outstanding_movement{0,0,0}
+      };
+    }
+
+    if (DEBUG_COLLISION) {
+      std::cout << collision << std::endl;
+    }
+
+    float ctime = collision.time.origin.x;
+    math::fvec3 good_movement = ctime * movement;
+    math::fvec3 bad_movement = movement - good_movement;
+
+    int prio = 0;
+
+    if (collision.axis & math::CollisionAxis::kX) {
+      bad_movement.x = 0;
+      prio++;
+    }
+
+    if (collision.axis & math::CollisionAxis::kY) {
+      bad_movement.y = 0;
+      prio++;
+    }
+
+    if (collision.axis & math::CollisionAxis::kZ) {
+      bad_movement.z = 0;
+      prio++;
+    }
+
+    return {
+      .prio{prio},
+      .ctime{ctime},
+      .collisionfree_movement{good_movement},
+      .outstanding_movement{bad_movement}
+    };
+  }
 
 
   /////////////////////////////////////////////////////////////////////////////
@@ -233,7 +305,9 @@ namespace chunklands::modules::game {
     item.chunk->state_ = kModelPrepared;
     loaded_chunks_.pop();
 
-    // std::cout << "models queue: " << loaded_chunks_.size() << " items.";
+    if (DEBUG_MODELS_QUEUE) {
+      std::cout << "models queue: " << loaded_chunks_.size() << " items.";
+    }
 
     return !loaded_chunks_.empty();
   }
@@ -722,7 +796,9 @@ namespace chunklands::modules::game {
       chunk->Render();
     }
 
-    // std::cout << "Rendered index count: " << rendered_index_count << ", chunk count: " << rendered_chunk_count << std::endl;
+    if (DEBUG_RENDER) {
+      std::cout << "Rendered index count: " << rendered_index_count << ", chunk count: " << rendered_chunk_count << std::endl;
+    }
   }
 
 
@@ -758,11 +834,12 @@ namespace chunklands::modules::game {
 
         math::ivec3 block_coord{ chunk_coord + block_pos };
         
-        std::cout << "collision #" << collision_index << std::endl;
+        if (DEBUG_COLLISION) {
+          std::cout << "collision #" << collision_index << std::endl;
+        }
 
         auto&& block_collision = block_def->ProcessCollision(block_coord, box, movement);
         if (block_collision.ctime < result.ctime || (block_collision.ctime == result.ctime && block_collision.prio < result.prio)) {
-          // std::cout << "Block collision: " << block_collision << std::endl;
           result = block_collision;
         }
 

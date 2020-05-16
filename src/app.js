@@ -114,9 +114,9 @@ const blocks          = require('./game/blocks');
 
   const profiler = new chunklands.misc.Profiler();
 
-  // setInterval(() => {
-  //   console.log(profiler.getMeassurements());
-  // }, 1000);
+  setInterval(() => {
+    console.log(profiler.getMeassurements());
+  }, 1000);
 })().catch(e => {
   console.error(e);
   process.exit(1);

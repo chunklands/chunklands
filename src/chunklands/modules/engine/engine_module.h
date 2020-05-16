@@ -1,6 +1,7 @@
 #ifndef __CHUNKLANDS_ENGINE_H__
 #define __CHUNKLANDS_ENGINE_H__
 
+#include <chunklands/debug.h>
 #include <chunklands/js.h>
 #include <chunklands/modules/gl/gl_module.h>
 #include <glm/vec3.hpp>
@@ -481,17 +482,7 @@ namespace chunklands::modules::engine {
     JS_IMPL_SETTER_WRAP(Camera, Camera)
 
   public:
-    void AddMovement(math::fvec3 outstanding_movement) {
-      int next_collision_index = 0;
-      while(math::chess_distance(outstanding_movement, math::fvec3(0, 0, 0)) > 0.f) {
-        std::cout << "Next collision #" << next_collision_index << std::endl;
-        collision_result result = js_CollisionSystem->ProcessNextCollision(player_box_ + js_Camera->GetPosition(), outstanding_movement);
-        js_Camera->AddPos(result.collisionfree_movement);
-        outstanding_movement = result.outstanding_movement;
-
-        ++next_collision_index;
-      }
-    }
+    void AddMovement(math::fvec3 outstanding_movement);
 
   private:
     math::fAABB3 player_box_ {

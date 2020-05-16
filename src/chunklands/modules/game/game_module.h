@@ -1,6 +1,7 @@
 #ifndef __CHUNKLANDS_GAME_H__
 #define __CHUNKLANDS_GAME_H__
 
+#include <chunklands/debug.h>
 #include <chunklands/js.h>
 #include <chunklands/modules/gl/gl_module.h>
 #include <chunklands/modules/engine/engine_module.h>
@@ -27,76 +28,7 @@ namespace chunklands::modules::game {
       return faces_vertex_data_;
     }
 
-    engine::collision_result ProcessCollision(const math::ivec3& block_coord, const math::fAABB3& box, const math::fvec3& movement) const {
-      if (!opaque_) {
-        return {
-          .prio{0},
-          .ctime{1},
-          .collisionfree_movement{movement},
-          .outstanding_movement{0,0,0}
-        };
-      }
-
-      math::fAABB3 block_box{ block_coord, math::fvec3{1, 1, 1} };
-      auto&& collision = math::collision_3d(box, movement, block_box);
-
-      if (!collision.time) {
-        return {
-          .prio{0},
-          .ctime{1},
-          .collisionfree_movement{movement},
-          .outstanding_movement{0,0,0}
-        };
-      }
-      
-      if (collision.time.origin.x < 0) {
-        return {
-          .prio{0},
-          .ctime{0},
-          .collisionfree_movement{0, 0, 0},
-          .outstanding_movement{0,0,0}
-        };
-      }
-
-      if (collision.time.origin.x > 1) {
-        return {
-          .prio{0},
-          .ctime{1},
-          .collisionfree_movement{movement},
-          .outstanding_movement{0,0,0}
-        };
-      }
-
-      std::cout << collision << std::endl;
-
-      float ctime = collision.time.origin.x;
-      math::fvec3 good_movement = ctime * movement;
-      math::fvec3 bad_movement = movement - good_movement;
-
-      int prio = 0;
-
-      if (collision.axis & math::CollisionAxis::kX) {
-        bad_movement.x = 0;
-        prio++;
-      }
-
-      if (collision.axis & math::CollisionAxis::kY) {
-        bad_movement.y = 0;
-        prio++;
-      }
-
-      if (collision.axis & math::CollisionAxis::kZ) {
-        bad_movement.z = 0;
-        prio++;
-      }
-
-      return {
-        .prio{prio},
-        .ctime{ctime},
-        .collisionfree_movement{good_movement},
-        .outstanding_movement{bad_movement}
-      };
-    }
+    engine::collision_result ProcessCollision(const math::ivec3& block_coord, const math::fAABB3& box, const math::fvec3& movement) const;
 
   private:
     std::string id_;
