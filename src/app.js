@@ -81,7 +81,7 @@ const blocks          = require('./game/blocks');
   scene.setSkybox(skybox);
 
   const camera = new chunklands.engine.Camera();
-  camera.setPosition(5, 1, -5);
+  camera.setPosition(5, 55, -5);
   scene.setCamera(camera);
 
   const movementController = new chunklands.engine.MovementController();

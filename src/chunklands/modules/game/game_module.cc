@@ -447,8 +447,8 @@ namespace chunklands::modules::game {
       glm::ivec2 cursor_diff = last_cursor_pos_ - current_cursor_pos;
       last_cursor_pos_ = current_cursor_pos;
 
-      const float yaw_rad   = .005f * cursor_diff.x;
-      const float pitch_rad = .005f * cursor_diff.y;
+      const float yaw_rad   = .002f * cursor_diff.x;
+      const float pitch_rad = .002f * cursor_diff.y;
 
       js_Camera->AddLook(yaw_rad, pitch_rad);
     });
@@ -512,7 +512,7 @@ namespace chunklands::modules::game {
         movement += -move_factor * (float)diff * move;
       }
     } else {
-      constexpr float move_factor = 10.f;
+      constexpr float move_factor = 5.f;
 
       vy_ += 25.f * diff;
       movement.y -= vy_ * diff;
@@ -669,7 +669,7 @@ namespace chunklands::modules::game {
   // World ////////////////////////////////////////////////////////////////////
   /////////////////////////////////////////////////////////////////////////////
 
-  constexpr int RENDER_DISTANCE   = 8;
+  constexpr int RENDER_DISTANCE   = 12;
   constexpr int PREFETCH_DISTANCE = RENDER_DISTANCE + 2;
   constexpr int RETAIN_DISTANCE   = RENDER_DISTANCE + 4;
 

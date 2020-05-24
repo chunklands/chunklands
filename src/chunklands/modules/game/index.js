@@ -4,6 +4,7 @@ const assert = require('assert');
 const {promisify} = require('util');
 const imageSize = promisify(require('image-size'));
 const Jimp = require('jimp');
+const { BiomeGenerator } = require('./biomes');
 
 const files = require('../../../files');
 
@@ -84,5 +85,6 @@ function getNextPOT(num) {
 
 module.exports = {
   BlockRegistrar,
-  ...game
+  ...game,
+  BiomeGenerator
 };
