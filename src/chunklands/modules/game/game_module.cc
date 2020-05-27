@@ -869,6 +869,7 @@ namespace chunklands::modules::game {
       const auto&& chunk_result = chunk_map_.find(chunk_pos);
       if (chunk_result == chunk_map_.cend()) {
         // TODO(daaitch): make collision with chunk
+        std::cout << "not loaded: " << chunk_pos << std::endl;
         continue;
       }
 

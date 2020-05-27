@@ -1,6 +1,9 @@
 const { MessageChannel, Worker } = require('worker_threads');
 
 module.exports = class SimpleWorldGen {
+  /**
+   * @param {number[]} blockIds 
+   */
   constructor(blockIds) {
 
     this._worker = new Worker(`${__dirname}/chunk_worker/index.js`, {

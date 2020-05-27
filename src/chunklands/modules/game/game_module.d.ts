@@ -4,7 +4,7 @@ import * as gl from '../gl/gl_module'
 export declare class BlockRegistrarBase {
   addBlock(): void
   loadTexture(): void
-  getBlockIds(): void
+  getBlockIds(): number[]
 }
 
 export declare interface IWorldGenerator {
