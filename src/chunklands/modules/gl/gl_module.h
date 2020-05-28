@@ -2,7 +2,7 @@
 #define __CHUNKLANDS_GL_H__
 
 #include <cassert>
-#include <glad/glad.h>
+#include <glad/gl.h>
 #include <GLFW/glfw3.h>
 #include <boost/preprocessor/stringize.hpp>
 #include <chunklands/js.h>

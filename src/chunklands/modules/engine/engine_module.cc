@@ -21,8 +21,8 @@ namespace chunklands::modules::engine {
 
   void Environment::JSCall_loadProcs(JSCbi info) {
     JS_ASSERT_MSG(info.Env(), glfwGetCurrentContext() != nullptr, "call after `window.makeCurrentContext()`");
-
-    const int load = gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
+    
+    const int load = gladLoadGL((GLADloadfunc)glfwGetProcAddress);
     JS_ASSERT_MSG(info.Env(), load != 0, "could not load GL procs");
     
     CHECK_GL();

@@ -28,7 +28,7 @@ set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 add_subdirectory("${CMAKE_SOURCE_DIR}/deps/glfw")
-set(CHUNKLANDS_INCLUDE "${CHUNKLANDS_INCLUDE}" "${CMAKE_SOURCE_DIR}/deps/glfw/deps") # glad/glad.h
+set(CHUNKLANDS_INCLUDE "${CHUNKLANDS_INCLUDE}" "${CMAKE_SOURCE_DIR}/deps/glfw/deps") # glad/gl.h
 set(CHUNKLANDS_LIBRARIES "${CHUNKLANDS_LIBRARIES}" glfw)
 
 # GLM
@@ -62,7 +62,7 @@ message("SOURCE_FILES:  ${SOURCE_FILES}")
 file(GLOB_RECURSE CHUNKLANDS_GENERIC_SOURCE_FILES
   "${SRC}/chunklands/*.cc"
   "${SRC}/chunklands/**/*.cc"
-  "${CMAKE_SOURCE_DIR}/deps/glfw/deps/glad.c"
+  "${CMAKE_SOURCE_DIR}/deps/glfw/deps/glad_gl.c"
   "${CMAKE_SOURCE_DIR}/deps/boost_chrono/src/*.cpp"
 )
 add_library               (chunklands_generic SHARED ${CHUNKLANDS_GENERIC_SOURCE_FILES})
