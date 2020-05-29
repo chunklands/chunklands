@@ -125,10 +125,17 @@ module.exports = class Game {
     const gameLoop = new GameLoop();
     gameLoop.setScene(scene);
 
+    this._scene = scene;
     this._gameLoop = gameLoop;
   }
 
   async run() {
+    this._window.events.on('key', event => {
+      if (event.key === 70 && event.action === 0) {
+        this._scene.setFlightMode(!this._scene.getFlightMode());
+      }
+    });
+
     return await new Promise((resolve, reject) => {
       this._gameLoop.start();
       const loop = () => {

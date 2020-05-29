@@ -1,4 +1,5 @@
 import * as gl from '../gl/gl_module'
+import { EventEmitter } from 'events'
 
 export interface IScene {}
 export interface ICollisionSystem {}
@@ -38,6 +39,8 @@ export declare class Window {
   makeContextCurrent(): void
   shouldClose(): boolean
   close(): void
+
+  events: EventEmitter
 }
 
 export declare class Skybox {

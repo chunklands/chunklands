@@ -21,6 +21,7 @@
 
 // Wrap - Class definition
 #define JS_SETTER(WHAT)                               InstanceMethod("set" #WHAT,           &JSCurrentWrap::JSCall_Set##WHAT)
+#define JS_GETTER(WHAT)                               InstanceMethod("get" #WHAT,           &JSCurrentWrap::JSCall_Get##WHAT)
 #define JS_CB(WHAT)                                   InstanceMethod(      #WHAT,           &JSCurrentWrap::JSCall_   ##WHAT)
 #define JS_CB_STATIC(WHAT)                            StaticMethod(        #WHAT,           &JSCurrentWrap::JSCall_   ##WHAT)
 #define JS_ABSTRACT_WRAP(TYPE, WHAT)                  InstanceAccessor(typeid(TYPE).name(), &JSCurrentWrap::JSCall_As ##WHAT, \

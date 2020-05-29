@@ -30,6 +30,9 @@ export declare class Scene implements engine.IScene {
 
   setMovementController(controller: engine.MovementController): void
   setCamera(camera: engine.Camera): void
+
+  getFlightMode(): boolean
+  setFlightMode(flightMode: boolean): void
 }
 
 export declare class World implements engine.ICollisionSystem {

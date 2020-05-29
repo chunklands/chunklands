@@ -215,6 +215,8 @@ namespace chunklands::modules::game {
       JS_SETTER(Camera),
       JS_ABSTRACT_WRAP(engine::IScene, IScene),
       JS_SETTER(MovementController),
+      JS_SETTER(FlightMode),
+      JS_GETTER(FlightMode),
     }))
 
     JS_DECL_SETTER_WRAP(engine::Window, Window)
@@ -228,6 +230,14 @@ namespace chunklands::modules::game {
     JS_IMPL_SETTER_WRAP(engine::Camera, Camera)
     JS_IMPL_ABSTRACT_WRAP(engine::IScene, IScene)
     JS_IMPL_SETTER_WRAP(engine::MovementController, MovementController)
+    
+    JSValue JSCall_GetFlightMode(JSCbi info) {
+      return JSBoolean::New(info.Env(), flight_mode_);
+    }
+
+    void JSCall_SetFlightMode(JSCbi info) {
+      flight_mode_ = info[0].ToBoolean();
+    }
   
   public:
     virtual void Prepare() override;

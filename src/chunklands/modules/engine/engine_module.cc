@@ -412,7 +412,26 @@ namespace chunklands::modules::engine {
       detail::Unwrap(window)->on_resize(width, height);
     });
 
-    glfwSetInputMode(window_, GLFW_STICKY_KEYS, 1);
+    events_ = Napi::Persistent(Value().Get("events").ToObject());
+
+    glfwSetKeyCallback(window_, [](GLFWwindow* window, int key, int scancode, int action, int mods) {
+      auto&& events = detail::Unwrap(window)->events_;
+      auto&& env = events.Env();
+
+      JSHandleScope scope(events.Env());
+      {
+        auto&& event = JSObject::New(env);
+        event["key"] = JSNumber::New(env, key);
+        event["scancode"] = JSNumber::New(env, scancode);
+        event["action"] = JSNumber::New(env, action);
+        event["mods"] = JSNumber::New(env, mods);
+
+        events.Get("emit").As<JSFunction>().Call(events.Value(), {JSString::New(events.Env(), "key"), event});
+      }
+    });
+
+    // no sticky keys: we get strange behavior of pressing e.g. "F" emits: F down, F up, F up
+    // glfwSetInputMode(window_, GLFW_STICKY_KEYS, GLFW_TRUE);
     glfwShowWindow(window_);
 
     glfwSwapInterval(1);

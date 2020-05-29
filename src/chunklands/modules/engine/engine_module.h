@@ -380,6 +380,8 @@ namespace chunklands::modules::engine {
     boost::signals2::signal<void(int width, int height)> on_resize;
     boost::signals2::signal<void(double xpos, double ypos)> on_cursor_move;
 
+    JSObjectRef events_;
+
   private:
     GLFWwindow* window_ = nullptr;
   };

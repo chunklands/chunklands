@@ -1,4 +1,5 @@
 const engine = require('./engine_module');
+const { EventEmitter} = require('events');
 
 class TextureBaker {
   constructor() {
@@ -64,7 +65,15 @@ class TextureBaker {
   }
 };
 
+function createWindow() {
+  const window = new engine.Window();
+  window.events = new EventEmitter();
+
+  return window;
+}
+
 module.exports = {
   TextureBaker,
-  ...engine
+  ...engine,
+  createWindow,
 };

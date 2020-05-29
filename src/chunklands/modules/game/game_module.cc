@@ -478,12 +478,6 @@ namespace chunklands::modules::game {
   }
 
   void Scene::Update(double diff) {
-    if (js_Window->GetKey(GLFW_KEY_F) == GLFW_PRESS) {
-      flight_mode_ = !flight_mode_;
-    }
-
-    
-
     auto&& look = js_Camera->GetLook();
 
     math::fvec3 movement {0.f, 0.f, 0.f};

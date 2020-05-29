@@ -1,9 +1,9 @@
-const { engine: { Environment, Window }, misc: { Profiler } } = require('./chunklands');
+const { engine: { Environment, createWindow }, misc: { Profiler } } = require('./chunklands');
 const Game = require('./game/Game');
 
 Environment.initialize();
 
-const window = new Window();
+const window = createWindow();
 window.initialize({
   width: 1280,
   height: 720,
