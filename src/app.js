@@ -24,7 +24,7 @@ let profilerInterval;
   const profiler = new Profiler();
 
   profilerInterval = setInterval(() => {
-    console.log(profiler.getMeassurements());
+    console.log(profiler.getMetrics());
   }, 1000);
 
   await game.run();

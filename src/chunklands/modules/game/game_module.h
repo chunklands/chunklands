@@ -252,6 +252,12 @@ namespace chunklands::modules::game {
 
     bool flight_mode_ = true;
     float vy_ = 0.f;
+
+    GLuint  render_gbuffer_query_ = 0,
+            render_ssao_query_ = 0,
+            render_ssaoblur_query_ = 0,
+            render_lighting_query_ = 0,
+            render_skybox_query_ = 0;
   };
 }
 

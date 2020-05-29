@@ -58,11 +58,12 @@ namespace chunklands::modules::engine {
   constexpr double update_threshold = 1.0 / 30.0; // Hz
 
   void GameLoop::JSCall_loop(JSCbi info) {
+    DURATION_METRIC("gameloop_loop");
+
     JS_ASSERT(info.Env(), running_);
 
     const double time = glfwGetTime();
     // { // update
-    //   PROF_NAME("gameloop update");
     //   double update_diff = time - last_update_;
     //   while (update_diff >= update_threshold) {
     //     update_diff -= update_threshold;
@@ -73,7 +74,6 @@ namespace chunklands::modules::engine {
     // }
 
     { // update
-      PROF_NAME("gameloop update");
       double update_diff = time - last_update_;
       js_Scene->Update(update_diff);
 
@@ -81,7 +81,6 @@ namespace chunklands::modules::engine {
     }
 
     { // render
-      PROF_NAME("gameloop render");
       const double render_diff = time - last_render_;
       last_render_ = time;
       js_Scene->Render(render_diff);
@@ -619,7 +618,7 @@ namespace chunklands::modules::engine {
   JS_DEF_WRAP(MovementController)
 
   int MovementController::AddMovement(math::fvec3 outstanding_movement) {
-    PROF();
+    DURATION_METRIC("movement_time");
 
     int axis = math::CollisionAxis::kNone;
 

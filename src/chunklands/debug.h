@@ -4,8 +4,6 @@
 namespace chunklands {
 
   constexpr bool DEBUG_COLLISION = false;
-  constexpr bool DEBUG_MODELS_QUEUE = true;
-  constexpr bool DEBUG_RENDER = true;
 }
 
 #endif

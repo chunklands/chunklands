@@ -69,17 +69,14 @@ const biomeGenerator = new BiomeGenerator(16, (cx, cz) => {
     let blockFn;
     switch ((3*noise.prng3(cx, cz, i, 0.3881, 0.7277))|0) {
       case 0: {
-        console.log('crazyMountain')
         blockFn = createBlockFn({heightMapFn: crazyMountainHFn, segregator: mountainsSeg});
         break;
       }
       case 1: {
-        console.log('mountains')
         blockFn = createBlockFn({heightMapFn: mountainHFn, segregator: mountainsSeg});
         break;
       }
       case 2: {
-        console.log('flat')
         blockFn = createBlockFn({heightMapFn: flatHFn, segregator: landSeg});
         break;
       }

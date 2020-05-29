@@ -18,6 +18,10 @@
 #define PROF_NAME(NAME) ::chunklands::modules::misc::prof profiler(NAME)
 #define PROF_MOVE() std::move(profiler)
 
+#define DURATION_METRIC(NAME)         ::chunklands::modules::misc::prof profiler(NAME)
+#define HISTOGRAM_METRIC(NAME, VALUE) ::chunklands::modules::misc::Profiler::AddHistogram(NAME, VALUE)
+#define VALUE_METRIC(NAME, VALUE)     ::chunklands::modules::misc::Profiler::SetGauge(NAME, VALUE)
+
 
 #define THROW_RT(MSG)                       \
   do {                                      \
@@ -67,24 +71,21 @@ namespace chunklands::modules::misc {
 
   class Profiler : public JSObjectWrap<Profiler> {
     JS_IMPL_WRAP(Profiler, ONE_ARG({
-      JS_CB(getMeassurements)
+      JS_CB(getMetrics)
     }))
 
-    JS_DECL_CB(getMeassurements)
+    JS_DECL_CB(getMetrics)
 
   public:
-    static void AddMeassurement(const char* name, long micros) {
-      GetOrCreateMeassurement(name).push_back(micros);
-    }
-  
-  private:
-    static boost::circular_buffer<long>& GetOrCreateMeassurement(const char* name);
+    static void AddHistogram(const char* name, long micros);
+    static void SetGauge(const char* name, long value);
 
   public:
     const static bool profile_ = true;
 
   private:
-    static std::unordered_map<const char*, boost::circular_buffer<long>> meassurements_;
+    static std::unordered_map<const char*, std::shared_ptr<boost::circular_buffer<long>>> histograms_;
+    static std::unordered_map<const char*, long> gauges_;
   };
 
   using clock = boost::chrono::high_resolution_clock;
@@ -118,7 +119,7 @@ namespace chunklands::modules::misc {
         clock::duration delta = clock::now() - start_;
         auto&& micros = boost::chrono::duration_cast<boost::chrono::microseconds>(delta);
 
-        Profiler::AddMeassurement(name_, micros.count());
+        Profiler::AddHistogram(name_, micros.count());
       }
     }
 

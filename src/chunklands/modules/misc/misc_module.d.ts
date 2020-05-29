@@ -1,4 +1,4 @@
 
 export declare class Profiler {
-  getMeassurements(): any
+  getMetrics(): {[metric: string]: number}
 }

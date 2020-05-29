@@ -241,7 +241,7 @@ namespace chunklands::modules::game {
   };
 
   void ChunkGenerator::GenerateModel(std::shared_ptr<Chunk>& chunk) {
-    PROF_NAME("generate chunk model");
+    DURATION_METRIC("chunkgenerator_generate_model");
 
     assert(chunk->GetState() == kEmpty);
 
@@ -294,7 +294,7 @@ namespace chunklands::modules::game {
       return false;
     }
 
-    PROF();
+    DURATION_METRIC("chunkgenerator_process_next_model");
 
     auto&& item = loaded_chunks_.front();
 
@@ -310,9 +310,7 @@ namespace chunklands::modules::game {
     item.chunk->state_ = kModelPrepared;
     loaded_chunks_.pop();
 
-    if (DEBUG_MODELS_QUEUE) {
-      std::cout << "models queue: " << loaded_chunks_.size() << " items.";
-    }
+    VALUE_METRIC("chunkgenerator_models_queue", loaded_chunks_.size());
 
     return !loaded_chunks_.empty();
   }
@@ -323,7 +321,7 @@ namespace chunklands::modules::game {
   constexpr int estimated_floats_in_buffer = Chunk::SIZE * Chunk::SIZE * Chunk::SIZE * estimated_avg_floats_per_block;
 
   void ChunkGenerator::GenerateView(Chunk& chunk, const Chunk* neighbors[kNeighborCount]) {
-    PROF();
+    DURATION_METRIC("chunkgenerator_generate_view");
 
     assert(chunk.GetState() == kModelPrepared);
     assert(neighbors[kLeft  ] != nullptr && neighbors[kLeft  ]->GetState() >= kModelPrepared);
@@ -467,6 +465,15 @@ namespace chunklands::modules::game {
     glEnable(GL_CULL_FACE);
     glCullFace(GL_FRONT);
     glFrontFace(GL_CCW);
+
+    // TODO(daaitch): delete
+    glGenQueries(1, &render_gbuffer_query_);
+    glGenQueries(1, &render_ssao_query_);
+    glGenQueries(1, &render_ssaoblur_query_);
+    glGenQueries(1, &render_lighting_query_);
+    glGenQueries(1, &render_skybox_query_);
+
+    // world
     js_World->Prepare();
   }
 
@@ -573,36 +580,43 @@ namespace chunklands::modules::game {
 
     { // g-buffer pass
       CHECK_GL_HERE();
+      glBeginQuery(GL_TIME_ELAPSED, render_gbuffer_query_);
       js_GBufferPass->Begin();
       js_GBufferPass->UpdateProjection(js_Camera->GetProjection());
       js_GBufferPass->UpdateView(js_Camera->GetView());
       js_World->Render(diff, *js_Camera);
       js_GBufferPass->End();
+      glEndQuery(GL_TIME_ELAPSED);
       CHECK_GL_HERE();
     }
 
     { // SSAO
       CHECK_GL_HERE();
+      glBeginQuery(GL_TIME_ELAPSED, render_ssao_query_);
       js_SSAOPass->Begin();
       js_SSAOPass->UpdateProjection(js_Camera->GetProjection());
       js_SSAOPass->BindPositionTexture(js_GBufferPass->textures_.position);
       js_SSAOPass->BindNormalTexture(js_GBufferPass->textures_.normal);
       render_quad_.Render();
       js_SSAOPass->End();
+      glEndQuery(GL_TIME_ELAPSED);
       CHECK_GL_HERE();
     }
 
     { // SSAO blur
       CHECK_GL_HERE();
+      glBeginQuery(GL_TIME_ELAPSED, render_ssaoblur_query_);
       js_SSAOBlurPass->Begin();
       js_SSAOBlurPass->BindSSAOTexture(js_SSAOPass->textures_.color);
       render_quad_.Render();
       js_SSAOBlurPass->End();
+      glEndQuery(GL_TIME_ELAPSED);
       CHECK_GL_HERE();
     }
 
     { // deferred lighting pass
       CHECK_GL_HERE();
+      glBeginQuery(GL_TIME_ELAPSED, render_lighting_query_);
       js_LightingPass->Begin();
       js_LightingPass->BindPositionTexture(js_GBufferPass->textures_.position);
       js_LightingPass->BindNormalTexture(js_GBufferPass->textures_.normal);
@@ -615,22 +629,43 @@ namespace chunklands::modules::game {
       js_LightingPass->UpdateSunPosition(sun_position);
       render_quad_.Render();
       js_LightingPass->End();
+      glEndQuery(GL_TIME_ELAPSED);
       CHECK_GL_HERE();
     }
 
     { // skybox
       CHECK_GL_HERE();
+      glBeginQuery(GL_TIME_ELAPSED, render_skybox_query_);
       js_SkyboxPass->Begin();
       js_SkyboxPass->BindSkyboxTexture(js_GBufferPass->textures_.position);
       js_SkyboxPass->UpdateProjection(js_Camera->GetProjection());
       js_SkyboxPass->UpdateView(js_Camera->GetViewSkybox());
       js_Skybox->Render();
       js_SkyboxPass->End();
+      glEndQuery(GL_TIME_ELAPSED);
       CHECK_GL_HERE();
     }
 
     {
       js_Window->SwapBuffers();
+
+      // queries
+      GLuint64 result = 0;
+
+      glGetQueryObjectui64v(render_gbuffer_query_, GL_QUERY_RESULT, &result);
+      HISTOGRAM_METRIC("render_gbuffer", result / 1000);
+
+      glGetQueryObjectui64v(render_ssao_query_, GL_QUERY_RESULT, &result);
+      HISTOGRAM_METRIC("render_ssao", result / 1000);
+
+      glGetQueryObjectui64v(render_ssaoblur_query_, GL_QUERY_RESULT, &result);
+      HISTOGRAM_METRIC("render_ssaoblur", result / 1000);
+
+      glGetQueryObjectui64v(render_lighting_query_, GL_QUERY_RESULT, &result);
+      HISTOGRAM_METRIC("render_lighting", result / 1000);
+
+      glGetQueryObjectui64v(render_skybox_query_, GL_QUERY_RESULT, &result);
+      HISTOGRAM_METRIC("render_skybox", result / 1000);
     }
   }
 
@@ -683,7 +718,6 @@ namespace chunklands::modules::game {
   JS_DEF_WRAP(World)
 
   void World::Prepare() {
-    PROF();
     CHECK_GL();
 
     { // calculate nearest chunks
@@ -716,7 +750,7 @@ namespace chunklands::modules::game {
 
 
   void World::Update(double, const engine::Camera& camera) {
-    PROF();
+    DURATION_METRIC("world_update");
 
     // Calculation of the current chunk we are standing on:
     //   for n = ]-16;+16[, n / 16 = 0, but we want:
@@ -725,97 +759,108 @@ namespace chunklands::modules::game {
     // thus for negative dimension values we need to subtract chunk size
     glm::ivec3 center_chunk_pos = chunklands::math::get_center_chunk(camera.GetPosition(), Chunk::SIZE);
 
-    // map cleanup: remove chunks outside prefetch distance
-    for (auto&& it = chunk_map_.begin(); it != chunk_map_.end(); ) {
-      auto&& pos = it->first;
+    {
+      DURATION_METRIC("world_update_retain");
+      // TODO(daaitch): make retain parallel lazy
+      // map cleanup: remove chunks outside prefetch distance
+      for (auto&& it = chunk_map_.begin(); it != chunk_map_.end(); ) {
+        auto&& pos = it->first;
 
-      // check chunk inside retain distance
-      if (glm::length(glm::vec3(pos - center_chunk_pos)) <= RETAIN_DISTANCE) {
-        it++; // goto next chunk
-      } else {
-        // remove chunk
-        it = chunk_map_.erase(it); // next it
+        // check chunk inside retain distance
+        if (glm::length(glm::vec3(pos - center_chunk_pos)) <= RETAIN_DISTANCE) {
+          it++; // goto next chunk
+        } else {
+          // remove chunk
+          it = chunk_map_.erase(it); // next it
+        }
       }
     }
 
     unsigned chunk_view_updates = 0;
     unsigned chunk_model_updates = 0;
 
-    // map update: insert/update chunks
-    for (auto&& nearest_chunk_it = nearest_chunks_.cbegin(); nearest_chunk_it != nearest_chunks_.cend(); nearest_chunk_it++) {
-      glm::ivec3 pos(*nearest_chunk_it + center_chunk_pos);
+    {
+      DURATION_METRIC("world_update_chunks");
+      // TODO(daaitch): currently taking 8ms when settled => create update queues
+      // map update: insert/update chunks
+      for (auto&& nearest_chunk_it = nearest_chunks_.cbegin(); nearest_chunk_it != nearest_chunks_.cend(); nearest_chunk_it++) {
+        glm::ivec3 pos(*nearest_chunk_it + center_chunk_pos);
 
-      // find or create chunk
-      auto&& chunk_it = chunk_map_.find(pos);
-      if (chunk_it == chunk_map_.end()) {
-        auto&& insert_it = chunk_map_.insert(std::make_pair(pos,
-                                                            std::make_shared<Chunk>(pos)));
-        chunk_it = insert_it.first;
+        // find or create chunk
+        auto&& chunk_it = chunk_map_.find(pos);
+        if (chunk_it == chunk_map_.end()) {
+          auto&& insert_it = chunk_map_.insert(std::make_pair(pos,
+                                                              std::make_shared<Chunk>(pos)));
+          chunk_it = insert_it.first;
+        }
+
+        assert(chunk_it != chunk_map_.end());
+        assert(chunk_it->first == pos);
+        auto&& chunk = chunk_it->second;
+
+        // we will call `Generate*` in reverse order to not update too much in one iteration
+
+        // 1. GenerateView
+        if ( // check chunk inside render distance
+          chunk_view_updates < MAX_CHUNK_VIEW_UPDATES &&
+          chunk->GetState() == kModelPrepared
+        ) {
+          do { // to call "break;"
+            auto&& left_chunk_it = chunk_map_.find(glm::ivec3(pos.x-1, pos.y, pos.z));
+            if (left_chunk_it == chunk_map_.end() ||
+                left_chunk_it->second->GetState() < kModelPrepared) { break; }
+            auto&& right_chunk_it = chunk_map_.find(glm::ivec3(pos.x+1, pos.y, pos.z));
+            if (right_chunk_it == chunk_map_.end() ||
+                right_chunk_it->second->GetState() < kModelPrepared) { break; }
+            auto&& top_chunk_it = chunk_map_.find(glm::ivec3(pos.x, pos.y+1, pos.z));
+            if (top_chunk_it == chunk_map_.end() ||
+                top_chunk_it->second->GetState() < kModelPrepared) { break; }
+            auto&& bottom_chunk_it = chunk_map_.find(glm::ivec3(pos.x, pos.y-1, pos.z));
+            if (bottom_chunk_it == chunk_map_.end() ||
+                bottom_chunk_it->second->GetState() < kModelPrepared) { break; }
+            auto&& front_chunk_it = chunk_map_.find(glm::ivec3(pos.x, pos.y, pos.z-1));
+            if (front_chunk_it == chunk_map_.end() ||
+                front_chunk_it->second->GetState() < kModelPrepared) { break; }
+            auto&& back_chunk_it = chunk_map_.find(glm::ivec3(pos.x, pos.y, pos.z+1));
+            if (back_chunk_it == chunk_map_.end() ||
+                back_chunk_it->second->GetState() < kModelPrepared) { break; }
+            
+            const Chunk* neighbors[kNeighborCount] = {
+              &*left_chunk_it->second,
+              &*right_chunk_it->second,
+              &*top_chunk_it->second,
+              &*bottom_chunk_it->second,
+              &*front_chunk_it->second,
+              &*back_chunk_it->second
+            };
+            
+            chunk_view_updates++;
+            js_ChunkGenerator->GenerateView(*chunk, neighbors);
+          } while (0);
+        }
+
+        // 2. GenerateModel
+        // always inside prefetch distance
+        if (chunk_model_updates < MAX_CHUNK_MODEL_GENERATES && chunk->GetState() == kEmpty) {
+          chunk_model_updates++;
+          js_ChunkGenerator->GenerateModel(chunk);
+        }
+
       }
-
-      assert(chunk_it != chunk_map_.end());
-      assert(chunk_it->first == pos);
-      auto&& chunk = chunk_it->second;
-
-      // we will call `Generate*` in reverse order to not update too much in one iteration
-
-      // 1. GenerateView
-      if ( // check chunk inside render distance
-        chunk_view_updates < MAX_CHUNK_VIEW_UPDATES &&
-        chunk->GetState() == kModelPrepared
-      ) {
-        do { // to call "break;"
-          auto&& left_chunk_it = chunk_map_.find(glm::ivec3(pos.x-1, pos.y, pos.z));
-          if (left_chunk_it == chunk_map_.end() ||
-              left_chunk_it->second->GetState() < kModelPrepared) { break; }
-          auto&& right_chunk_it = chunk_map_.find(glm::ivec3(pos.x+1, pos.y, pos.z));
-          if (right_chunk_it == chunk_map_.end() ||
-              right_chunk_it->second->GetState() < kModelPrepared) { break; }
-          auto&& top_chunk_it = chunk_map_.find(glm::ivec3(pos.x, pos.y+1, pos.z));
-          if (top_chunk_it == chunk_map_.end() ||
-              top_chunk_it->second->GetState() < kModelPrepared) { break; }
-          auto&& bottom_chunk_it = chunk_map_.find(glm::ivec3(pos.x, pos.y-1, pos.z));
-          if (bottom_chunk_it == chunk_map_.end() ||
-              bottom_chunk_it->second->GetState() < kModelPrepared) { break; }
-          auto&& front_chunk_it = chunk_map_.find(glm::ivec3(pos.x, pos.y, pos.z-1));
-          if (front_chunk_it == chunk_map_.end() ||
-              front_chunk_it->second->GetState() < kModelPrepared) { break; }
-          auto&& back_chunk_it = chunk_map_.find(glm::ivec3(pos.x, pos.y, pos.z+1));
-          if (back_chunk_it == chunk_map_.end() ||
-              back_chunk_it->second->GetState() < kModelPrepared) { break; }
-          
-          const Chunk* neighbors[kNeighborCount] = {
-            &*left_chunk_it->second,
-            &*right_chunk_it->second,
-            &*top_chunk_it->second,
-            &*bottom_chunk_it->second,
-            &*front_chunk_it->second,
-            &*back_chunk_it->second
-          };
-          
-          chunk_view_updates++;
-          js_ChunkGenerator->GenerateView(*chunk, neighbors);
-        } while (0);
-      }
-
-      // 2. GenerateModel
-      // always inside prefetch distance
-      if (chunk_model_updates < MAX_CHUNK_MODEL_GENERATES && chunk->GetState() == kEmpty) {
-        chunk_model_updates++;
-        js_ChunkGenerator->GenerateModel(chunk);
-      }
-
     }
 
-    for (unsigned i = 0; i < MAX_CHUNK_MODEL_PROCESSES; i++) {
-      if (!js_ChunkGenerator->ProcessNextModel()) {
-        break;
+    {
+      DURATION_METRIC("world_update_process_models");
+      for (unsigned i = 0; i < MAX_CHUNK_MODEL_PROCESSES; i++) {
+        if (!js_ChunkGenerator->ProcessNextModel()) {
+          break;
+        }
       }
     }
   }
 
   void World::Render(double, const engine::Camera& camera) {
-    PROF();
+    DURATION_METRIC("world_render");
     CHECK_GL();
 
     glm::ivec3 center_chunk_pos = chunklands::math::get_center_chunk(camera.GetPosition(), Chunk::SIZE);
@@ -842,9 +887,8 @@ namespace chunklands::modules::game {
       chunk->Render();
     }
 
-    if (DEBUG_RENDER) {
-      std::cout << "Rendered index count: " << rendered_index_count << ", chunk count: " << rendered_chunk_count << std::endl;
-    }
+    misc::Profiler::SetGauge("rendered_chunk_count", rendered_chunk_count);
+    misc::Profiler::SetGauge("rendered_index_count", rendered_index_count);
   }
 
 
