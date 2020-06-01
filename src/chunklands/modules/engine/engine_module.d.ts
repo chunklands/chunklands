@@ -55,3 +55,12 @@ export declare class MovementController {
   setCamera(camera: Camera): void
   setCollisionSystem(collisionSystem: ICollisionSystem): void
 }
+
+export declare class FontLoader {
+  load(meta: any, imagePath: string): void
+}
+
+export declare class TextRenderer extends RenderPass {
+  setFontLoader(loader: FontLoader): void
+  write(text: string): void
+}

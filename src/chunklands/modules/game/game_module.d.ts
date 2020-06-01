@@ -26,6 +26,8 @@ export declare class Scene implements engine.IScene {
   setLightingPass(pass: engine.LightingPass): void
   setSkyboxPass(pass: engine.SkyboxPass): void
 
+  setTextRenderer(renderer: engine.TextRenderer): void
+
   setSkybox(skybox: engine.Skybox): void
 
   setMovementController(controller: engine.MovementController): void

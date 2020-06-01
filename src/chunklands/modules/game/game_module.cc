@@ -472,6 +472,7 @@ namespace chunklands::modules::game {
     glGenQueries(1, &render_ssaoblur_query_);
     glGenQueries(1, &render_lighting_query_);
     glGenQueries(1, &render_skybox_query_);
+    glGenQueries(1, &render_text_query_);
 
     // world
     js_World->Prepare();
@@ -640,6 +641,16 @@ namespace chunklands::modules::game {
       CHECK_GL_HERE();
     }
 
+    { // text
+      CHECK_GL_HERE();
+      glBeginQuery(GL_TIME_ELAPSED, render_text_query_);
+      js_TextRenderer->Begin();
+      js_TextRenderer->Render();
+      js_TextRenderer->End();
+      glEndQuery(GL_TIME_ELAPSED);
+      CHECK_GL_HERE();
+    }
+
     {
       js_Window->SwapBuffers();
 
@@ -660,6 +671,9 @@ namespace chunklands::modules::game {
 
       glGetQueryObjectui64v(render_skybox_query_, GL_QUERY_RESULT, &result);
       HISTOGRAM_METRIC("render_skybox", result / 1000);
+
+      glGetQueryObjectui64v(render_text_query_, GL_QUERY_RESULT, &result);
+      HISTOGRAM_METRIC("render_text", result / 1000);
     }
   }
 
@@ -690,6 +704,7 @@ namespace chunklands::modules::game {
     js_SSAOPass->UpdateBufferSize(width, height);
     js_SSAOBlurPass->UpdateBufferSize(width, height);
     js_LightingPass->UpdateBufferSize(width, height);
+    js_TextRenderer->UpdateBufferSize(width, height);
   }
 
 

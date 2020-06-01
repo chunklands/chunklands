@@ -1,3 +1,5 @@
+const fs = require('fs');
+const { promisify } = require('util');
 const {
   engine: {
     GBufferPass,
@@ -9,7 +11,9 @@ const {
     Skybox,
     GameLoop,
     Camera,
-    Window: EngineWindow
+    Window: EngineWindow,
+    FontLoader,
+    TextRenderer,
   },
   game: {
     BlockRegistrar,
@@ -115,9 +119,18 @@ module.exports = class Game {
     movementController.setCollisionSystem(world);
     scene.setMovementController(movementController);
 
+    const fontLoader = await createFontLoader('ubuntu');
+    const textRenderer = new TextRenderer();
+    textRenderer.setFontLoader(fontLoader);
+    textRenderer.setProgram(await createProgram('text'));
+    scene.setTextRenderer(textRenderer);
+
 
     // TODO(daaitch): add preparation phase: this has to be at the end to update buffers
     scene.setWindow(this._window);
+
+
+    textRenderer.write('Chunklands v1.0');
 
 
     // gameloop
@@ -162,8 +175,20 @@ module.exports = class Game {
 }
 
 async function createProgram(shaderName) {
-  const vertexShader = `${__dirname}/shader/${shaderName}.vsh.glsl`;
-  const fragmentShader = `${__dirname}/shader/${shaderName}.fsh.glsl`;
+  const vertexShader = `${__dirname}/shader/${shaderName}.vert`;
+  const fragmentShader = `${__dirname}/shader/${shaderName}.frag`;
 
   return await Program.create({vertexShader, fragmentShader});
+}
+
+/**
+ * @param {string} name 
+ */
+async function createFontLoader(name) {
+  const fontLoader = new FontLoader();
+  const basePath = `${__dirname}/fonts/${name}`
+  const json = JSON.parse(await promisify(fs.readFile)(`${basePath}.json`));
+  console.log({json});
+  fontLoader.load(json, `${basePath}.png`);
+  return fontLoader;
 }

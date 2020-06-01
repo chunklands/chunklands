@@ -494,6 +494,83 @@ namespace chunklands::modules::engine {
     };
   };
 
+  struct font_loader_char {
+    glm::ivec2  pos,
+                size,
+                origin;
+    int         advance;
+  };
+
+  class FontLoader : public JSObjectWrap<FontLoader> {
+    JS_IMPL_WRAP(FontLoader, ONE_ARG({
+      JS_CB(load),
+    }))
+
+    JS_DECL_CB_VOID(load)
+
+  public:
+  
+    const std::optional<font_loader_char> Get(const std::string& ch) const {
+      auto&& it = meta_.find(ch);
+      if (it == meta_.cend()) {
+        return {};
+      }
+
+      return {it->second};
+    }
+
+    const gl::Texture& GetTexture() const {
+      return texture_;
+    }
+
+  private:
+    std::unordered_map<std::string, font_loader_char> meta_;
+    gl::Texture texture_;
+  };
+
+  class TextRenderer : public JSObjectWrap<TextRenderer>, public RenderPass {
+    JS_IMPL_WRAP(TextRenderer, ONE_ARG({
+      JS_SETTER(Program),
+      JS_SETTER(FontLoader),
+      JS_CB(write),
+    }))
+
+    JS_IMPL_SETTER_WRAP(FontLoader, FontLoader)
+    JS_DECL_CB_VOID(write)
+
+  public:
+    void Render();
+    virtual void Begin() override {
+      glDepthFunc(GL_ALWAYS);
+      glEnable(GL_BLEND);
+      glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+      RenderPass::Begin();
+    }
+
+    virtual void End() override {
+      RenderPass::End();
+      glDepthFunc(GL_LESS);
+      glDisable(GL_BLEND);
+    }
+
+    void UpdateBufferSize(int width, int height) override {
+      proj_ = glm::ortho(0.f, float(width), 0.f, float(height));
+    }
+
+  protected:
+    void InitializeProgram() override;
+
+  private:
+    GLuint  vao_ = 0,
+            vbo_ = 0;
+    GLsizei count_ = 0;
+
+    glm::mat4 proj_;
+    struct {
+      gl::Uniform proj{"u_proj"};
+    } uniforms_;
+  };
+
 }
 
 #endif

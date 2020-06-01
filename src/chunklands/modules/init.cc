@@ -23,6 +23,8 @@ namespace chunklands::modules {
     EXPORT(Window);
     EXPORT(Camera);
     EXPORT(MovementController);
+    EXPORT(FontLoader);
+    EXPORT(TextRenderer);
     return exports;
   }
 

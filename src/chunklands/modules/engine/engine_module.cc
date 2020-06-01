@@ -658,4 +658,170 @@ namespace chunklands::modules::engine {
 
     return axis;
   }
+
+
+
+  /////////////////////////////////////////////////////////////////////////////
+  // FontLoader ///////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////
+
+  JS_DEF_WRAP(FontLoader)
+
+  void FontLoader::JSCall_load(JSCbi info) {
+    JS_ASSERT(info.Env(), info.Length() == 2);
+
+    JSHandleScope scope(info.Env());
+    
+    // texture
+    std::string image_path = info[1].ToString();
+    texture_.LoadTexture(image_path.c_str());
+
+    // meta data
+    meta_.clear();
+
+    auto&& js_meta = info[0].ToObject();
+    auto&& js_chars = js_meta.Get("characters").ToObject();
+    auto&& js_char_keys = js_chars.GetPropertyNames();
+    for (unsigned i = 0; i < js_char_keys.Length(); i++) {
+      auto&& js_char_key = js_char_keys.Get(i);
+      std::string k = js_char_key.ToString();
+      // e.g. "0":{"x":135,"y":35,"width":20,"height":28,"originX":1,"originY":25,"advance":18},
+      auto&& js_char_value = js_chars.Get(js_char_key).ToObject();
+
+      std::string key = js_char_key.ToString();
+
+      meta_.insert({key, {
+        .pos {
+          js_char_value.Get("x").ToNumber().Int32Value(),
+          js_char_value.Get("y").ToNumber().Int32Value()
+        },
+        .size {
+          js_char_value.Get("width").ToNumber().Int32Value(),
+          js_char_value.Get("height").ToNumber().Int32Value()
+        },
+        .origin {
+          js_char_value.Get("originX").ToNumber().Int32Value(),
+          js_char_value.Get("originY").ToNumber().Int32Value()
+        },
+        .advance = js_char_value.Get("advance").ToNumber().Int32Value(),
+      }});
+    }
+  }
+
+
+
+  /////////////////////////////////////////////////////////////////////////////
+  // TextRenderer /////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////
+  
+  JS_DEF_WRAP(TextRenderer)
+
+  void TextRenderer::JSCall_write(JSCbi info) {
+    std::string text = info[0].ToString();
+
+    glDeleteVertexArrays(1, &vao_);
+    glDeleteBuffers(1, &vbo_);
+
+    glGenVertexArrays(1, &vao_);
+    glBindVertexArray(vao_);
+
+    glGenBuffers(1, &vbo_);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo_);
+
+    std::vector<GLfloat> v;
+    v.reserve(text.length() * 12 * 2);
+    glm::ivec2 offset(10, 10);
+    glm::ivec2 pos(0, 0);
+    auto&& size = js_FontLoader->GetTexture().GetSize();
+    
+    for (char c : text) {
+      if (c == '\n') {
+        pos.x = 0;
+        pos.y += 50; // TODO(daaitch): size + spacer
+        continue;
+      }
+
+      std::string s(&c, 1);
+      auto&& meta = js_FontLoader->Get(s);
+      if (!meta) {
+        continue;
+      }
+
+      auto&& value = meta.value();
+
+      glm::ivec2 v0 = glm::ivec2(pos.x - value.origin.x, pos.y - value.size.y + value.origin.y) + offset;
+      glm::ivec2 v1 = v0 + value.size;
+      
+      glm::vec2 uv0(float(value.pos.x) / size.x, 1.f - float(-value.pos.y - value.size.y) / size.y);
+      glm::vec2 uv1 = uv0 + glm::vec2(float(value.size.x) / size.x, float(-value.size.y) / size.y);
+
+      v.push_back(v0.x);
+      v.push_back(v0.y);
+      v.push_back(uv0.x);
+      v.push_back(uv0.y);
+
+      v.push_back(v0.x);
+      v.push_back(v1.y);
+      v.push_back(uv0.x);
+      v.push_back(uv1.y);
+
+      v.push_back(v1.x);
+      v.push_back(v1.y);
+      v.push_back(uv1.x);
+      v.push_back(uv1.y);
+
+      v.push_back(v0.x);
+      v.push_back(v0.y);
+      v.push_back(uv0.x);
+      v.push_back(uv0.y);
+
+      v.push_back(v1.x);
+      v.push_back(v1.y);
+      v.push_back(uv1.x);
+      v.push_back(uv1.y);
+
+      v.push_back(v1.x);
+      v.push_back(v0.y);
+      v.push_back(uv1.x);
+      v.push_back(uv0.y);
+
+      pos.x += value.advance;
+      count_ += 6;
+    }
+    
+    glBufferData(GL_ARRAY_BUFFER, v.size() * sizeof(decltype(v)::value_type), v.data(), GL_DYNAMIC_DRAW);
+
+    constexpr GLsizei stride = (2 + 2) * sizeof(GLfloat);
+
+    // position
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, stride, (void*)(0 * sizeof(GLfloat)));
+    glEnableVertexAttribArray(0);
+    
+    // uv
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, stride, (void*)(2 * sizeof(GLfloat)));
+    glEnableVertexAttribArray(1);
+
+    glBindVertexArray(0);
+    CHECK_GL();
+  }
+
+  void TextRenderer::InitializeProgram() {
+    CHECK_GL();
+    gl::Uniform texture {"u_texture"};
+    *js_Program >> texture >> uniforms_.proj;
+
+    texture.Update(0);
+  }
+
+  void TextRenderer::Render() {
+    if (vao_ > 0) {
+      CHECK_GL();
+      js_FontLoader->GetTexture().ActiveAndBind(GL_TEXTURE0);
+
+      uniforms_.proj.Update(proj_);
+
+      glBindVertexArray(vao_);
+      glDrawArrays(GL_TRIANGLES, 0, count_);
+    }
+  }
 }

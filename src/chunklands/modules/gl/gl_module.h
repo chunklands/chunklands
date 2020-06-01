@@ -89,10 +89,15 @@ namespace chunklands::modules::gl {
 
   public:
     void LoadTexture(const char *filename);
-    void ActiveAndBind(GLenum texture);
+    void ActiveAndBind(GLenum texture) const;
+
+    const glm::ivec2& GetSize() const {
+      return size_;
+    }
   
   private:
     GLuint texture_ = 0;
+    glm::ivec2 size_;
   };
 
   class TextureLoader {
@@ -129,6 +134,11 @@ namespace chunklands::modules::gl {
     void Update(const glm::vec3& value) {
       CC_ASSERT(location_ != -1);
       glUniform3fv(location_, 1, glm::value_ptr(value));
+    }
+
+    void Update(const glm::mat4& value) {
+      CC_ASSERT(location_ != -1);
+      glUniformMatrix4fv(location_, 1, GL_FALSE, glm::value_ptr(value));
     }
 
     void FetchLocation(const ProgramBase& program) {

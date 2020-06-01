@@ -3,16 +3,14 @@
   "version": "1.0.0",
   "description": "3D Game in NodeJS/OpenGL",
   "scripts": {
-    "play": "node src/app.js",
-    "preplay": "cross-env CMAKE_BUILD_PARALLEL_LEVEL=8 cmake-js build",
-    "start": "concurrently --handle-input --kill-others-on-fail --names \"native,app\" -c \"bgBlue.bold,bgCyan.bold\" \"npm run _native:dev\" \"npm run _app:dev\"",
+    "start": "node src/app.js",
+    "dev": "nodemon --watch src --ext h,cc --exec \"npm run dev:build\"",
+    "dev:build": "cross-env CMAKE_BUILD_PARALLEL_LEVEL=8 cmake-js build --debug",
     "clean": "cmake-js clean",
-    "_build:dev": "cross-env CMAKE_BUILD_PARALLEL_LEVEL=8 cmake-js build --debug",
-    "_native:dev": "nodemon --watch src -e h,cc --exec \"npm run _build:dev\"",
-    "_app:dev": "nodemon --delay 3 --watch src --watch build/Debug --watch resource -e js,node,glsl --exec \"node src/app.js\"",
-    "debug": "gdb -ex=r --args node src/app.js",
     "test": "tap src/**/*.test.js",
-    "pretest": "npm run _build:dev"
+    "pretest": "npm run dev:build",
+    "play": "node src/app.js",
+    "preplay": "cross-env CMAKE_BUILD_PARALLEL_LEVEL=8 cmake-js build"
   },
   "keywords": [
     "game",

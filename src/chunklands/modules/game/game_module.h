@@ -211,6 +211,7 @@ namespace chunklands::modules::game {
       JS_SETTER(SSAOBlurPass),
       JS_SETTER(LightingPass),
       JS_SETTER(SkyboxPass),
+      JS_SETTER(TextRenderer),
       JS_SETTER(Skybox),
       JS_SETTER(Camera),
       JS_ABSTRACT_WRAP(engine::IScene, IScene),
@@ -226,6 +227,7 @@ namespace chunklands::modules::game {
     JS_IMPL_SETTER_WRAP(engine::SSAOBlurPass, SSAOBlurPass)
     JS_IMPL_SETTER_WRAP(engine::LightingPass, LightingPass)
     JS_IMPL_SETTER_WRAP(engine::SkyboxPass, SkyboxPass)
+    JS_IMPL_SETTER_WRAP(engine::TextRenderer, TextRenderer)
     JS_IMPL_SETTER_WRAP(engine::Skybox, Skybox)
     JS_IMPL_SETTER_WRAP(engine::Camera, Camera)
     JS_IMPL_ABSTRACT_WRAP(engine::IScene, IScene)
@@ -267,7 +269,8 @@ namespace chunklands::modules::game {
             render_ssao_query_ = 0,
             render_ssaoblur_query_ = 0,
             render_lighting_query_ = 0,
-            render_skybox_query_ = 0;
+            render_skybox_query_ = 0,
+            render_text_query_ = 0;
   };
 }
 
