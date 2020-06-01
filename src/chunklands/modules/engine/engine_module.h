@@ -554,6 +554,7 @@ namespace chunklands::modules::engine {
     }
 
     void UpdateBufferSize(int width, int height) override {
+      height_ = height;
       proj_ = glm::ortho(0.f, float(width), 0.f, float(height));
     }
 
@@ -566,9 +567,12 @@ namespace chunklands::modules::engine {
     GLsizei count_ = 0;
 
     glm::mat4 proj_;
+
     struct {
       gl::Uniform proj{"u_proj"};
     } uniforms_;
+
+    int height_ = 0;
   };
 
 }

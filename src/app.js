@@ -1,4 +1,4 @@
-const { engine: { Environment, createWindow }, misc: { Profiler } } = require('./chunklands');
+const { engine: { Environment, createWindow } } = require('./chunklands');
 const Game = require('./game/Game');
 
 Environment.initialize();
@@ -16,21 +16,11 @@ Environment.loadProcs();
 
 const game = new Game(window);
 
-let profilerInterval;
-
 (async () => {
   await game.initialize();
-
-  const profiler = new Profiler();
-
-  profilerInterval = setInterval(() => {
-    console.log(profiler.getMetrics());
-  }, 1000);
-
   await game.run();
 })()
   .finally(() => {
-    clearInterval(profilerInterval);
     window.close()
     Environment.terminate();
   })

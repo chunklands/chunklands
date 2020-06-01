@@ -728,16 +728,18 @@ namespace chunklands::modules::engine {
     glGenBuffers(1, &vbo_);
     glBindBuffer(GL_ARRAY_BUFFER, vbo_);
 
+    const int LINE_HEIGHT = 32;
+
     std::vector<GLfloat> v;
     v.reserve(text.length() * 12 * 2);
-    glm::ivec2 offset(10, 10);
-    glm::ivec2 pos(0, 0);
+    glm::ivec2 offset(10, -10);
+    glm::ivec2 pos(0, height_ - LINE_HEIGHT);
     auto&& size = js_FontLoader->GetTexture().GetSize();
     
     for (char c : text) {
       if (c == '\n') {
         pos.x = 0;
-        pos.y += 50; // TODO(daaitch): size + spacer
+        pos.y -= LINE_HEIGHT; // TODO(daaitch): size + spacer
         continue;
       }
 

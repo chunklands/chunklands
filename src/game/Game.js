@@ -23,6 +23,9 @@ const {
   },
   gl: {
     Program
+  },
+  misc: {
+    Profiler
   }
 } = require('../chunklands');
 const SimpleWorldGen = require('./world/SimpleWorldGen')
@@ -129,10 +132,6 @@ module.exports = class Game {
     // TODO(daaitch): add preparation phase: this has to be at the end to update buffers
     scene.setWindow(this._window);
 
-
-    textRenderer.write('Chunklands v1.0');
-
-
     // gameloop
 
     const gameLoop = new GameLoop();
@@ -140,6 +139,7 @@ module.exports = class Game {
 
     this._scene = scene;
     this._gameLoop = gameLoop;
+    this._textRenderer = textRenderer;
   }
 
   async run() {
@@ -148,6 +148,14 @@ module.exports = class Game {
         this._scene.setFlightMode(!this._scene.getFlightMode());
       }
     });
+
+    const profiler = new Profiler();
+
+    setInterval(() => {
+      const metrics = profiler.getMetrics();
+      this._textRenderer.write(`${(1000000 / metrics['gameloop_loop']).toFixed(1)} fps`);
+      console.log(metrics);
+    }, 1000);
 
     return await new Promise((resolve, reject) => {
       this._gameLoop.start();
