@@ -12,10 +12,17 @@ const {
   'block.dirt': BLOCK_DIRT,
   'block.air': BLOCK_AIR,
   'block.water': BLOCK_WATER,
-  'block.sand': BLOCK_SAND
+  'block.sand': BLOCK_SAND,
+  'block.monkey': BLOCK_MONKEY,
 } = workerData;
 
-if (BLOCK_STONE === undefined || BLOCK_GRASS === undefined || BLOCK_DIRT === undefined || BLOCK_AIR === undefined || BLOCK_WATER === undefined) {
+if (BLOCK_STONE === undefined
+  || BLOCK_GRASS === undefined
+  || BLOCK_DIRT === undefined
+  || BLOCK_AIR === undefined
+  || BLOCK_WATER === undefined
+  || BLOCK_MONKEY === undefined
+) {
   throw new TypeError(`bad workerData: ${JSON.stringify(workerData)}`);
 }
 
@@ -114,7 +121,11 @@ function generateChunk(x, y, z, chunkDim) {
         const coordZ = chunkOffsetZ + lz;
 
         // TODO(daaitch): optimize loops
-        chunk[i] = blockInfo.blockFn(coordX, coordY, coordZ);
+        if (coordX === 0 && coordY === 10 && coordZ === -4) {
+          chunk[i] = BLOCK_MONKEY;
+        } else {
+          chunk[i] = blockInfo.blockFn(coordX, coordY, coordZ);
+        }
 
         i++;
       }

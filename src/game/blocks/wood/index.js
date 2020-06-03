@@ -1,5 +1,5 @@
 
-module.exports = {
+module.exports = () => ({
   id: 'block.wood',
   vertexData: {
     // VERTEX1        NORMAL1          UV1        VERTEX2         NORMAL2          UV2        VERTEX3         NORMAL3          UV3
@@ -30,4 +30,4 @@ module.exports = {
   },
   opaque: true,
   texture: `${__dirname}/wood.png`
-};
+});

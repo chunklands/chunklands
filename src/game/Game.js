@@ -29,7 +29,7 @@ const {
   }
 } = require('../chunklands');
 const SimpleWorldGen = require('./world/SimpleWorldGen')
-const blocks     = require('./blocks');
+const blockLoader     = require('./blocks');
 
 module.exports = class Game {
   /**
@@ -44,7 +44,7 @@ module.exports = class Game {
 
 
     // blocks
-
+    const blocks = await blockLoader();
     const blockRegistrar = new BlockRegistrar();
     for (const block of blocks) {
       blockRegistrar.addBlock(block);
@@ -196,7 +196,6 @@ async function createFontLoader(name) {
   const fontLoader = new FontLoader();
   const basePath = `${__dirname}/fonts/${name}`
   const json = JSON.parse(await promisify(fs.readFile)(`${basePath}.json`));
-  console.log({json});
   fontLoader.load(json, `${basePath}.png`);
   return fontLoader;
 }
