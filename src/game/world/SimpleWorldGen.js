@@ -38,6 +38,9 @@ module.exports = class SimpleWorldGen {
      * @param {ArrayBuffer} buffer 
      */
     function handleMessage(buffer) {
+      if (buffer.byteLength === 0) {
+        throw new Error(`no buffer for: ${x} ${y} ${z}`);
+      }
       callback(null, new Int32Array(buffer));
       recvPort.close();
     }

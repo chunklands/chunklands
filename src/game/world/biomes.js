@@ -41,7 +41,7 @@ class BiomeGenerator {
         }
 
         nearestPoints[i]    = nearestPoint;
-        nearestDistances[i] = nearestDistance
+        nearestDistances[i] = nearestDistance;
         i++;
       }
     }
