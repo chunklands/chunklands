@@ -5,7 +5,7 @@
  * Make sure to inspect the output below.  Do not ignore changes!
  */
 'use strict'
-exports[`src/chunklands/modules/game/biomes.test.js TAP BiomeGenerator #1 > must match snapshot 1`] = `
+exports[`src/game/world/biomes.test.js TAP BiomeGenerator #1 > must match snapshot 1`] = `
 Object {
   "nearestDistances": Array [
     0,
@@ -148,7 +148,7 @@ Object {
 }
 `
 
-exports[`src/chunklands/modules/game/biomes.test.js TAP BiomeGenerator #2 > must match snapshot 1`] = `
+exports[`src/game/world/biomes.test.js TAP BiomeGenerator #2 > must match snapshot 1`] = `
 Object {
   "nearestDistances": Array [
     1.4142135623730951,
@@ -363,7 +363,7 @@ Object {
 }
 `
 
-exports[`src/chunklands/modules/game/biomes.test.js TAP touchingChunkCoordsWithinDistance > must match snapshot 1`] = `
+exports[`src/game/world/biomes.test.js TAP touchingChunkCoordsWithinDistance > must match snapshot 1`] = `
 Array [
   Array [
     -3,

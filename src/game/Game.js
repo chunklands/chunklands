@@ -112,7 +112,7 @@ module.exports = class Game {
 
     // camera
     const camera = new Camera();
-    camera.setPosition(0, 10, 0);
+    camera.setPosition(0, 30, 0);
     scene.setCamera(camera);
 
 

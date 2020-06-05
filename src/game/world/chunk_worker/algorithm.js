@@ -1,7 +1,8 @@
 
 const noise = require('../../noise');
+noise.seed(9489032840928);
 
-function createPerlinNoise({f0 = 128, lacunarity, persistence, octaves, amplitude}) {
+function createSimplexNoise({f0 = 128, lacunarity, persistence, octaves}) {
   return (x, y) => {
     let sample = 0;
 
@@ -10,14 +11,15 @@ function createPerlinNoise({f0 = 128, lacunarity, persistence, octaves, amplitud
     let Asum = 0;
 
     for (let i = 0; i < octaves; i++) {
-      sample += A * noise.perlin2(x / f, y / f);
+      sample += A * noise.simplex2(x / f, y / f);
+      Asum += A;
 
       f *= lacunarity;
-      Asum += A;
       A *= persistence;
     }
 
-    return sample / Asum * amplitude;
+    // normalize
+    return (1 + sample / Asum) / 2;
   };
 }
 
@@ -41,6 +43,6 @@ function createSegregator(ranges) {
 }
 
 module.exports = {
-  createPerlinNoise,
+  createSimplexNoise,
   createSegregator
 };
