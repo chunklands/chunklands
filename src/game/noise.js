@@ -307,18 +307,18 @@ function perlin3(x, y, z) {
 };
 
 const PRNG_OFF = 1 / Math.PI;
-const PRNG_MUL = 1 / Math.E / Math.E;
+const PRNG_MUL = 1 / Math.E / Math.E / Math.E / Math.E / Math.E;
 
 module.exports = {
   perlin2,
   perlin3,
-  simplex2, 
-  simplex3, 
+  simplex2,
+  simplex3,
   seed,
   prng2(x, y, seedOff = PRNG_OFF, seedMul = PRNG_MUL) {
-    return (1 + perlin2(seedOff + x / seedMul, seedOff + y / seedMul)) / 2
+    return (1 + perlin2(seedOff + x * seedMul, seedOff + y * seedMul)) / 2
   },
   prng3(x, y, z, seedOff = PRNG_OFF, seedMul = PRNG_MUL) {
-    return (1 + perlin3(seedOff + x / seedMul, seedOff + y / seedMul, seedOff + z / seedMul)) / 2
+    return (1 + perlin3(seedOff + x * seedMul, seedOff + y * seedMul, seedOff + z * seedMul)) / 2
   }
 };

@@ -151,7 +151,7 @@ namespace chunklands::modules::game {
   namespace detail {
     struct loaded_chunks_data {
       std::shared_ptr<Chunk> chunk;
-      JSObjectRef js_chunk_data;
+      JSRef<JSInt32Array> js_chunk_data;
     };
   }
 

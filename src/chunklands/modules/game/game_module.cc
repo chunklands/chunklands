@@ -235,7 +235,7 @@ namespace chunklands::modules::game {
   JS_DEF_WRAP(ChunkGenerator)
 
   struct generate_model_callback_data {
-    ChunkGenerator *generator;
+    JSWrapRef<ChunkGenerator> js_generator;
     std::shared_ptr<Chunk> chunk;
     misc::prof profiler;
   };
@@ -251,40 +251,47 @@ namespace chunklands::modules::game {
       JSHandleScope scope(env);
 
       chunk->state_ = kModelIsPreparing;
+
+      std::unique_ptr<generate_model_callback_data> data(new generate_model_callback_data{
+        .js_generator {*this},
+        .chunk = chunk,
+        .profiler = PROF_MOVE()
+      });
+
+      auto&& js_callback = JSFunction::New(
+        env, [](JSCbi info) {
+          auto&& data = reinterpret_cast<generate_model_callback_data *>(info.Data());
+          
+          auto&& js_err = info[0];
+          auto&& js_chunk = info[1];
+
+          if (!js_err.IsUndefined() && !js_err.IsNull()) {
+            throw js_err.As<JSError>();
+            return;
+          }
+
+          assert(js_chunk.IsTypedArray());
+          auto&& js_chunk_arr = js_chunk.As<JSInt32Array>();
+          assert(js_chunk_arr.ElementLength() == Chunk::BLOCK_COUNT);
+          data->js_generator->loaded_chunks_.push({
+            .chunk = data->chunk,
+            .js_chunk_data = Napi::Persistent(js_chunk_arr)
+          });
+        },
+        "generateChunkCallback",
+        data.get()
+      );
+
+      js_callback.AddFinalizer([](JSEnv, generate_model_callback_data *data) {
+        delete data;
+      }, data.release());
       
       js_WorldGenerator.Get("generateChunk").As<JSFunction>().Call(js_WorldGenerator.Value(), {
         JSNumber::New(env, pos.x),
         JSNumber::New(env, pos.y),
         JSNumber::New(env, pos.z),
         JSNumber::New(env, Chunk::SIZE),
-        JSFunction::New(env, [](JSCbi info) {
-            std::unique_ptr<generate_model_callback_data> data(static_cast<generate_model_callback_data *>(info.Data()));
-            
-            auto&& js_err = info[0];
-            auto&& js_chunk = info[1];
-
-            if (!js_err.IsUndefined() && !js_err.IsNull()) {
-              js_err.As<JSError>().ThrowAsJavaScriptException();
-              return;
-            }
-
-            assert(js_chunk.IsArray());
-            auto&& js_chunk_arr = js_chunk.As<JSArray>();
-
-            assert(js_chunk_arr.Length() == Chunk::BLOCK_COUNT);
-            data->generator->loaded_chunks_.push({
-              .chunk = data->chunk,
-              .js_chunk_data = Napi::Persistent(js_chunk_arr.ToObject())
-            });
-
-          },
-          "generateChunkCb",
-          new generate_model_callback_data{
-            .generator = this,
-            .chunk = chunk,
-            .profiler = PROF_MOVE()
-          }
-        )
+        js_callback
       });
     }
   }
@@ -297,13 +304,11 @@ namespace chunklands::modules::game {
     DURATION_METRIC("chunkgenerator_process_next_model");
 
     auto&& item = loaded_chunks_.front();
+    auto&& data = item.js_chunk_data.Value().Data();
 
     int i = 0;
     item.chunk->ForEachBlock([&](Chunk::BlockType& block_type, int, int, int) {
-      auto&& block_id = item.js_chunk_data.Get(i);
-      assert(block_id.IsNumber());
-
-      block_type = js_BlockRegistrar->GetByIndex(block_id.ToNumber().Int32Value());
+      block_type = js_BlockRegistrar->GetByIndex(data[i]);
       i++;
     });
 

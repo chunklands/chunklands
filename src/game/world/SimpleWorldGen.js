@@ -2,12 +2,15 @@ const { MessageChannel, Worker } = require('worker_threads');
 
 module.exports = class SimpleWorldGen {
   /**
-   * @param {number[]} blockIds 
+   * @param {number[]} blocks 
    */
-  constructor(blockIds) {
+  constructor(blocks) {
 
     this._worker = new Worker(`${__dirname}/chunk_worker/index.js`, {
-      workerData: blockIds
+      workerData: {
+        blocks,
+        chunkDim: 16 // TODO(daaitch): magic number
+      }
     });
 
     this._worker.on('error', err => {
@@ -20,14 +23,24 @@ module.exports = class SimpleWorldGen {
     })
   }
 
-  generateChunk(x, y, z, chunkDim, cb) {
+  /**
+   * @param {number} x 
+   * @param {number} y 
+   * @param {number} z 
+   * @param {(err: Error, buf: Int32Array) => void} callback
+   */
+  generateChunk(x, y, z, chunkDim, callback) {
     const { port1: sendPort, port2: recvPort } = new MessageChannel();
     this._worker.postMessage({x, y, z, chunkDim, sendPort}, [sendPort])
+    recvPort.once('message', handleMessage);
 
-    recvPort.once('message', chunk => {
-      cb(null, chunk);
+    /**
+     * @param {ArrayBuffer} buffer 
+     */
+    function handleMessage(buffer) {
+      callback(null, new Int32Array(buffer));
       recvPort.close();
-    });
+    }
   }
 
 }

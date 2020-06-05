@@ -88,13 +88,18 @@ namespace chunklands {
   template<class BASE>
   using JSObjectWrap  = Napi::ObjectWrap<BASE>;
   using JSObjectRef   = Napi::ObjectReference;
-  using JSCbi         = const Napi::CallbackInfo&;
   using JSValue       = Napi::Value;
+  template<class T>
+  using JSRef         = Napi::Reference<T>;
+  using JSValueRef    = JSRef<JSValue>;
+  using JSCbi         = const Napi::CallbackInfo&;
   using JSObject      = Napi::Object;
   using JSEnv         = Napi::Env;
   using JSBoolean     = Napi::Boolean;
   using JSNumber      = Napi::Number;
   using JSArray       = Napi::Array;
+  using JSArrayBuffer = Napi::ArrayBuffer;
+  using JSInt32Array  = Napi::Int32Array;
   using JSString      = Napi::String;
   using JSHandleScope = Napi::HandleScope;
   using JSFunction    = Napi::Function;
@@ -102,13 +107,16 @@ namespace chunklands {
   using JSSymbol      = Napi::Symbol;
   template<class T>
   using JSExternal    = Napi::External<T>;
-  template<class T>
-  using JSRef         = Napi::Reference<T>;
+  
 
   template <typename T>
   class JSWrapRef {
   public:
     JSWrapRef() {}
+
+    JSWrapRef(JSObjectWrap<T>& wrap) {
+      (*this) = wrap.Value();
+    }
 
     JSWrapRef(JSObject object) {
       (*this) = object;
