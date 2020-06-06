@@ -13,6 +13,7 @@ function create(chunkDim, blocks) {
   const {
     'block.air': BLOCK_AIR,
     'block.grass': BLOCK_GRASS,
+    'block.dirt': BLOCK_DIRT,
     'block.water': BLOCK_WATER,
     'block.wood': BLOCK_WOOD,
     'block.monkey': BLOCK_MONKEY
@@ -21,6 +22,7 @@ function create(chunkDim, blocks) {
   const kChunkInitialized = 0;
   const kChunkOceanAndHeightMap = 1;
   const kChunkHeightMapSmoothed = 2;
+  const kChunkBlockFilled = 3;
   const kChunkFinalized = 99;
 
   class Chunk {
@@ -60,6 +62,17 @@ function create(chunkDim, blocks) {
      * @return {Chunk}
      */
     getChunk(x, y, z) {
+      return this._getChunkAdvanced(x, y, z, kChunkFinalized);
+    }
+
+    /**
+     * @param {number} x 
+     * @param {number} y 
+     * @param {number} z 
+     * @param {number} state 
+     * @return {Chunk}
+     */
+    _getChunkAdvanced(x, y, z, state) {
       const chunkKey = genChunkKey(x, y, z);
       let chunk = this._chunks.get(chunkKey);
 
@@ -68,12 +81,11 @@ function create(chunkDim, blocks) {
         this._chunks.set(chunkKey, chunk);
       }
 
-      this._advanceChunkState(chunk, kChunkFinalized);
+      this._advanceChunkState(chunk, state);
       return chunk;
     }
 
     /**
-     * 
      * @param {Chunk} chunk 
      */
     _advanceChunkState(chunk, state) {
@@ -95,6 +107,13 @@ function create(chunkDim, blocks) {
 
       if (chunk.state === kChunkHeightMapSmoothed) {
         this._fillChunkWithBlocks(chunk);
+        chunk.state = kChunkBlockFilled;
+      }
+
+      if (chunk.state === state) return;
+
+      if (chunk.state === kChunkBlockFilled) {
+        this._block(chunk);
         chunk.state = kChunkFinalized;
       }
     }
@@ -262,6 +281,43 @@ function create(chunkDim, blocks) {
             if (distance === 0 && yOffset <= pointY && pointY < yOffset + chunkDim) {
               const y = pointY - yOffset;
               blocks[blockIndex3D(x, y, z)] = BLOCK_WOOD;
+            }
+          }
+        }
+      }
+    }
+
+    /**
+     * @param {Chunk} chunk 
+     */
+    _block(chunk) {
+      const { blocks } = chunk;
+      for (let x = 0; x < chunkDim; x++) {
+        for (let y = 0; y < chunkDim - 1; y++) {
+          for (let z = 0; z < chunkDim; z++) {
+            const blockIndex = blockIndex3D(x, y, z);
+            const block = blocks[blockIndex];
+
+            if (block === BLOCK_GRASS) {
+              if (blocks[blockIndex3D(x, y + 1, z)] !== BLOCK_AIR) {
+                blocks[blockIndex] = BLOCK_DIRT;
+              }
+            }
+          }
+        }
+      }
+
+
+      const topChunk = this._getChunkAdvanced(chunk.x, chunk.y + 1, chunk.z, kChunkBlockFilled);
+      const { blocks: topChunkBlocks } = topChunk;
+      for (let x = 0; x < chunkDim; x++) {
+        for (let z = 0; z < chunkDim; z++) {
+          const blockIndex = blockIndex3D(x, chunkDim - 1, z);
+          const block = blocks[blockIndex];
+
+          if (block === BLOCK_GRASS) {
+            if (topChunkBlocks[blockIndex3D(x, 0, z)] !== BLOCK_AIR) {
+              blocks[blockIndex] = BLOCK_DIRT;
             }
           }
         }
