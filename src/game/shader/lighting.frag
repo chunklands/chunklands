@@ -15,12 +15,11 @@ uniform vec3      u_sun_position;
 const vec3  fog_color         = vec3(.2f, .2f, .2f);
 const float darkness_division = .1f;
 
-const float sun = .9f;
-const float ambient = .6f;
-const float diffuse = sun * (1.f - ambient);
+const float ambient = .7f;
+const float diffuse = .7f;
 
 void luminate(vec3 normal, float occlusion) {
-  vec4 tex_ambient = color * ambient * occlusion * occlusion;
+  vec4 tex_ambient = color * ambient * occlusion * occlusion * occlusion * occlusion;
   vec4 tex_diffuse = color * diffuse * max(dot(normal, u_sun_position), 0.f);
 
   color = tex_ambient + tex_diffuse;

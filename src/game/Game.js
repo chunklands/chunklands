@@ -105,7 +105,7 @@ module.exports = class Game {
     // skybox
     {
       const skybox = new Skybox();
-      skybox.initialize(`${__dirname}/skyboxes/skyboxsun5deg2/`);
+      skybox.initialize(`${__dirname}/skyboxes/skybox_day/`);
       scene.setSkybox(skybox);
     }
 

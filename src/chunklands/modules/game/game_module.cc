@@ -625,7 +625,7 @@ namespace chunklands::modules::game {
 
       js_LightingPass->UpdateRenderDistance(((float)js_World->GetRenderDistance() - 0.5f) * Chunk::SIZE);
 
-      glm::vec3 sun_position = glm::normalize(glm::mat3(js_Camera->GetView()) * glm::vec3(-3, 1, 3));
+      glm::vec3 sun_position = glm::normalize(glm::mat3(js_Camera->GetView()) * glm::vec3(-3, 10, 3));
       js_LightingPass->UpdateSunPosition(sun_position);
       render_quad_.Render();
       js_LightingPass->End();
