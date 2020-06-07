@@ -113,7 +113,7 @@ function create(chunkDim, blocks) {
       if (chunk.state === state) return;
 
       if (chunk.state === kChunkBlockFilled) {
-        this._block(chunk);
+        this._morphBlocks(chunk);
         chunk.state = kChunkFinalized;
       }
     }
@@ -290,7 +290,7 @@ function create(chunkDim, blocks) {
     /**
      * @param {Chunk} chunk 
      */
-    _block(chunk) {
+    _morphBlocks(chunk) {
       const { blocks } = chunk;
       for (let x = 0; x < chunkDim; x++) {
         for (let y = 0; y < chunkDim - 1; y++) {
