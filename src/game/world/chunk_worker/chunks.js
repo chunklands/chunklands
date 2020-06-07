@@ -3,12 +3,14 @@ const ocean = require('./ocean');
 const biomes = require('./biomes');
 const math = require('./math');
 const noise = require('../../noise');
+const multiblocks = require('./multiblocks')
 
 function create(chunkDim, blocks) {
 
   const { blockIndex2D, blockIndex3D, centerChunkPos } = math(chunkDim);
   const { generateOceanMapForChunk } = ocean(chunkDim);
   const { biomeGenerator } = biomes(chunkDim);
+  const { tree, house, MultiBlockRef } = multiblocks(chunkDim, blocks);
 
   const {
     'block.air': BLOCK_AIR,
@@ -22,7 +24,9 @@ function create(chunkDim, blocks) {
   const kChunkInitialized = 0;
   const kChunkOceanAndHeightMap = 1;
   const kChunkHeightMapSmoothed = 2;
-  const kChunkBlockFilled = 3;
+  const kChunkMultiblocksGenerated = 3;
+  const kChunkBlockFilled = 4;
+  const kChunkMultiblocks = 5;
   const kChunkFinalized = 99;
 
   class Chunk {
@@ -36,6 +40,7 @@ function create(chunkDim, blocks) {
       this.blocks.fill(BLOCK_AIR);
 
       this.state = kChunkInitialized;
+      this.multiblockRefs = [];
     }
   }
 
@@ -106,6 +111,13 @@ function create(chunkDim, blocks) {
       if (chunk.state === state) return;
 
       if (chunk.state === kChunkHeightMapSmoothed) {
+        this._generateMultiblocks(chunk);
+        chunk.state = kChunkMultiblocksGenerated;
+      }
+
+      if (chunk.state === state) return;
+
+      if (chunk.state === kChunkMultiblocksGenerated) {
         this._fillChunkWithBlocks(chunk);
         chunk.state = kChunkBlockFilled;
       }
@@ -114,6 +126,13 @@ function create(chunkDim, blocks) {
 
       if (chunk.state === kChunkBlockFilled) {
         this._morphBlocks(chunk);
+        chunk.state = kChunkMultiblocks;
+      }
+
+      if (chunk.state === state) return;
+
+      if (chunk.state === kChunkMultiblocks) {
+        this._applyMultiblocks(chunk);
         chunk.state = kChunkFinalized;
       }
     }
@@ -237,10 +256,32 @@ function create(chunkDim, blocks) {
     /**
      * @param {Chunk} chunk 
      */
+    _generateMultiblocks(chunk) {
+      const coordX = chunk.x * chunkDim;
+      const coordY = chunk.y * chunkDim;
+      const coordZ = chunk.z * chunkDim;
+
+      // const f = 100;
+      // const noiseValue = noise.simplex3(coordX / f, coordY / f, coordZ / f);
+      // if (noiseValue)
+
+      if (chunk.x === 0 && chunk.y === 0 && chunk.z === 0) {
+        chunk.multiblockRefs.push(new MultiBlockRef(tree, coordX + 5, coordY, coordZ + 5));
+      } else
+
+      if (chunk.x === -5 && chunk.y === 1 && chunk.z === 0) {
+        chunk.multiblockRefs.push(new MultiBlockRef(house, coordX + 2, coordY, coordZ + 2));
+        // TODO(daaitch): there is still a bug at multi blocks at chunk borders
+      }
+    }
+
+    /**
+     * @param {Chunk} chunk 
+     */
     _fillChunkWithBlocks(chunk) {
-      const xOffset = chunk.y * chunkDim;
+      const xOffset = chunk.x * chunkDim;
       const yOffset = chunk.y * chunkDim;
-      const zOffset = chunk.y * chunkDim;
+      const zOffset = chunk.z * chunkDim;
 
       const mapInfoKey = genMapInfoKey(chunk.x, chunk.z);
       const mapInfo = this._mapInfo.get(mapInfoKey);
@@ -269,9 +310,9 @@ function create(chunkDim, blocks) {
     
             for (let y = 0; y < Math.min(height - yOffset, chunkDim); y++) {
               const coordY = y + yOffset;
-              const f = 23.1;
+              const f = 80;
               const caveNoiseValue = (1 + noise.simplex3(coordX / f, coordY / f, coordZ / f)) / 2;
-              if (caveNoiseValue > 0.2) {
+              if (caveNoiseValue * caveNoiseValue < 0.8) {
                 const blockIndex = blockIndex3D(x, y, z);
                 blocks[blockIndex] = BLOCK_GRASS;
               }
@@ -318,6 +359,36 @@ function create(chunkDim, blocks) {
           if (block === BLOCK_GRASS) {
             if (topChunkBlocks[blockIndex3D(x, 0, z)] !== BLOCK_AIR) {
               blocks[blockIndex] = BLOCK_DIRT;
+            }
+          }
+        }
+      }
+    }
+
+    /**
+     * @param {Chunk} chunk 
+     */
+    _applyMultiblocks(chunk) {
+      const coordX = chunk.x * chunkDim;
+      const coordY = chunk.y * chunkDim;
+      const coordZ = chunk.z * chunkDim;
+
+      for (let i = 0; i < chunk.multiblockRefs.length; i++) {
+        const multiblockRef = chunk.multiblockRefs[i];
+        const { multiblock } = multiblockRef;
+
+        const minX = Math.max(0,        multiblockRef.x - coordX);
+        const maxX = Math.min(chunkDim, multiblockRef.x - coordX + multiblock.sx);
+        const minY = Math.max(0,        multiblockRef.y - coordY);
+        const maxY = Math.min(chunkDim, multiblockRef.y - coordY + multiblock.sy);
+        const minZ = Math.max(0,        multiblockRef.z - coordZ);
+        const maxZ = Math.min(chunkDim, multiblockRef.z - coordZ + multiblock.sz);
+
+        for (let x = minX, mbX = 0; x < maxX; x++, mbX++) {
+          for (let y = minY, mbY = 0; y < maxY; y++, mbY++) {
+            for (let z = minZ, mbZ = 0; z < maxZ; z++, mbZ++) {
+              const blockIndex = blockIndex3D(x, y, z);
+              chunk.blocks[blockIndex] = multiblock.blockAt(mbX, mbY, mbZ);
             }
           }
         }
