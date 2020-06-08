@@ -54,6 +54,9 @@ function create(chunkDim, blocks) {
   const SMOOTH_KERNEL_SIZE = 2;
   assert(SMOOTH_KERNEL.length === (2*SMOOTH_KERNEL_SIZE + 1) ** 2)
 
+  const houseRef = new MultiBlockRef(house, -80, 15, 2);
+  const treeRef = new MultiBlockRef(tree, -78, 15, 10);
+
   class ChunkLoader {
     constructor() {
       this._chunks = new Map();
@@ -257,22 +260,22 @@ function create(chunkDim, blocks) {
      * @param {Chunk} chunk 
      */
     _generateMultiblocks(chunk) {
-      const coordX = chunk.x * chunkDim;
-      const coordY = chunk.y * chunkDim;
-      const coordZ = chunk.z * chunkDim;
 
-      // const f = 100;
-      // const noiseValue = noise.simplex3(coordX / f, coordY / f, coordZ / f);
-      // if (noiseValue)
-
-      if (chunk.x === 0 && chunk.y === 0 && chunk.z === 0) {
-        chunk.multiblockRefs.push(new MultiBlockRef(tree, coordX + 5, coordY, coordZ + 5));
-      } else
-
-      if (chunk.x === -5 && chunk.y === 1 && chunk.z === 0) {
-        chunk.multiblockRefs.push(new MultiBlockRef(house, coordX + 2, coordY, coordZ + 2));
-        // TODO(daaitch): there is still a bug at multi blocks at chunk borders
+      if (treeRef.touchesChunk(chunk.x, chunk.y, chunk.z)) {
+        chunk.multiblockRefs.push(treeRef);
       }
+
+      if (houseRef.touchesChunk(chunk.x, chunk.y, chunk.z)) {
+        chunk.multiblockRefs.push(houseRef);
+      }
+
+      // if (chunk.x === 0 && chunk.y === 0 && chunk.z === 0) {
+      //   chunk.multiblockRefs.push(treeRef);
+      // } else if (chunk.x === -5 && chunk.y === 1 && chunk.z === 0) {
+      //   chunk.multiblockRefs.push(houseRef);
+      // } else if (chunk.x === -5 && chunk.y === 0 && chunk.z === 0) {
+      //   chunk.multiblockRefs.push(houseRef);
+      // }
     }
 
     /**
@@ -377,16 +380,20 @@ function create(chunkDim, blocks) {
         const multiblockRef = chunk.multiblockRefs[i];
         const { multiblock } = multiblockRef;
 
-        const minX = Math.max(0,        multiblockRef.x - coordX);
-        const maxX = Math.min(chunkDim, multiblockRef.x - coordX + multiblock.sx);
-        const minY = Math.max(0,        multiblockRef.y - coordY);
-        const maxY = Math.min(chunkDim, multiblockRef.y - coordY + multiblock.sy);
-        const minZ = Math.max(0,        multiblockRef.z - coordZ);
-        const maxZ = Math.min(chunkDim, multiblockRef.z - coordZ + multiblock.sz);
+        const mbXOffset = multiblockRef.x - coordX;
+        const mbYOffset = multiblockRef.y - coordY;
+        const mbZOffset = multiblockRef.z - coordZ;
 
-        for (let x = minX, mbX = 0; x < maxX; x++, mbX++) {
-          for (let y = minY, mbY = 0; y < maxY; y++, mbY++) {
-            for (let z = minZ, mbZ = 0; z < maxZ; z++, mbZ++) {
+        const minX = Math.max(0,        mbXOffset);
+        const maxX = Math.min(chunkDim, mbXOffset + multiblock.sx);
+        const minY = Math.max(0,        mbYOffset);
+        const maxY = Math.min(chunkDim, mbYOffset + multiblock.sy);
+        const minZ = Math.max(0,        mbZOffset);
+        const maxZ = Math.min(chunkDim, mbZOffset + multiblock.sz);
+
+        for (let x = minX, mbX = minX - mbXOffset; x < maxX; x++, mbX++) {
+          for (let y = minY, mbY = minY - mbYOffset; y < maxY; y++, mbY++) {
+            for (let z = minZ, mbZ = minZ - mbZOffset; z < maxZ; z++, mbZ++) {
               const blockIndex = blockIndex3D(x, y, z);
               chunk.blocks[blockIndex] = multiblock.blockAt(mbX, mbY, mbZ);
             }

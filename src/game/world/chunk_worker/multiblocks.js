@@ -140,8 +140,6 @@ function create(chunkDim, blocks) {
       this.x = x;
       this.y = y;
       this.z = z;
-
-      this.refcount = this.multiblock.blocks.length;
     }
 
     touchesChunk(chunkX, chunkY, chunkZ) {
