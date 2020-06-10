@@ -40,6 +40,9 @@ export declare class Window {
   shouldClose(): boolean
   close(): void
 
+  getGameControl(): boolean
+  setGameControl(gameControl: boolean): void
+
   events: EventEmitter
 }
 

@@ -432,7 +432,7 @@ namespace chunklands::modules::game {
 
 
   /////////////////////////////////////////////////////////////////////////////
-  // World ////////////////////////////////////////////////////////////////////
+  // Scene ////////////////////////////////////////////////////////////////////
   /////////////////////////////////////////////////////////////////////////////
 
   JS_DEF_WRAP(Scene)
@@ -445,13 +445,9 @@ namespace chunklands::modules::game {
       UpdateViewport(width, height);
     });
 
-    window_on_cursor_move_conn_ = js_Window->on_cursor_move.connect([this](double xpos, double ypos) {
-      glm::ivec2 current_cursor_pos(xpos, ypos);
-      glm::ivec2 cursor_diff = last_cursor_pos_ - current_cursor_pos;
-      last_cursor_pos_ = current_cursor_pos;
-
-      const float yaw_rad   = .002f * cursor_diff.x;
-      const float pitch_rad = .002f * cursor_diff.y;
+    window_on_cursor_move_conn_ = js_Window->on_game_control_look.connect([this](double xdiff, double ydiff) {
+      const float yaw_rad   = .002 * xdiff;
+      const float pitch_rad = .002 * ydiff;
 
       js_Camera->AddLook(yaw_rad, pitch_rad);
     });
@@ -554,14 +550,10 @@ namespace chunklands::modules::game {
 
     }
 
-    if (js_Window->GetMouseButton(GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
-      js_Window->StartMouseGrab();
-      last_cursor_pos_ = js_Window->GetCursorPos();
-    }
-
-    if (js_Window->GetKey(GLFW_KEY_ESCAPE)) {
-      js_Window->StopMouseGrab();
-    }
+    // if (js_Window->GetMouseButton(GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
+    //   js_Window->StartMouseGrab();
+    //   last_cursor_pos_ = js_Window->GetCursorPos(); // TODO(daaitch): last cursor position
+    // }
 
     int axis = js_MovementController->AddMovement(movement);
     if (axis & math::CollisionAxis::kY) {

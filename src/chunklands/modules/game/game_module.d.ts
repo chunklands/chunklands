@@ -1,5 +1,5 @@
 import * as engine from '../engine/engine_module'
-import * as gl from '../gl/gl_module'
+import { EventEmitter } from 'events'
 
 export declare class BlockRegistrarBase {
   addBlock(): void
@@ -35,6 +35,8 @@ export declare class Scene implements engine.IScene {
 
   getFlightMode(): boolean
   setFlightMode(flightMode: boolean): void
+
+  events: EventEmitter
 }
 
 export declare class World implements engine.ICollisionSystem {

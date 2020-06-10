@@ -19,7 +19,7 @@ const {
     BlockRegistrar,
     ChunkGenerator,
     World,
-    Scene
+    createScene
   },
   gl: {
     Program
@@ -66,7 +66,7 @@ module.exports = class Game {
 
     // scene
 
-    const scene = new Scene();
+    const scene = createScene();
     scene.setWorld(world);
 
 
@@ -144,8 +144,20 @@ module.exports = class Game {
 
   async run() {
     this._window.events.on('key', event => {
-      if (event.key === 70 && event.action === 0) {
+      if (event.key === 70 && event.action === 0) { // 'F'
         this._scene.setFlightMode(!this._scene.getFlightMode());
+      } else if (event.key === 256 && event.action === 0) { // 'ESC'
+        if (this._window.getGameControl()) {
+          this._window.setGameControl(false);
+        }
+      }
+    });
+
+    this._window.events.on('mousebutton', event => {
+      if (event.button === 0 && event.action === 0) {
+        if (!this._window.getGameControl()) {
+          this._window.setGameControl(true);
+        }
       }
     });
 

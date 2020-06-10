@@ -418,7 +418,7 @@ namespace chunklands::modules::engine {
       auto&& events = detail::Unwrap(window)->events_;
       auto&& env = events.Env();
 
-      JSHandleScope scope(events.Env());
+      JSHandleScope scope(env);
       {
         auto&& event = JSObject::New(env);
         event["key"] = JSNumber::New(env, key);
@@ -427,6 +427,21 @@ namespace chunklands::modules::engine {
         event["mods"] = JSNumber::New(env, mods);
 
         events.Get("emit").As<JSFunction>().Call(events.Value(), {JSString::New(events.Env(), "key"), event});
+      }
+    });
+
+    glfwSetMouseButtonCallback(window_, [](GLFWwindow* window, int button, int action, int mods) {
+      auto&& events = detail::Unwrap(window)->events_;
+      auto&& env = events.Env();
+
+      JSHandleScope scope(env);
+      {
+        auto&& event = JSObject::New(env);
+        event["button"] = JSNumber::New(env, button);
+        event["action"] = JSNumber::New(env, action);
+        event["mods"] = JSNumber::New(env, mods);
+
+        events.Get("emit").As<JSFunction>().Call(events.Value(), {JSString::New(events.Env(), "mousebutton"), event});
       }
     });
 
@@ -487,11 +502,19 @@ namespace chunklands::modules::engine {
     return size;
   }
 
+  void Window::CursorPosCallback(GLFWwindow* window, double xpos, double ypos) {
+    auto&& me = detail::Unwrap(window);
+
+    glm::dvec2 pos(xpos, ypos);
+    glm::dvec2 cursor_diff = me->game_control_last_cursor_pos_ - pos;
+    me->game_control_last_cursor_pos_ = pos;
+    me->on_game_control_look(cursor_diff.x, cursor_diff.y);
+  }
+
   void Window::StartMouseGrab() {
     glfwSetInputMode(window_, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-    glfwSetCursorPosCallback(window_, [](GLFWwindow* window, double xpos, double ypos) {
-      detail::Unwrap(window)->on_cursor_move(xpos, ypos);
-    });
+    glfwSetCursorPosCallback(window_, CursorPosCallback);
+    game_control_last_cursor_pos_ = GetCursorPos();
   }
 
   void Window::StopMouseGrab() {
