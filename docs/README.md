@@ -13,6 +13,8 @@ Chunklands is open-source driven and will be developed with these 3 pillars in m
 - support **Charity** 🧡
 
 
+![Chunklands Pricing](chunklands-pricing.png)
+
 ## Goals 🥅
 
 You may have noticed close resemblance to Minecraft and indeed it's a clone at the moment, but the product should be very different and the product is not only the result itself.
