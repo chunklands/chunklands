@@ -1,12 +1,16 @@
-#include "engine_module.h"
+#include "engine_module.hxx"
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/compatibility.hpp>
 #include <random>
 
-#include <chunklands/modules/misc/misc_module.h>
+#include <chunklands/modules/misc/misc_module.hxx>
 
 namespace chunklands::modules::engine {
+
+  RenderPass::~RenderPass() {
+    // empty
+  }
   
   /////////////////////////////////////////////////////////////////////////////
   // Environment //////////////////////////////////////////////////////////////

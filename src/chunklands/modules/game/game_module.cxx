@@ -1,13 +1,13 @@
-#include "game_module.h"
+#include "game_module.hxx"
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/vector_relational.hpp>
 #include <glm/geometric.hpp>
 
 #include "math.h"
-#include <chunklands/modules/misc/misc_module.h>
+#include <chunklands/modules/misc/misc_module.hxx>
 #include <iostream>
-#include <chunklands/math.h>
+#include <chunklands/math.hxx>
 
 namespace chunklands::modules::game {
 
@@ -22,9 +22,9 @@ namespace chunklands::modules::game {
   engine::collision_result BlockDefinition::ProcessCollision(const math::ivec3& block_coord, const math::fAABB3& box, const math::fvec3& movement) const {
     if (!opaque_) {
       return {
-        .prio{0},
-        .axis{ math::CollisionAxis::kNone },
-        .ctime{1},
+        .prio = 0,
+        .axis = math::CollisionAxis::kNone,
+        .ctime = 1,
         .collisionfree_movement{movement},
         .outstanding_movement{0,0,0}
       };
@@ -35,9 +35,9 @@ namespace chunklands::modules::game {
 
     if (!collision.time) {
       return {
-        .prio{0},
-        .axis{ math::CollisionAxis::kNone },
-        .ctime{1},
+        .prio = 0,
+        .axis = math::CollisionAxis::kNone,
+        .ctime = 1,
         .collisionfree_movement{movement},
         .outstanding_movement{0,0,0}
       };
@@ -45,9 +45,9 @@ namespace chunklands::modules::game {
     
     if (collision.time.origin.x < 0) {
       return {
-        .prio{0},
-        .axis{ collision.axis },
-        .ctime{0},
+        .prio = 0,
+        .axis = collision.axis,
+        .ctime = 0,
         .collisionfree_movement{0, 0, 0},
         .outstanding_movement{0, 0, 0}
       };
@@ -55,9 +55,9 @@ namespace chunklands::modules::game {
 
     if (collision.time.origin.x > 1) {
       return {
-        .prio{0},
-        .axis{ collision.axis },
-        .ctime{1},
+        .prio = 0,
+        .axis = collision.axis,
+        .ctime = 1,
         .collisionfree_movement{movement},
         .outstanding_movement{0,0,0}
       };
@@ -89,9 +89,9 @@ namespace chunklands::modules::game {
     }
 
     return {
-      .prio{prio},
-      .axis{ collision.axis },
-      .ctime{ctime},
+      .prio = prio,
+      .axis = collision.axis,
+      .ctime = ctime,
       .collisionfree_movement{good_movement},
       .outstanding_movement{bad_movement}
     };
@@ -903,12 +903,12 @@ namespace chunklands::modules::game {
   }
 
   engine::collision_result World::ProcessNextCollision(const math::fAABB3 &box, const math::fvec3 &movement) {
-    math::fAABB3 movement_box = box | movement;
+    math::fAABB3 movement_box {box | movement};
 
     engine::collision_result result{
-      .prio{ std::numeric_limits<int>::max() },
-      .axis{ math::CollisionAxis::kNone },
-      .ctime{ std::numeric_limits<float>::max() },
+      .prio = std::numeric_limits<int>::max(),
+      .axis = math::CollisionAxis::kNone,
+      .ctime = std::numeric_limits<float>::max(),
       .collisionfree_movement{ movement },
       .outstanding_movement{ math::fvec3 {0.f, 0.f, 0.f} }
     };

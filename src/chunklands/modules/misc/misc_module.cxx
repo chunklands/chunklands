@@ -1,4 +1,4 @@
-#include "misc_module.h"
+#include "misc_module.hxx"
 
 #include <unordered_map>
 #include <numeric>

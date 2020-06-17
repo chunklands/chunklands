@@ -1,5 +1,5 @@
-#include <chunklands/js.h>
-#include <chunklands/modules/init.h>
+#include <chunklands/js.hxx>
+#include <chunklands/modules/init.hxx>
 #include <gtest/gtest.h>
 
 using namespace chunklands;

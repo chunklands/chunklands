@@ -42,12 +42,12 @@ namespace chunklands::math {
   template<int N, class T>
   AABB<N, T> operator+(const AABB<N, T>& box, const vec<N, T>& v) {
     if (box.IsEmpty()) {
-      return {};
+      return AABB<N, T> {};
     }
 
     return AABB<N, T> {
-      .origin = box.origin + v,
-      .span   = box.span
+      box.origin + v,
+      box.span
     };
   }
 
@@ -58,24 +58,24 @@ namespace chunklands::math {
 
   template<int N, class T>
   inline AABB<1, T> x_aabb(const AABB<N, T>& b) {
-    return { vec1<T>{b.origin.x}, vec1<T>{b.span.x} };
+    return AABB<1, T> { vec1<T>{b.origin.x}, vec1<T>{b.span.x} };
   }
 
   template<int N, class T>
   inline AABB<1, T> y_aabb(const AABB<N, T>& b) {
-    return { vec1<T>{b.origin.y}, vec1<T>{b.span.y} };
+    return AABB<1, T> { vec1<T>{b.origin.y}, vec1<T>{b.span.y} };
   }
 
   template<int N, class T>
   inline AABB<1, T> z_aabb(const AABB<N, T>& b) {
-    return { vec1<T>{b.origin.z}, vec1<T>{b.span.z} };
+    return AABB<1, T> { vec1<T>{b.origin.z}, vec1<T>{b.span.z} };
   }
 
 
   template<class T>
   AABB<1, T> operator|(const AABB<1, T>& box, const vec1<T>& v) {
     if (box.IsEmpty()) {
-      return {};
+      return AABB<1, T> {};
     }
 
     if (v.x >= (T)0) {
@@ -94,7 +94,7 @@ namespace chunklands::math {
   template<class T>
   AABB<1, T> operator&(const AABB<1, T>& a, const AABB<1, T>& b) {
     if(a.IsEmpty() || b.IsEmpty()) {
-      return {};
+      return AABB<1, T> {};
     }
 
     if (std::numeric_limits<T>::has_infinity) {
@@ -106,13 +106,13 @@ namespace chunklands::math {
     }
 
     if (a.origin.x + a.span.x <= b.origin.x || b.origin.x + b.span.x <= a.origin.x) {
-      return {};
+      return AABB<1, T> {};
     }
 
     T origin = std::max(a.origin.x           , b.origin.x),
       span   = std::min(a.origin.x + a.span.x, b.origin.x + b.span.x) - origin;
 
-    return { vec1<T>{origin}, vec1<T>{span} };
+    return AABB<1, T> { vec1<T>{origin}, vec1<T>{span} };
   }
 
   template<class T>
@@ -155,7 +155,7 @@ namespace chunklands::math {
   template<class T>
   AABB<3, T> operator|(const AABB<3, T>& box, const vec3<T>& v) {
     if (box.IsEmpty()) {
-      return {};
+      return AABB<3, T> {};
     }
 
     AABB<1, T> b_x = x_aabb(box) | x_vec(v);
@@ -172,22 +172,22 @@ namespace chunklands::math {
   template<class T>
   AABB<3, T> operator&(const AABB<3, T>& a, const AABB<3, T>& b) {
     if(a.IsEmpty() || b.IsEmpty()) {
-      return {};
+      return AABB<3, T> {};
     }
 
     AABB<1, T> x = x_aabb(a) & x_aabb(b);
     if (!x) {
-      return {};
+      return AABB<3, T> {};
     }
 
     AABB<1, T> y = y_aabb(a) & y_aabb(b);
     if (!y) {
-      return {};
+      return AABB<3, T> {};
     }
 
     AABB<1, T> z = z_aabb(a) & z_aabb(b);
     if (!z) {
-      return {};
+      return AABB<3, T> {};
     }
 
     return AABB<3, T>{
@@ -267,7 +267,7 @@ namespace chunklands::math {
       if (moving.origin.x >= fixed.origin.x + fixed.span.x) {
         // [fixed]
         //          [moving]--->
-        return {};
+        return collision_time<T> {};
       }
 
       // A)      [fixed]
@@ -290,7 +290,7 @@ namespace chunklands::math {
       if (moving.origin.x + moving.span.x <= fixed.origin.x) {
         // <---[moving]
         //               [fixed]
-        return {};
+        return collision_time<T> {};
       }
 
       // C)  <---[moving]
@@ -317,7 +317,7 @@ namespace chunklands::math {
       };
     }
 
-    return collision_time<T>{};
+    return collision_time<T> {};
   }
 
   template<class T>

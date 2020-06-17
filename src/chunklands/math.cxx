@@ -1,4 +1,4 @@
-#include "math.h"
+#include "math.hxx"
 
 namespace chunklands::math {
   std::size_t ivec3_hasher::operator()(const ivec3& v) const {

@@ -5,10 +5,10 @@
 #include <glad/gl.h>
 #include <GLFW/glfw3.h>
 #include <boost/preprocessor/stringize.hpp>
-#include <chunklands/js.h>
+#include <chunklands/js.hxx>
 #include <stb_image.h>
 #include <glm/vec3.hpp>
-#include <chunklands/modules/misc/misc_module.h>
+#include <chunklands/modules/misc/misc_module.hxx>
 #include <glm/gtc/type_ptr.hpp>
 
 #define POSITION __FILE__ ":" BOOST_PP_STRINGIZE(__LINE__)

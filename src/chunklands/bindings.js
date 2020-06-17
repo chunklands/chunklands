@@ -1,1 +1,1 @@
-module.exports = require('bindings')('chunklands.node');
+module.exports = require('../../build/chunklands.node');

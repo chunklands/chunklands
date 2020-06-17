@@ -1,5 +1,5 @@
-#include "js.h"
-#define BOOST_STACKTRACE_USE_BACKTRACE
+#include "js.hxx"
+// #define BOOST_STACKTRACE_USE_BACKTRACE
 #include <boost/stacktrace.hpp>
 
 namespace chunklands {
@@ -24,6 +24,7 @@ namespace chunklands {
       << "\n"
       << "\n"
       << "    JS  >>>\n";
+
 
     return JSError::New(env, ss.str());
   }
