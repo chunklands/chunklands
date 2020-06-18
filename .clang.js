@@ -1,32 +1,35 @@
 const clang = require('./clang');
 
+const DEV = process.env.NODE_ENV !== 'production';
+
 (async () => {
-  const bs = new clang.BuildSet({
+  const buildSet = new clang.BuildSet({
     clangfileAbsolutePath: __filename,
     rootAbsolutePath: __dirname,
-    buildAbsolutePath: `${__dirname}/build`
+    buildAbsolutePath: `${__dirname}/build`,
+    debug: DEV
   });
 
-  bs.addMakefileTarget('../deps/glfw/src/libglfw3.a', {
-    cmd: 'cmake -DGLFW_BUILD_DOCS=OFF -DGLFW_BUILD_TESTS=OFF -DGLFW_BUILD_EXAMPLES=OFF --build ../deps/glfw && make -C ../deps/glfw'
+  buildSet.addMakefileTarget('../deps/glfw/src/libglfw3.a', {
+    cmd: `cmake -DGLFW_BUILD_DOCS=OFF -DGLFW_BUILD_TESTS=OFF -DGLFW_BUILD_EXAMPLES=OFF -DCMAKE_BUILD_TYPE=${DEV ? 'Debug' : 'Release'} --build ../deps/glfw && make -C ../deps/glfw`
   });
 
-  await new clang.CompileSet(bs, {std: 'c99', fPIC: true})
-    .addInclude('deps/glfw/deps')
-    .addSource('deps/glfw/deps/glad_gl.c')
+  await new clang.CompileSet(buildSet, {std: 'c99', fPIC: true})
+    .addSystemInclude('deps/glfw/deps')
+    .addSystemSource('deps/glfw/deps/glad_gl.c')
     .addToBuildSet();
 
-  await new clang.CompileSet(bs, {std: 'c++20', fPIC: true, shared: true})
-    .addInclude(
+  await new clang.CompileSet(buildSet, {std: 'c++20', fPIC: true, shared: true})
+    .addSystemInclude(
       'deps/boost_*/include',
       'deps/glfw/include',
       'deps/glfw/deps',
       'deps/glm',
       'deps/node/src',
       'deps/stb',
-      'src',
-      'node_modules/node-addon-api'
+      'node_modules/node-addon-api',
     )
+    .addInclude('src')
     .addSource(
       'src/chunklands/**/*.cxx',
       'deps/boost_chrono/src/chrono.cpp',
@@ -41,5 +44,5 @@ const clang = require('./clang');
     .addLink('X11')
     .addToBuildSet('chunklands.node');
 
-  await bs.printMakefile('chunklands.node', process.stdout);
+  await buildSet.printMakefile('chunklands.node', process.stdout);
 })();

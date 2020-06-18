@@ -4,7 +4,7 @@ const globProm = promisify(require('glob'));
 const util = require('./util');
 
 module.exports = class BuildSet {
-  constructor({clangfileAbsolutePath, rootAbsolutePath, buildAbsolutePath}) {
+  constructor({clangfileAbsolutePath, rootAbsolutePath, buildAbsolutePath, debug}) {
     if (!path.isAbsolute(rootAbsolutePath)) {
       throw new TypeError('need absolute root dir');
     }
@@ -21,6 +21,7 @@ module.exports = class BuildSet {
     this._rootAbsolutePath = rootAbsolutePath;
     this._buildAbsolutePath = buildAbsolutePath;
     this._buildRelativeRootPath = path.relative(buildAbsolutePath, rootAbsolutePath);
+    this.debug = debug;
 
     this._makefileTargets = {};
   }
@@ -46,8 +47,13 @@ module.exports = class BuildSet {
     );
 
     const flatResolved = [];
-    for (const resolvedDir of resolvedDirs) {
-      flatResolved.push(...resolvedDir);
+    for (let i = 0; i < resolvedDirs.length; i++) {
+      const resolvedDir = resolvedDirs[i];
+      if (resolvedDir.length > 0) {
+        flatResolved.push(...resolvedDir);
+      } else {
+        console.warn(`warning: globbing ${buildRelativePaths[i]} expands to nothing. This is maybe a typo`);
+      }
     }
 
     return flatResolved;

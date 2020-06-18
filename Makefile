@@ -1,5 +1,5 @@
 prog: build/Makefile
-	make -C build chunklands.node
+	make -C build -j8
 
 build:
 	mkdir -p build

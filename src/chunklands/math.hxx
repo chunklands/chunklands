@@ -59,7 +59,7 @@ namespace chunklands::math {
     }
 
     bool operator==(const AABB<N, T>& rhs) const {
-      return (IsEmpty() && rhs.IsEmpty()) || origin == rhs.origin && span == rhs.span;
+      return (IsEmpty() && rhs.IsEmpty()) || (origin == rhs.origin && span == rhs.span);
     }
 
     vec<N, T> origin,

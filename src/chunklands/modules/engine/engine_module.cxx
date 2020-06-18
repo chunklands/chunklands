@@ -59,7 +59,7 @@ namespace chunklands::modules::engine {
     running_ = false;
   }
 
-  constexpr double update_threshold = 1.0 / 30.0; // Hz
+  // constexpr double update_threshold = 1.0 / 30.0; // Hz
 
   void GameLoop::JSCall_loop(JSCbi info) {
     DURATION_METRIC("gameloop_loop");

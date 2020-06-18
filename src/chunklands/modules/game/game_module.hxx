@@ -256,7 +256,6 @@ namespace chunklands::modules::game {
   private:
     boost::signals2::scoped_connection window_on_resize_conn_;
     boost::signals2::scoped_connection window_on_cursor_move_conn_;
-    glm::ivec2 last_cursor_pos_;
 
     glm::ivec2 buffer_size_;
 

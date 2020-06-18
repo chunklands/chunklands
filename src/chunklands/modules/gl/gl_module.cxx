@@ -112,9 +112,7 @@ namespace chunklands::modules::gl {
       }
 
       glDeleteShader(vsh);
-      vsh = 0;
       glDeleteShader(fsh);
-      fsh = 0;
     }
   }
 

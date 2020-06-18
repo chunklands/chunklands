@@ -98,9 +98,9 @@ namespace chunklands::math {
     }
 
     if (std::numeric_limits<T>::has_infinity) {
-      if (is_infinity(a.origin.x) && is_infinity(a.span.x)) {
+      if (std::isinf(a.origin.x) && std::isinf(a.span.x)) { // NOLINT (clang-analyzer-core.CallAndMessage)
         return b;
-      } else if (is_infinity(b.origin.x) && is_infinity(b.span.x)) {
+      } else if (std::isinf(b.origin.x) && std::isinf(b.span.x)) {
         return a;
       }
     }
@@ -162,9 +162,10 @@ namespace chunklands::math {
     AABB<1, T> b_y = y_aabb(box) | y_vec(v);
     AABB<1, T> b_z = z_aabb(box) | z_vec(v);
 
+    // we checked for IsEmpty()
     return AABB<3, T> {
-      vec3<T> {b_x.origin.x, b_y.origin.x, b_z.origin.x},
-      vec3<T> {b_x.span.x,   b_y.span.x  , b_z.span.x}
+      vec3<T> {b_x.origin.x, b_y.origin.x, b_z.origin.x}, // NOLINT (clang-analyzer-core.CallAndMessage)
+      vec3<T> {b_x.span.x,   b_y.span.x  , b_z.span.x}    // NOLINT (clang-analyzer-core.CallAndMessage)
     };
   }
 
@@ -331,34 +332,27 @@ namespace chunklands::math {
       .time = x_result & y_result & z_result
     };
 
-    if (x_result.origin.x >= result.time.origin.x) {
-      result.axis |= CollisionAxis::kX;
-    }
+    if (!result.time.IsEmpty()) {
+      if (!x_result.IsEmpty() &&
+        x_result.origin.x >= result.time.origin.x // NOLINT (clang-analyzer-core.UndefinedBinaryOperatorResult)
+      ) {
+        result.axis |= CollisionAxis::kX;
+      }
 
-    if (y_result.origin.x >= result.time.origin.x) {
-      result.axis |= CollisionAxis::kY;
-    }
+      if (!y_result.IsEmpty() &&
+        y_result.origin.x >= result.time.origin.x // NOLINT (clang-analyzer-core.UndefinedBinaryOperatorResult)
+      ) {
+        result.axis |= CollisionAxis::kY;
+      }
 
-    if (z_result.origin.x >= result.time.origin.x) {
-      result.axis |= CollisionAxis::kZ;
+      if (!z_result.IsEmpty() &&
+        z_result.origin.x >= result.time.origin.x // NOLINT (clang-analyzer-core.UndefinedBinaryOperatorResult)
+      ) {
+        result.axis |= CollisionAxis::kZ;
+      }
     }
 
     return result;
-  }
-
-  template<>
-  inline bool is_infinity<int>(const int&) {
-    return false;
-  }
-
-  template<>
-  inline bool is_infinity<long>(const long&) {
-    return false;
-  }
-
-  template<class T>
-  inline bool is_infinity(const T& value) {
-    return std::isinf(value);
   }
 }
 
