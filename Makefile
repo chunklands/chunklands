@@ -4,8 +4,11 @@ prog: build/Makefile
 build:
 	mkdir -p build
 
-build/Makefile: .clang.js | build
+build/Makefile: .clang.js .env | build
 	node .clang.js > build/Makefile
+
+.env:
+	touch .env
 
 clean:
 	rm -rf build
