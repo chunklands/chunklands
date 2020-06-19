@@ -8,6 +8,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <boost/signals2.hpp>
 #include <chunklands/math.hxx>
+#include <unordered_map>
 
 namespace chunklands::modules::engine {
   

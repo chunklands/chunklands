@@ -1,4 +1,5 @@
 
+const os = require('os');
 const path = require('path');
 const util = require('./util');
 
@@ -19,6 +20,7 @@ module.exports = class CompileSet {
     this._buildRelativeSystemSources = [];
     this._buildRelativeLibraries = [];
     this._buildLink = [];
+    this._buildMacOSFrameworks = [];
 
     this._options = {
       std,
@@ -73,6 +75,11 @@ module.exports = class CompileSet {
     return this;
   }
 
+  addMacOSFramework(...frameworks) {
+    this._buildMacOSFrameworks.push(...frameworks);
+    return this;
+  }
+
   async _prepare() {
     [
       this._buildRelativeSources,
@@ -89,17 +96,28 @@ module.exports = class CompileSet {
     // -I dir1 -I dir2
     this._clangIncludeDirsArgs = [];
     for (const dir of this._buildRelativeIncludeDirs) {
-      this._clangIncludeDirsArgs.push('-I', dir);
+      if (dir) {
+        this._clangIncludeDirsArgs.push('-I', dir);
+      }
     }
 
     // -isystem dir1 -isystem dir2
     this._clangSystemIncludeDirsArgs = [];
     for (const dir of this._buildRelativeSystemIncludeDirs) {
-      this._clangSystemIncludeDirsArgs.push('-isystem', dir);
+      if (dir) {
+        this._clangSystemIncludeDirsArgs.push('-isystem', dir);
+      }
     }
 
     // -lgl -lX11
-    this._clangLinkArgs = this._buildLink.map(lib => `-l${lib}`)
+    this._clangLinkArgs = this._buildLink
+      .filter(lib => lib)
+      .map(lib => `-l${lib}`);
+
+    // -framework Cocoa
+    this._clangFrameworks = this._buildMacOSFrameworks
+      .filter(framework => framework)
+      .map(framework => `-framework ${framework}`);
   }
 
   _makefileProgDependencies() {
@@ -113,18 +131,38 @@ module.exports = class CompileSet {
     return deps;
   }
 
+  _clangStdArg() {
+    return this._options.std ? `-std=${this._options.std}` : null;
+  }
+
+  _clangfPICArg() {
+    return this._options.fPIC ? '-fPIC' : null;
+  }
+
+  _clangWArgs(system) {
+    if (system) {
+      return []
+    }
+
+    return [
+      '-Wall',
+      '-Werror',
+      '-Wextra',
+    ];
+  }
+
+  _clangOArg() {
+    return this._buildSet.debug ? '-O0' : '-Ofast'
+  }
+
   _clangObjectCmd(source, system) {
     return [
-      'clang',
+      this._buildSet.clangBin,
       '-c',
-      ...(system ? [] : [
-        '-Wall',
-        '-Werror',
-        '-Wextra',
-      ]),
-      this._options.fPIC ? '-fPIC' : null,
-      this._options.std ? `-std=${this._options.std}` : null,
-      this._buildSet.debug ? '-O0' : '-Ofast',
+      ...this._clangWArgs(system),
+      this._clangfPICArg(),
+      this._clangStdArg(),
+      this._clangOArg(),
       ...this._clangIncludeDirsArgs,
       ...this._clangSystemIncludeDirsArgs,
       source,
@@ -133,32 +171,50 @@ module.exports = class CompileSet {
     ].filter(x => x).join(' ');
   }
 
+  _clangUndefinedArg() {
+    if (os.platform() !== 'darwin') {
+      return null;
+    }
+
+    return '-undefined dynamic_lookup';
+  }
+
   _clangTidyCmd(source) {
-    return [
-      'clang-tidy',
+    return util.cleanArgs([
+      this._buildSet.clangTidyBin,
       source,
       '--',
-      this._options.std ? `-std=${this._options.std}` : null,
+      this._clangStdArg(),
       ...this._clangIncludeDirsArgs,
       ...this._clangSystemIncludeDirsArgs,
-    ].filter(x => x).join(' ');
+    ]).join(' ');
+  }
+
+  _clangFrameworkArgs() {
+    if (os.platform() !== 'darwin') {
+      return [];
+    }
+
+    return this._clangFrameworks;
   }
 
   _clangCompileCmd(target, inputs) {
-    return [
-      'clang',
+    return util.cleanArgs([
+      this._buildSet.clangBin,
       this._options.shared ? '-shared' : null,
-      this._options.fPIC ? '-fPIC' : null,
-      this._options.std ? `-std=${this._options.std}` : null,
-      this._buildSet.debug ? '-O0' : '-Ofast',
+      this._clangUndefinedArg(),
+      this._clangfPICArg(),
+      this._clangStdArg(),
+      this._clangOArg(),
       ...this._clangIncludeDirsArgs,
       ...this._clangSystemIncludeDirsArgs,
       ...inputs,
       ...this._buildRelativeLibraries,
       ...this._clangLinkArgs,
+      ...this._clangFrameworkArgs(),
       '-o',
       target
-    ].filter(x => x).join(' ');
+    ]).join(' ');
   }
 
   async addToBuildSet(resultTarget) {
@@ -176,7 +232,7 @@ module.exports = class CompileSet {
 
         this._buildSet.addMakefileTarget(target, {
           normalDeps: deps,
-          cmd: (system || true)
+          cmd: system
             ? objectCmd
             : `${this._clangTidyCmd(source)} && ${objectCmd}`
         });
@@ -199,7 +255,15 @@ module.exports = class CompileSet {
   async _makefileTarget(filename) {
     const relativeDir = path.dirname(this._buildSet.rootRelativeAbsolutePath(filename));
     
-    const result = await this._buildSet.clang(['-MM', ...this._clangSystemIncludeDirsArgs, ...this._clangIncludeDirsArgs, filename]);
+    const result = await this._buildSet.clang(util.cleanArgs([
+      '-MM',
+      this._clangStdArg(),
+      ...this._clangSystemIncludeDirsArgs,
+      ...this._clangIncludeDirsArgs,
+      filename
+    ]));
+
     return `${relativeDir}/${result.stdout}`;
   }
 }
+

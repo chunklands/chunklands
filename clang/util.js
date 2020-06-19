@@ -1,17 +1,26 @@
-const execa = require('execa');
 const path = require('path');
 
 module.exports = {
+
   /**
-   * @param {string[]} args
+   * @param {string[]} args 
    */
-  clang(args, {cwd}) {
-    return execa('clang', args, { cwd });
+  cleanArgs(args) {
+    return args.filter(arg => arg);
   },
+
+  /**
+   * @param {string} source 
+   */
   sourceToObjectPath(source) {
     const parsed = path.parse(source);
     return path.join(parsed.dir, parsed.name + '.o');
   },
+  
+  /**
+   * @param {NodeJS.WriteStream} out 
+   * @param {object} entries 
+   */
   async printMakefile(out, entries) {
     for (const entry of entries) {
       await new Promise((resolve, reject) => {

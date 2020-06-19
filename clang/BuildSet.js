@@ -2,9 +2,10 @@ const path = require('path');
 const { promisify } = require('util');
 const globProm = promisify(require('glob'));
 const util = require('./util');
+const execa = require('execa');
 
 module.exports = class BuildSet {
-  constructor({clangfileAbsolutePath, rootAbsolutePath, buildAbsolutePath, debug}) {
+  constructor({clangfileAbsolutePath, rootAbsolutePath, buildAbsolutePath, debug, clangBin = 'clang', clangTidyBin = 'clang-tidy'}) {
     if (!path.isAbsolute(rootAbsolutePath)) {
       throw new TypeError('need absolute root dir');
     }
@@ -22,6 +23,8 @@ module.exports = class BuildSet {
     this._buildAbsolutePath = buildAbsolutePath;
     this._buildRelativeRootPath = path.relative(buildAbsolutePath, rootAbsolutePath);
     this.debug = debug;
+    this.clangBin = clangBin;
+    this.clangTidyBin = clangTidyBin;
 
     this._makefileTargets = {};
   }
@@ -60,7 +63,7 @@ module.exports = class BuildSet {
   }
 
   clang(args) {
-    return util.clang(args, { cwd: this._buildAbsolutePath });
+    return execa(this.clangBin, args, { cwd: this._buildAbsolutePath });
   }
 
   addMakefileTarget(target, {normalDeps = [], orderOnlyDeps = [], cmd}) {
@@ -84,6 +87,8 @@ module.exports = class BuildSet {
     this.addMakefileTarget(dir, {
       cmd: `mkdir -p "${dir}"`
     });
+
+    return this;
   }
 
   async printMakefile(firstTarget, out = process.stdout) {

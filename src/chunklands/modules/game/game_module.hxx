@@ -8,6 +8,7 @@
 #include <chunklands/math.hxx>
 #include <glm/vec3.hpp>
 #include <queue>
+#include <unordered_map>
 
 namespace chunklands::modules::game {
 

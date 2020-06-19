@@ -1,3 +1,5 @@
+require('dotenv').config();
+const os = require('os');
 const clang = require('./clang');
 
 const DEV = process.env.NODE_ENV !== 'production';
@@ -7,11 +9,14 @@ const DEV = process.env.NODE_ENV !== 'production';
     clangfileAbsolutePath: __filename,
     rootAbsolutePath: __dirname,
     buildAbsolutePath: `${__dirname}/build`,
-    debug: DEV
-  });
-
-  buildSet.addMakefileTarget('../deps/glfw/src/libglfw3.a', {
-    cmd: `cmake -DGLFW_BUILD_DOCS=OFF -DGLFW_BUILD_TESTS=OFF -DGLFW_BUILD_EXAMPLES=OFF -DCMAKE_BUILD_TYPE=${DEV ? 'Debug' : 'Release'} --build ../deps/glfw && make -C ../deps/glfw`
+    debug: DEV,
+    clangBin: process.env.CLANG_BIN,
+    clangTidyBin: process.env.CLANG_TIDY_BIN
+  })
+  .addMakefileTarget('../deps/glfw/src/libglfw3.a', {
+    cmd: 'cd ../deps/glfw'
+      + ` && cmake -DGLFW_BUILD_DOCS=OFF -DGLFW_BUILD_TESTS=OFF -DGLFW_BUILD_EXAMPLES=OFF -DCMAKE_BUILD_TYPE=${DEV ? 'Debug' : 'Release'} --build .`
+      + ' && make'
   });
 
   await new clang.CompileSet(buildSet, {std: 'c99', fPIC: true})
@@ -41,7 +46,8 @@ const DEV = process.env.NODE_ENV !== 'production';
       'deps/glfw/src/libglfw3.a',
       'build/deps/glfw/deps/glad_gl.o'
     )
-    .addLink('X11')
+    .addLink(os.platform() === 'linux' ? 'X11' : null)
+    .addMacOSFramework('CoreVideo', 'OpenGL', 'IOKit', 'Cocoa', 'Carbon')
     .addToBuildSet('chunklands.node');
 
   await buildSet.printMakefile('chunklands.node', process.stdout);
