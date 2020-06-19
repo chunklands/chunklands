@@ -15,4 +15,12 @@ clean:
 
 all: clean prog
 
-.PHONY: clean
+setup: setup-git npm-ci
+
+setup-git:
+	git submodule update --init --recursive
+
+npm-ci:	
+	npm ci
+
+.PHONY: clean setup setup-git npm-ci
