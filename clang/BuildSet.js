@@ -23,15 +23,17 @@ module.exports = class BuildSet {
     this._buildAbsolutePath = buildAbsolutePath;
     this._buildRelativeRootPath = path.relative(buildAbsolutePath, rootAbsolutePath);
     this.debug = debug;
+
     this.clangBin = clangBin;
     this.clangTidyBin = clangTidyBin;
 
     this._makefileTargets = {};
   }
 
-  rootRelativeAbsolutePath(buildRelativeFilePath) {
+  rootRelative(buildRelativeFilePath) {
     const absoluteDir = path.resolve(this._buildAbsolutePath, buildRelativeFilePath);
-    return path.relative(this._rootAbsolutePath, absoluteDir);
+    const result = path.relative(this._rootAbsolutePath, absoluteDir);
+    return result;
   }
 
   buildRelative(rootRelativePath) {
@@ -55,7 +57,7 @@ module.exports = class BuildSet {
       if (resolvedDir.length > 0) {
         flatResolved.push(...resolvedDir);
       } else {
-        console.warn(`warning: globbing ${buildRelativePaths[i]} expands to nothing. This is maybe a typo`);
+        throw new Error(`warning: globbing ${buildRelativePaths[i]} expands to nothing. This is maybe a typo`);
       }
     }
 

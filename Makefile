@@ -1,6 +1,9 @@
 prog: build/Makefile
 	make -C build -j8
 
+test: build/Makefile
+	make -C build -j8 chunklands_test.node
+
 build:
 	mkdir -p build
 
@@ -23,4 +26,4 @@ setup-git:
 npm-ci:	
 	npm ci
 
-.PHONY: clean setup setup-git npm-ci
+.PHONY: clean setup setup-git npm-ci test

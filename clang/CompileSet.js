@@ -9,7 +9,7 @@ module.exports = class CompileSet {
    * @param {import('./BuildSet')} buildSet 
    * @param {*} param1 
    */
-  constructor(buildSet, {std, fPIC, shared}) {
+  constructor(buildSet, {std, fPIC, shared, 'static': static_}) {
     this._buildRelativeIncludeDirGlobs = [];
     this._buildRelativeSourceGlobs = [];
     this._buildRelativeSystemIncludeDirGlobs = [];
@@ -25,7 +25,8 @@ module.exports = class CompileSet {
     this._options = {
       std,
       fPIC,
-      shared
+      shared,
+      'static': static_
     };
     this._buildSet = buildSet;
   }
@@ -120,15 +121,19 @@ module.exports = class CompileSet {
       .map(framework => `-framework ${framework}`);
   }
 
-  _makefileProgDependencies() {
+  _getBuildRelativeObjectPaths() {
     const deps = []
     for (const sources of [this._buildRelativeSources, this._buildRelativeSystemSources]) {
       for (const source of sources) {
-        deps.push(this._buildSet.rootRelativeAbsolutePath(util.sourceToObjectPath(source)));
+        deps.push(this._buildSet.rootRelative(util.sourceToObjectPath(source)));
       }
     }
 
     return deps;
+  }
+
+  getObjectPaths() {
+    return this._getBuildRelativeObjectPaths().map(buildRelativePath => this._buildSet.rootRelative(buildRelativePath));
   }
 
   _clangStdArg() {
@@ -167,7 +172,7 @@ module.exports = class CompileSet {
       ...this._clangSystemIncludeDirsArgs,
       source,
       '-o',
-      util.sourceToObjectPath(this._buildSet.rootRelativeAbsolutePath(source))
+      util.sourceToObjectPath(this._buildSet.rootRelative(source))
     ].filter(x => x).join(' ');
   }
 
@@ -202,6 +207,7 @@ module.exports = class CompileSet {
     return util.cleanArgs([
       this._buildSet.clangBin,
       this._options.shared ? '-shared' : null,
+      this._options['static'] ? '-static' : null,
       this._clangUndefinedArg(),
       this._clangfPICArg(),
       this._clangStdArg(),
@@ -244,16 +250,18 @@ module.exports = class CompileSet {
     if (resultTarget) {
       this._buildSet.addMakefileTarget(resultTarget, {
         normalDeps: [
-          ...this._makefileProgDependencies(),
+          ...this._getBuildRelativeObjectPaths(),
           ...this._buildRelativeLibraries
         ],
         cmd: this._clangCompileCmd(resultTarget, targets)
       });
     }
+
+    return this;
   }
 
   async _makefileTarget(filename) {
-    const relativeDir = path.dirname(this._buildSet.rootRelativeAbsolutePath(filename));
+    const relativeDir = path.dirname(this._buildSet.rootRelative(filename));
     
     const result = await this._buildSet.clang(util.cleanArgs([
       '-MM',

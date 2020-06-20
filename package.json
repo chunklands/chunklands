@@ -4,10 +4,10 @@
   "description": "3D Game in NodeJS/OpenGL",
   "scripts": {
     "start": "node src/app.js",
-    "dev": "nodemon --watch src --ext hxx,cxx,inl --exec \"npm run dev:build\"",
+    "dev": "nodemon --watch src --ext hxx,cxx,inl --exec \"make\"",
     "dev:build": "make",
     "test": "tap src/**/*.test.js",
-    "pretest": "npm run dev:build",
+    "pretest": "make test",
     "play": "node src/app.js",
     "preplay": "cross-env NODE_ENV=production make"
   },

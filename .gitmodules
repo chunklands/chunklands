@@ -106,3 +106,6 @@
 [submodule "deps/node"]
 	path = deps/node
 	url = https://github.com/nodejs/node.git
+[submodule "deps/googletest"]
+	path = deps/googletest
+	url = https://github.com/google/googletest.git
