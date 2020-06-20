@@ -1,13 +1,14 @@
 #ifndef __CHUNKLANDS_GAME_H__
 #define __CHUNKLANDS_GAME_H__
 
-#include <chunklands/debug.h>
-#include <chunklands/js.h>
-#include <chunklands/modules/gl/gl_module.h>
-#include <chunklands/modules/engine/engine_module.h>
-#include <chunklands/math.h>
+#include <chunklands/debug.hxx>
+#include <chunklands/js.hxx>
+#include <chunklands/modules/gl/gl_module.hxx>
+#include <chunklands/modules/engine/engine_module.hxx>
+#include <chunklands/math.hxx>
 #include <glm/vec3.hpp>
 #include <queue>
+#include <unordered_map>
 
 namespace chunklands::modules::game {
 
@@ -256,7 +257,6 @@ namespace chunklands::modules::game {
   private:
     boost::signals2::scoped_connection window_on_resize_conn_;
     boost::signals2::scoped_connection window_on_cursor_move_conn_;
-    glm::ivec2 last_cursor_pos_;
 
     glm::ivec2 buffer_size_;
 

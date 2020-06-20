@@ -1,12 +1,16 @@
-#include "engine_module.h"
+#include "engine_module.hxx"
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/compatibility.hpp>
 #include <random>
 
-#include <chunklands/modules/misc/misc_module.h>
+#include <chunklands/modules/misc/misc_module.hxx>
 
 namespace chunklands::modules::engine {
+
+  RenderPass::~RenderPass() {
+    // empty
+  }
   
   /////////////////////////////////////////////////////////////////////////////
   // Environment //////////////////////////////////////////////////////////////
@@ -55,7 +59,7 @@ namespace chunklands::modules::engine {
     running_ = false;
   }
 
-  constexpr double update_threshold = 1.0 / 30.0; // Hz
+  // constexpr double update_threshold = 1.0 / 30.0; // Hz
 
   void GameLoop::JSCall_loop(JSCbi info) {
     DURATION_METRIC("gameloop_loop");
@@ -394,6 +398,11 @@ namespace chunklands::modules::engine {
   void Window::JSCall_initialize(JSCbi info) {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+
+    #ifdef __APPLE__
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    #endif
 
     auto&& config = info[0].ToObject();
     window_ = glfwCreateWindow(

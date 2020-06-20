@@ -1,6 +1,5 @@
-#include "js.h"
-#define BOOST_STACKTRACE_USE_BACKTRACE
-#include <boost/stacktrace.hpp>
+#include "js.hxx"
+#include <chunklands/boost_stacktrace.hxx>
 
 namespace chunklands {
   JSError js_create_error(JSEnv env, const std::string& msg) {
@@ -24,6 +23,7 @@ namespace chunklands {
       << "\n"
       << "\n"
       << "    JS  >>>\n";
+
 
     return JSError::New(env, ss.str());
   }

@@ -1,10 +1,10 @@
 
-#include "init.h"
+#include "init.hxx"
 
-#include "engine/engine_module.h"
-#include "game/game_module.h"
-#include "gl/gl_module.h"
-#include "misc/misc_module.h"
+#include "engine/engine_module.hxx"
+#include "game/game_module.hxx"
+#include "gl/gl_module.hxx"
+#include "misc/misc_module.hxx"
 
 #define EXPORT(CLAZZ) exports[#CLAZZ] = CLAZZ::Initialize(env)
 

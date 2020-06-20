@@ -4,13 +4,12 @@
   "description": "3D Game in NodeJS/OpenGL",
   "scripts": {
     "start": "node src/app.js",
-    "dev": "nodemon --watch src --ext h,cc --exec \"npm run dev:build\"",
-    "dev:build": "cross-env CMAKE_BUILD_PARALLEL_LEVEL=8 cmake-js build --debug",
-    "clean": "cmake-js clean",
+    "dev": "nodemon --watch src --ext hxx,cxx,inl --exec \"make\"",
+    "dev:build": "make",
     "test": "tap src/**/*.test.js",
-    "pretest": "npm run dev:build",
+    "pretest": "make test",
     "play": "node src/app.js",
-    "preplay": "cross-env CMAKE_BUILD_PARALLEL_LEVEL=8 cmake-js build"
+    "preplay": "cross-env NODE_ENV=production make"
   },
   "keywords": [
     "game",
@@ -32,6 +31,9 @@
     "cmake-js": "^6.1.0",
     "concurrently": "^4.1.2",
     "cross-env": "^7.0.2",
+    "dotenv": "^8.2.0",
+    "execa": "^4.0.2",
+    "glob": "^7.1.6",
     "node-addon-api": "^2.0.0",
     "nodemon": "^2.0.3",
     "sinon": "^9.0.2",

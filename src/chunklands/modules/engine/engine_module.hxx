@@ -1,13 +1,14 @@
 #ifndef __CHUNKLANDS_ENGINE_H__
 #define __CHUNKLANDS_ENGINE_H__
 
-#include <chunklands/debug.h>
-#include <chunklands/js.h>
-#include <chunklands/modules/gl/gl_module.h>
+#include <chunklands/debug.hxx>
+#include <chunklands/js.hxx>
+#include <chunklands/modules/gl/gl_module.hxx>
 #include <glm/vec3.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <boost/signals2.hpp>
-#include <chunklands/math.h>
+#include <chunklands/math.hxx>
+#include <unordered_map>
 
 namespace chunklands::modules::engine {
   
@@ -23,6 +24,8 @@ namespace chunklands::modules::engine {
 
   class RenderPass {
     JS_ATTR_WRAP(gl::ProgramBase, Program)
+  public:
+    virtual ~RenderPass();
 
   public:
     virtual void Begin() {
@@ -296,7 +299,7 @@ namespace chunklands::modules::engine {
     }
 
   public:
-    void Begin() {
+    void Begin() override {
       glBindFramebuffer(GL_FRAMEBUFFER, framebuffer_);
       glClearColor(0.f, 0.f, 0.f, 1.0);
       glClear(GL_COLOR_BUFFER_BIT);
@@ -304,7 +307,7 @@ namespace chunklands::modules::engine {
       BindNoiseTexture();
     }
 
-    void End() {
+    void End() override {
       RenderPass::End();
       glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }

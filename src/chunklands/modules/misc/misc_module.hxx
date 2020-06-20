@@ -4,15 +4,15 @@
 #include <boost/chrono.hpp>
 #include <boost/circular_buffer.hpp>
 #include <boost/current_function.hpp>
-#define BOOST_STACKTRACE_USE_BACKTRACE
-#include <boost/stacktrace.hpp>
+#include <chunklands/boost_stacktrace.hxx>
 #include <glm/vec3.hpp>
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
 #include <type_traits>
+#include <unordered_map>
 
-#include <chunklands/js.h>
+#include <chunklands/js.hxx>
 
 #define PROF() ::chunklands::modules::misc::prof profiler(BOOST_CURRENT_FUNCTION)
 #define PROF_NAME(NAME) ::chunklands::modules::misc::prof profiler(NAME)

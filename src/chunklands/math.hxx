@@ -34,7 +34,7 @@ namespace chunklands::math {
 
   template<int N, class T>
   struct AABB {
-    AABB(vec<N, T> origin, vec<N, T> span) : origin(std::move(origin)), span(std::move(span)) {
+    explicit AABB(vec<N, T> origin, vec<N, T> span) : origin(std::move(origin)), span(std::move(span)) {
 #ifndef NDEBUG
       for (unsigned i = 0; i < N; i++) {
         assert(span[i] >= (T)0);
@@ -42,7 +42,7 @@ namespace chunklands::math {
 #endif
     }
 
-    AABB() {
+    explicit AABB() {
       span.x = (T)-1;
     }
 
@@ -59,7 +59,7 @@ namespace chunklands::math {
     }
 
     bool operator==(const AABB<N, T>& rhs) const {
-      return (IsEmpty() && rhs.IsEmpty()) || origin == rhs.origin && span == rhs.span;
+      return (IsEmpty() && rhs.IsEmpty()) || (origin == rhs.origin && span == rhs.span);
     }
 
     vec<N, T> origin,
@@ -86,8 +86,8 @@ namespace chunklands::math {
     friend std::ostream& operator<<(std::ostream& os, const box_iterator& it);
 
   public:
-    box_iterator() = default;
-    box_iterator(const ivec3& a, const ivec3& b)
+    explicit box_iterator() = default;
+    explicit box_iterator(const ivec3& a, const ivec3& b)
       : a_(a), b_(b), current_(a) {
 
       assert(a_.x <= b_.x);
@@ -121,11 +121,11 @@ namespace chunklands::math {
 
   class chunk_pos_in_box {
   public:
-    chunk_pos_in_box(const fAABB3& box, unsigned chunk_size);
+    explicit chunk_pos_in_box(const fAABB3& box, unsigned chunk_size);
 
   public:
     box_iterator begin() const {
-      return {chunk_min_, chunk_max_};
+      return box_iterator {chunk_min_, chunk_max_};
     }
 
     const box_iterator& end() const {
@@ -140,7 +140,7 @@ namespace chunklands::math {
 
   class block_pos_in_box {
   public:
-    block_pos_in_box(const fAABB3& box, const ivec3& chunk_pos, unsigned chunk_size);
+    explicit block_pos_in_box(const fAABB3& box, const ivec3& chunk_pos, unsigned chunk_size);
 
   public:
     box_iterator begin() const {
@@ -148,7 +148,7 @@ namespace chunklands::math {
         return end();
       }
 
-      return {block_min_, block_max_};
+      return box_iterator {block_min_, block_max_};
     }
 
     const box_iterator& end() const {

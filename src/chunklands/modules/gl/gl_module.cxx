@@ -1,9 +1,9 @@
-#include "gl_module.h"
+#include "gl_module.hxx"
 
 #include <sstream>
 #include <stdexcept>
 
-#include <chunklands/modules/misc/misc_module.h>
+#include <chunklands/modules/misc/misc_module.hxx>
 
 namespace chunklands {
   GLCheck::GLCheck(const char* hint) {
@@ -112,9 +112,7 @@ namespace chunklands::modules::gl {
       }
 
       glDeleteShader(vsh);
-      vsh = 0;
       glDeleteShader(fsh);
-      fsh = 0;
     }
   }
 
