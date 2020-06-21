@@ -8,6 +8,7 @@
     "dev:build": "make",
     "test": "tap src/**/*.test.js",
     "pretest": "make test",
+    "test:watch": "nodemon --watch src --ext hxx,cxx,inl --exec \"npm test\"",
     "play": "node src/app.js",
     "preplay": "cross-env NODE_ENV=production make"
   },

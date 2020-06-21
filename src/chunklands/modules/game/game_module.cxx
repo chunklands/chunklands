@@ -4,10 +4,12 @@
 #include <glm/vector_relational.hpp>
 #include <glm/geometric.hpp>
 
-#include "math.h"
+#include <cmath>
+#include <math.h>
 #include <chunklands/modules/misc/misc_module.hxx>
 #include <iostream>
 #include <chunklands/math.hxx>
+#include <chunklands/jsmath.hxx>
 
 namespace chunklands::modules::game {
 
@@ -166,6 +168,10 @@ namespace chunklands::modules::game {
     return block_definitions_[index].get();
   }
 
+  const BlockDefinition* BlockRegistrar::GetByIndex(int index) const {
+    return block_definitions_[index].get();
+  }
+
   void BlockRegistrar::BindTexture() {
     texture_.ActiveAndBind(GL_TEXTURE0);
   }
@@ -226,8 +232,9 @@ namespace chunklands::modules::game {
   }
 
   void Chunk::InitializeGL() {
-    CC_ASSERT(vao_ == 0 && vb_ == 0);
     CC_ASSERT(state_ != kViewPrepared);
+
+    Cleanup();
 
     glGenVertexArrays(1, &vao_);
     glGenBuffers(1, &vb_);
@@ -988,7 +995,6 @@ namespace chunklands::modules::game {
     misc::Profiler::SetGauge("rendered_index_count", rendered_index_count);
   }
 
-
   int World::GetRenderDistance() const {
     return RENDER_DISTANCE;
   }
@@ -996,7 +1002,7 @@ namespace chunklands::modules::game {
   engine::collision_result World::ProcessNextCollision(const math::fAABB3 &box, const math::fvec3 &movement) {
     math::fAABB3 movement_box {box | movement};
 
-    engine::collision_result result{
+    engine::collision_result result {
       .prio = std::numeric_limits<int>::max(),
       .axis = math::CollisionAxis::kNone,
       .ctime = std::numeric_limits<float>::max(),
@@ -1028,7 +1034,9 @@ namespace chunklands::modules::game {
         }
 
         auto&& block_collision = block_def->ProcessCollision(block_coord, box, movement);
-        if (block_collision.ctime < result.ctime || (block_collision.ctime == result.ctime && block_collision.prio < result.prio)) {
+        if (block_collision.ctime < result.ctime
+          || (block_collision.ctime == result.ctime && block_collision.prio < result.prio)
+        ) {
           result = block_collision;
         }
 
@@ -1037,5 +1045,95 @@ namespace chunklands::modules::game {
     }
 
     return result;
+  }
+
+  std::optional<math::ivec3> World::FindPointingBlock(const math::fLine3& look) {
+    // math::fAABB3 box {look.origin - math::fvec3(.1f, .1f, .1f), math::fvec3(.2f, .2f, .2f)};
+    math::fAABB3 box {look.origin, math::fvec3(0.f, 0.f, 0.f)};
+    math::fAABB3 movement_box {box | look.span};
+
+    float ctime = std::numeric_limits<float>::infinity();
+    math::ivec3 result;
+
+    int collision_index = 0;
+
+    for (auto&& chunk_pos : math::chunk_pos_in_box {movement_box, Chunk::SIZE}) {
+      const auto&& chunk_result = chunk_map_.find(chunk_pos);
+      if (chunk_result == chunk_map_.cend()) {
+        // TODO(daaitch): make collision with chunk
+        std::cout << "not loaded: " << chunk_pos << std::endl;
+        continue;
+      }
+
+      auto&& chunk = chunk_result->second;
+      math::ivec3 chunk_coord{ chunk_pos * (int)Chunk::SIZE };
+
+      for (auto&& block_pos : math::block_pos_in_box {movement_box, chunk_pos, Chunk::SIZE}) {
+        auto&& block_def = chunk->BlockAt(block_pos);
+        assert(block_def != nullptr);
+
+        math::ivec3 block_coord{ chunk_coord + block_pos };
+
+        // if (DEBUG_COLLISION) {
+          std::cout << "collision #" << collision_index << std::endl;
+        // }
+
+        auto&& block_collision = block_def->ProcessCollision(block_coord, box, look.span);
+        if (block_collision.ctime < ctime) {
+          ctime = block_collision.ctime;
+          result = block_coord;
+        }
+
+        ++collision_index;
+      }
+    }
+
+    if (ctime >= 1.f) {
+      return {};
+    }
+
+    return {result};
+  }
+
+  JSValue World::JSCall_findPointingBlock(JSCbi info) {
+    auto&& pos = jsmath::vec3<float>(info[0]); // + math::fvec3(0, 1.4f, 0);
+    auto&& look = jsmath::vec2<float>(info[1]);
+
+    glm::vec3 look_center(-sinf(look.x) * cosf(look.y),
+                           sinf(look.y),
+                          -cosf(look.x) * cosf(look.y));
+
+    std::cout << "pos: " << pos << ", look: " << look << ", look_center: " << look_center << std::endl;
+
+    auto&& result = FindPointingBlock(math::fLine3::from_range(pos, pos + look_center * 2.f));
+    if (!result) {
+      return info.Env().Null();
+    }
+
+    return jsmath::vec3(info.Env(), result.value());
+  }
+
+  void World::JSCall_replaceBlock(JSCbi info) {
+    auto&& coord = jsmath::vec3<int>(info[0]);
+    int block_id = info[1].ToNumber().Int32Value();
+    auto&& chunk_pos = math::get_center_chunk(coord, Chunk::SIZE);
+    auto&& chunk_result = chunk_map_.find(chunk_pos);
+    if (chunk_result == chunk_map_.end()) {
+      // TODO(daaitch): public "warn", "error", "info" logger API in C++
+      std::cerr << "WARN: cannot find chunk for position" << std::endl;
+      return;
+    }
+
+    auto&& block_def = js_BlockRegistrar->GetByIndex(block_id);
+    
+    auto&& chunk = chunk_result->second;
+    auto&& pos_in_chunk = math::get_pos_in_chunk(coord, Chunk::SIZE);
+    std::cout
+      <<   "coord:         " << coord
+      << "\nchunk->GetPos: " << chunk->GetPos()
+      << "\nchunk_pos:     " << chunk_pos
+      << "\npos_in_chunk:  " << pos_in_chunk
+      << std::endl;
+    chunk->UpdateBlock(pos_in_chunk, block_def);
   }
 }

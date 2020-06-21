@@ -32,8 +32,8 @@ namespace chunklands::math {
   }
 
   chunk_pos_in_box::chunk_pos_in_box(const fAABB3& box, unsigned chunk_size) {
-    chunk_min_ = get_center_chunk(box.origin           , chunk_size);
-    chunk_max_ = get_center_chunk(box.origin + box.span, chunk_size);
+    chunk_min_ = __WITH_BUG_get_center_chunk(box.origin           , chunk_size);
+    chunk_max_ = __WITH_BUG_get_center_chunk(box.origin + box.span, chunk_size);
     end_       = box_iterator::end(chunk_min_, chunk_max_);
   }
 

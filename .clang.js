@@ -12,7 +12,7 @@ const DEV = process.env.NODE_ENV !== 'production';
     debug: DEV,
     clangBin: process.env.CLANG_BIN,
     clangTidyBin: process.env.CLANG_TIDY_BIN,
-    clangLlvmArBin: process.env.CLANG_LLVM_AR_BIN,
+    clangNoTidy: process.env.CLANG_NO_TIDY === 'true'
   })
   .addMakefileTarget('../deps/glfw/src/libglfw3.a', {
     cmd: 'cd ../deps/glfw'
@@ -73,7 +73,7 @@ const DEV = process.env.NODE_ENV !== 'production';
     )
     .addInclude('src')
     .addSource(
-      'src/chunklands_test/chunklands_test_napimodule.cxx'
+      'src/chunklands_test/**/*.cxx'
     )
     .addLibrary(
       ...chunklandsGenericCs.getObjectPaths(),

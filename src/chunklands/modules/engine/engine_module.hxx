@@ -486,10 +486,14 @@ namespace chunklands::modules::engine {
 
   class Camera : public JSObjectWrap<Camera> {
     JS_IMPL_WRAP(Camera, ONE_ARG({
-      JS_SETTER(Position)
+      JS_SETTER(Position),
+      JS_GETTER(Position),
+      JS_GETTER(Look),
     }))
-  private:
-    void JSCall_SetPosition(JSCbi info);
+
+    JS_DECL_CB_VOID(SetPosition)
+    JS_DECL_CB(GetPosition)
+    JS_DECL_CB(GetLook)
 
   public:
     void UpdateViewportRatio(int width, int height);

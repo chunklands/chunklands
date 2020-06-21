@@ -1,15 +1,50 @@
 #include <gtest/gtest.h>
-#include <chunklands/math.h>
-#include <chunklands/modules/misc/misc_module.h>
+#include <chunklands/math.hxx>
+#include <chunklands/modules/misc/misc_module.hxx>
 
 namespace chunklands::math {
 
   TEST(chunklands__math, get_center_chunk) {
-    ASSERT_EQ((get_center_chunk({ 0,   0,   0}, 16)), (ivec3{ 0,  0,  0}));
-    ASSERT_EQ((get_center_chunk({25,   0,   3}, 16)), (ivec3{ 1,  0,  0}));
-    ASSERT_EQ((get_center_chunk({ 0,  16,  31}, 16)), (ivec3{ 0,  1,  1}));
-    ASSERT_EQ((get_center_chunk({-1,   0,   0}, 16)), (ivec3{-1,  0,  0}));
-    ASSERT_EQ((get_center_chunk({20, -25, -60}, 16)), (ivec3{ 1, -2, -4}));
+
+    // int
+    ASSERT_EQ((get_center_chunk(ivec3 {  0,   0,   0}, 16)), (ivec3{  0,  0,  0}));
+    ASSERT_EQ((get_center_chunk(ivec3 { 25,   0,   3}, 16)), (ivec3{  1,  0,  0}));
+    ASSERT_EQ((get_center_chunk(ivec3 {  0,  16,  31}, 16)), (ivec3{  0,  1,  1}));
+    ASSERT_EQ((get_center_chunk(ivec3 { -1,   0,   0}, 16)), (ivec3{ -1,  0,  0}));
+    ASSERT_EQ((get_center_chunk(ivec3 { 20, -25, -60}, 16)), (ivec3{  1, -2, -4}));
+    ASSERT_EQ((get_center_chunk(ivec3 {-15, -15, -15}, 16)), (ivec3{ -1, -1, -1}));
+    ASSERT_EQ((get_center_chunk(ivec3 {-16, -16, -16}, 16)), (ivec3{ -1, -1, -1}));
+    ASSERT_EQ((get_center_chunk(ivec3 {-17, -17, -17}, 16)), (ivec3{ -2, -2, -2}));
+
+    // float
+    ASSERT_EQ((get_center_chunk(fvec3 {  0,   0,   0}, 16)), (ivec3{  0,  0,  0}));
+    ASSERT_EQ((get_center_chunk(fvec3 { 25,   0,   3}, 16)), (ivec3{  1,  0,  0}));
+    ASSERT_EQ((get_center_chunk(fvec3 {  0,  16,  31}, 16)), (ivec3{  0,  1,  1}));
+    ASSERT_EQ((get_center_chunk(fvec3 { -1,   0,   0}, 16)), (ivec3{ -1,  0,  0}));
+    ASSERT_EQ((get_center_chunk(fvec3 { 20, -25, -60}, 16)), (ivec3{  1, -2, -4}));
+    ASSERT_EQ((get_center_chunk(fvec3 {-15, -15, -15}, 16)), (ivec3{ -1, -1, -1}));
+    ASSERT_EQ((get_center_chunk(fvec3 {-16, -16, -16}, 16)), (ivec3{ -1, -1, -1}));
+    ASSERT_EQ((get_center_chunk(fvec3 {-17, -17, -17}, 16)), (ivec3{ -2, -2, -2}));
+
+  }
+
+  TEST(chunklands__math, get_pos_in_chunk) {
+
+    // int
+    ASSERT_EQ((get_pos_in_chunk(ivec3 { 0,    0,    0}, 16)), (ivec3{ 0,  0,  0}));
+    ASSERT_EQ((get_pos_in_chunk(ivec3 { 1,    1,    1}, 16)), (ivec3{ 1,  1,  1}));
+    ASSERT_EQ((get_pos_in_chunk(ivec3 {-1,  -16,  -15}, 16)), (ivec3{15,  0,  1}));
+    ASSERT_EQ((get_pos_in_chunk(ivec3 {-15,  -1,  -16}, 16)), (ivec3{ 1, 15,  0}));
+    ASSERT_EQ((get_pos_in_chunk(ivec3 {-16, -15,   -1}, 16)), (ivec3{ 0,  1, 15}));
+
+    // float
+    ASSERT_EQ((get_pos_in_chunk(fvec3 {  0,       0,       0   }, 16)), (ivec3{ 0,  0,  0}));
+    ASSERT_EQ((get_pos_in_chunk(fvec3 {  1,       1,       1   }, 16)), (ivec3{ 1,  1,  1}));
+    ASSERT_EQ((get_pos_in_chunk(fvec3 {  0.1f,   14.1f,   15.1f}, 16)), (ivec3{ 0, 14, 15}));
+    ASSERT_EQ((get_pos_in_chunk(fvec3 { 16.1f,   17.1f,   15.9f}, 16)), (ivec3{ 0,  1, 15}));
+    ASSERT_EQ((get_pos_in_chunk(fvec3 { -0.1f,  -14.1f,  -15.1f}, 16)), (ivec3{15,  1,  0}));
+    ASSERT_EQ((get_pos_in_chunk(fvec3 {-16.1f,  -17.1f,  -15.9f}, 16)), (ivec3{15, 14,  0}));
+
   }
 
   TEST(chunklands__math, fAABB1) {

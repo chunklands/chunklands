@@ -107,7 +107,10 @@ namespace chunklands {
   using JSSymbol      = Napi::Symbol;
   template<class T>
   using JSExternal    = Napi::External<T>;
-  
+
+  inline uint32_t js_index(int i) {
+    return i;
+  }
 
   template <typename T>
   class JSWrapRef {

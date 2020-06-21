@@ -53,11 +53,11 @@ module.exports = class Game {
     const blockRegistrar = new game.BlockRegistrar();
     const spriteRegistrar = new game.SpriteRegistrar();
 
-    const blockIds = {};
+    this._blockIds = {};
     for (const bakedModel of bakedModels.models) {
       if (bakedModel.id.startsWith('block.')) {
         const blockId = blockRegistrar.addBlock(bakedModel);
-        blockIds[bakedModel.id] = blockId;
+        this._blockIds[bakedModel.id] = blockId;
       } else if (bakedModel.id.startsWith('sprite.')) {
         spriteRegistrar.addSprite(bakedModel);
       }
@@ -73,11 +73,12 @@ module.exports = class Game {
     
     // world
 
-    const worldGenerator = new SimpleWorldGen(blockIds);
+    const worldGenerator = new SimpleWorldGen(this._blockIds);
     chunkGenerator.setWorldGenerator(worldGenerator);
 
-    const world = new World();
-    world.setChunkGenerator(chunkGenerator);
+    this._world = new World();
+    this._world.setChunkGenerator(chunkGenerator);
+    this._world.setBlockRegistrar(blockRegistrar);
 
     // game overlay
     const gameOverlay = new game.GameOverlay();
@@ -85,9 +86,9 @@ module.exports = class Game {
 
     // scene
     const scene = createScene();
-    scene.setWorld(world);
     scene.setGameOverlay(gameOverlay);
     scene.setBlockRegistrar(blockRegistrar);
+    scene.setWorld(this._world);
 
 
     // render pipeline
@@ -138,15 +139,15 @@ module.exports = class Game {
 
 
     // camera
-    const camera = new Camera();
-    camera.setPosition(0, 30, 0);
-    scene.setCamera(camera);
+    this._camera = new Camera();
+    this._camera.setPosition(0, 30, 0);
+    scene.setCamera(this._camera);
 
 
     // movement controller
     const movementController = new MovementController();
-    movementController.setCamera(camera);
-    movementController.setCollisionSystem(world);
+    movementController.setCamera(this._camera);
+    movementController.setCollisionSystem(this._world);
     scene.setMovementController(movementController);
 
     // text renderer
@@ -185,6 +186,19 @@ module.exports = class Game {
       if (event.button === 0 && event.action === 0) {
         if (!this._window.getGameControl()) {
           this._window.setGameControl(true);
+        } else {
+          const position = this._camera.getPosition();
+          const look = this._camera.getLook();
+          console.log({position, look});
+          const blockCoord = this._world.findPointingBlock(
+            this._camera.getPosition(),
+            this._camera.getLook()
+          );
+
+          if (blockCoord) {
+            console.log({blockCoord});
+            this._world.replaceBlock(blockCoord, this._blockIds['block.air']);
+          }
         }
       }
     });
@@ -194,7 +208,7 @@ module.exports = class Game {
     setInterval(() => {
       const metrics = profiler.getMetrics();
       this._textRenderer.write(`${(1000000 / metrics['gameloop_loop']).toFixed(1)} fps`);
-      console.log(metrics);
+    //   console.log(metrics);
     }, 1000);
 
     return await new Promise((resolve, reject) => {

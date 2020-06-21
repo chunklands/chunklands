@@ -48,6 +48,7 @@ namespace chunklands::modules::game {
 
   public:
     BlockDefinition* GetByIndex(int index);
+    const BlockDefinition* GetByIndex(int index) const;
     void BindTexture();
 
   private:
@@ -142,6 +143,16 @@ namespace chunklands::modules::game {
       return blocks_[at.z][at.y][at.x];
     }
 
+    void UpdateBlock(const glm::ivec3& at, BlockDefinition* block_def) {
+      assert(block_def);
+
+      assert(at.x >= 0 && at.y >= 0 && at.z >= 0);
+      assert(at.x < (int)SIZE && at.y < (int)SIZE && at.z < (int)SIZE);
+
+      blocks_[at.z][at.y][at.x] = block_def;
+      state_ = ChunkState::kModelPrepared;
+    }
+
   private:
     ChunkState state_ = kEmpty;
     glm::ivec3 pos_;
@@ -187,22 +198,46 @@ namespace chunklands::modules::game {
     bool ProcessNextModel();
     void GenerateView(Chunk& chunk, const Chunk* neighbors[kNeighborCount]);
 
+    void BindTexture();
+
+    const BlockRegistrar& GetBlockRegistrar() const {
+      return *js_BlockRegistrar.Get();
+    }
+
+    BlockRegistrar& GetBlockRegistrar() {
+      return *js_BlockRegistrar.Get();
+    }
+
   private:
 
     std::queue<detail::loaded_chunks_data> loaded_chunks_;
   };
 
+  struct block_collision {
+    engine::collision_result collision_result;
+    const BlockDefinition* block_def;
+    math::ivec3 pos_in_chunk;
+    Chunk *chunk;
+  };
+
   class World : public JSObjectWrap<World>, public engine::ICollisionSystem {
     JS_IMPL_WRAP(World, ONE_ARG({
       JS_SETTER(ChunkGenerator),
+      JS_SETTER(BlockRegistrar),
       JS_ABSTRACT_WRAP(engine::ICollisionSystem, ICollisionSystem),
+      JS_CB(findPointingBlock),
+      JS_CB(replaceBlock),
     }))
 
     JS_IMPL_SETTER_WRAP(ChunkGenerator, ChunkGenerator)
+    JS_IMPL_SETTER_WRAP(BlockRegistrar, BlockRegistrar)
     JS_IMPL_ABSTRACT_WRAP(engine::ICollisionSystem, ICollisionSystem)
+    JS_DECL_CB(findPointingBlock)
+    JS_DECL_CB_VOID(replaceBlock)
 
   public:
-    engine::collision_result ProcessNextCollision(const math::fAABB3 &box, const math::fvec3 &movement);
+    engine::collision_result ProcessNextCollision(const math::fAABB3 &box, const math::fvec3 &movement) override;
+    std::optional<math::ivec3> FindPointingBlock(const math::fLine3& look);
 
   public:
     void Prepare();

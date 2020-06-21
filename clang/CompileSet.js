@@ -238,7 +238,7 @@ module.exports = class CompileSet {
 
         this._buildSet.addMakefileTarget(target, {
           normalDeps: deps,
-          cmd: system
+          cmd: (system || this._buildSet.clangNoTidy)
             ? objectCmd
             : `${this._clangTidyCmd(source)} && ${objectCmd}`
         });

@@ -2,26 +2,43 @@
 #define __CHUNKLANDS_MATH_INL__
 
 namespace chunklands::math {
-  ivec3 get_center_chunk(const fvec3& pos, unsigned chunk_size) {
-    return ivec3(pos.x >= 0 ? pos.x : pos.x - chunk_size,
-                      pos.y >= 0 ? pos.y : pos.y - chunk_size,
-                      pos.z >= 0 ? pos.z : pos.z - chunk_size
+  ivec3 __WITH_BUG_get_center_chunk(const fvec3& pos, unsigned chunk_size) {
+    return ivec3(
+      pos.x >= 0 ? pos.x : pos.x - chunk_size,
+      pos.y >= 0 ? pos.y : pos.y - chunk_size,
+      pos.z >= 0 ? pos.z : pos.z - chunk_size
     ) / (int)chunk_size;
   }
 
-  template<class T>
-  std::ostream& operator<<(std::ostream& os, const vec1<T>& v) {
-    return os << "vec{ x=" << v.x << " }";
+  ivec3 get_center_chunk(const fvec3& pos, unsigned chunk_size) {
+    return ivec3(
+      pos.x >= 0 ? pos.x : pos.x - chunk_size + 1,
+      pos.y >= 0 ? pos.y : pos.y - chunk_size + 1,
+      pos.z >= 0 ? pos.z : pos.z - chunk_size + 1
+    ) / (int)chunk_size;
   }
 
-  template<class T>
-  std::ostream& operator<<(std::ostream& os, const vec2<T>& v) {
-    return os << "vec{ x=" << v.x << ", y=" << v.y << " }";
+  ivec3 get_center_chunk(const ivec3& pos, unsigned chunk_size) {
+    return ivec3(pos.x >= 0 ? pos.x : pos.x - chunk_size + 1,
+                      pos.y >= 0 ? pos.y : pos.y - chunk_size + 1,
+                      pos.z >= 0 ? pos.z : pos.z - chunk_size + 1
+    ) / (int)chunk_size;
   }
 
-  template<class T>
-  std::ostream& operator<<(std::ostream& os, const vec3<T>& v) {
-    return os << "vec{ x=" << v.x << ", y=" << v.y << ", z=" << v.z << " }";
+  ivec3 get_pos_in_chunk(const fvec3& pos, unsigned chunk_size) {
+    return ivec3(
+      pos.x >= 0 ? (int)pos.x % chunk_size : ((int)pos.x - 1) % chunk_size,
+      pos.y >= 0 ? (int)pos.y % chunk_size : ((int)pos.y - 1) % chunk_size,
+      pos.z >= 0 ? (int)pos.z % chunk_size : ((int)pos.z - 1) % chunk_size
+    );
+  }
+
+  ivec3 get_pos_in_chunk(const ivec3& pos, unsigned chunk_size) {
+    return ivec3(
+      pos.x % chunk_size,
+      pos.y % chunk_size,
+      pos.z % chunk_size
+    );
   }
 
   template<int N, class T>
@@ -118,7 +135,7 @@ namespace chunklands::math {
   template<class T>
   AABB<2, T> operator|(const AABB<2, T>& b, const vec2<T>& v) {
     if (b.IsEmpty()) {
-      return {};
+      return AABB<2, T>{};
     }
 
     AABB<1, T> b_x = x_aabb(b) | x_vec(v);
@@ -133,17 +150,17 @@ namespace chunklands::math {
   template<class T>
   AABB<2, T> operator&(const AABB<2, T>& a, const AABB<2, T>& b) {
     if(a.IsEmpty() || b.IsEmpty()) {
-      return {};
+      return AABB<2, T>{};
     }
 
     AABB<1, T> x = x_aabb(a) & x_aabb(b);
     if (!x) {
-      return {};
+      return AABB<2, T>{};
     }
 
     AABB<1, T> y = y_aabb(a) & y_aabb(b);
     if (!y) {
-      return {};
+      return AABB<2, T>{};
     }
 
     return AABB<2, T>{
@@ -354,6 +371,24 @@ namespace chunklands::math {
 
     return result;
   }
+}
+
+namespace std {
+  template<class T>
+  std::ostream& operator<<(std::ostream& os, const chunklands::math::vec1<T>& v) {
+    return os << "vec{ x=" << v.x << " }";
+  }
+
+  template<class T>
+  std::ostream& operator<<(std::ostream& os, const chunklands::math::vec2<T>& v) {
+    return os << "vec{ x=" << v.x << ", y=" << v.y << " }";
+  }
+
+  template<class T>
+  std::ostream& operator<<(std::ostream& os, const chunklands::math::vec3<T>& v) {
+    return os << "vec{ x=" << v.x << ", y=" << v.y << ", z=" << v.z << " }";
+  }
+
 }
 
 #endif

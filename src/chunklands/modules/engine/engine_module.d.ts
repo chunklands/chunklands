@@ -1,6 +1,9 @@
 import * as gl from '../gl/gl_module'
 import { EventEmitter } from 'events'
 
+type vec2 = [number, number]
+type vec3 = [number, number, number]
+
 export interface IScene {}
 export interface ICollisionSystem {}
 
@@ -52,6 +55,8 @@ export declare class Skybox {
 
 export declare class Camera {
   setPosition(x: number, y: number, z: number): void
+  getPosition(): vec3
+  getLook(): vec2
 }
 
 export declare class MovementController {

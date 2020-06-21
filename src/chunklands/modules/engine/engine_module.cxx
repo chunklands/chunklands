@@ -5,6 +5,7 @@
 #include <random>
 
 #include <chunklands/modules/misc/misc_module.hxx>
+#include <chunklands/jsmath.hxx>
 
 namespace chunklands::modules::engine {
 
@@ -655,6 +656,14 @@ namespace chunklands::modules::engine {
     pos_.x = info[0].ToNumber().FloatValue();
     pos_.y = info[1].ToNumber().FloatValue();
     pos_.z = info[2].ToNumber().FloatValue();
+  }
+
+  JSValue Camera::JSCall_GetPosition(JSCbi info) {
+    return jsmath::vec3(info.Env(), pos_);
+  }
+
+  JSValue Camera::JSCall_GetLook(JSCbi info) {
+    return jsmath::vec2(info.Env(), look_);
   }
 
 

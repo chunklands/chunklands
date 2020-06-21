@@ -5,7 +5,7 @@ const util = require('./util');
 const execa = require('execa');
 
 module.exports = class BuildSet {
-  constructor({clangfileAbsolutePath, rootAbsolutePath, buildAbsolutePath, debug, clangBin = 'clang', clangTidyBin = 'clang-tidy'}) {
+  constructor({clangfileAbsolutePath, rootAbsolutePath, buildAbsolutePath, debug, clangBin = 'clang', clangTidyBin = 'clang-tidy', clangNoTidy = false}) {
     if (!path.isAbsolute(rootAbsolutePath)) {
       throw new TypeError('need absolute root dir');
     }
@@ -26,6 +26,7 @@ module.exports = class BuildSet {
 
     this.clangBin = clangBin;
     this.clangTidyBin = clangTidyBin;
+    this.clangNoTidy = clangNoTidy;
 
     this._makefileTargets = {};
   }

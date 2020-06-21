@@ -58,9 +58,9 @@ function create(chunkDim) {
   let spotCount = 0;
   let generatedChunks = 0;
 
-  setInterval(() => {
-    console.log(`spots per chunk = ${spotCount / generatedChunks}`)
-  }, 500);
+  // setInterval(() => {
+  //   console.log(`spots per chunk = ${spotCount / generatedChunks}`)
+  // }, 500);
 
   const biomeNoise = algorithm.createSimplexNoise({f0: 32, octaves: 3, persistence: 0.5, lacunarity: 3.1});
   const spotsNoise = algorithm.createSimplexNoise({f0: 8, octaves: 8, persistence: 0.56, lacunarity: 1.34});
