@@ -1,10 +1,9 @@
 import * as engine from '../engine/engine_module'
 import { EventEmitter } from 'events'
 
-export declare class BlockRegistrarBase {
-  addBlock(): void
-  loadTexture(): void
-  getBlockIds(): number[]
+export declare class BlockRegistrar {
+  addBlock(block: {id: string, opaque: boolean, vertexData: {[face: string]: number[]}}): number
+  loadTexture(texture: string): void
 }
 
 export declare interface IWorldGenerator {
@@ -12,7 +11,7 @@ export declare interface IWorldGenerator {
 }
 
 export declare class ChunkGenerator {
-  setBlockRegistrar(value: BlockRegistrarBase): void
+  setBlockRegistrar(value: BlockRegistrar): void
   setWorldGenerator(value: IWorldGenerator): void
 }
 

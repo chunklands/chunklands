@@ -99,12 +99,12 @@ namespace chunklands::modules::game {
 
 
   /////////////////////////////////////////////////////////////////////////////
-  // BlockRegistrarBase ///////////////////////////////////////////////////////
+  // BlockRegistrar ///////////////////////////////////////////////////////////
   /////////////////////////////////////////////////////////////////////////////
 
-  JS_DEF_WRAP(BlockRegistrarBase)
+  JS_DEF_WRAP(BlockRegistrar)
 
-  void BlockRegistrarBase::JSCall_addBlock(JSCbi info) {
+  JSValue BlockRegistrar::JSCall_addBlock(JSCbi info) {
     JS_ASSERT(info.Env(), info[0].IsObject());
 
     auto&& js_block_definition = info[0].ToObject();
@@ -152,31 +152,32 @@ namespace chunklands::modules::game {
                                                                 std::move(faces));
 
     block_definitions_.push_back(std::move(block_definition));
+    return JSNumber::New(info.Env(), block_definitions_.size() - 1);
   }
 
-  JSValue BlockRegistrarBase::JSCall_getBlockIds(JSCbi info) {
-    auto&& js_block_ids = JSObject::New(info.Env());
+  // JSValue BlockRegistrar::JSCall_getBlockIds(JSCbi info) {
+  //   auto&& js_block_ids = JSObject::New(info.Env());
 
-    for (unsigned i = 0; i < block_definitions_.size(); i++) {
-      auto&& block_definition = block_definitions_[i];
-      js_block_ids.Set(block_definition->GetId(), JSNumber::New(info.Env(), i));
-    }
+  //   for (unsigned i = 0; i < block_definitions_.size(); i++) {
+  //     auto&& block_definition = block_definitions_[i];
+  //     js_block_ids.Set(block_definition->GetId(), JSNumber::New(info.Env(), i));
+  //   }
 
-    return js_block_ids;
-  }
+  //   return js_block_ids;
+  // }
 
-  void BlockRegistrarBase::JSCall_loadTexture(JSCbi info) {
+  void BlockRegistrar::JSCall_loadTexture(JSCbi info) {
     JS_ASSERT(info.Env(), info[0].IsString());
 
     std::string filepath = info[0].ToString();
     texture_.LoadTexture(filepath.c_str());
   }
 
-  BlockDefinition* BlockRegistrarBase::GetByIndex(int index) {
+  BlockDefinition* BlockRegistrar::GetByIndex(int index) {
     return block_definitions_[index].get();
   }
 
-  void BlockRegistrarBase::BindTexture() {
+  void BlockRegistrar::BindTexture() {
     texture_.ActiveAndBind(GL_TEXTURE0);
   }
 

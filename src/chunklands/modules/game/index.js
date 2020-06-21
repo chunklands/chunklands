@@ -9,25 +9,28 @@ const { Scene } = require('./game_module');
 
 const files = require('../../../files');
 
-class BlockRegistrar extends game.BlockRegistrarBase {
+class ResourceRegistrar {
 
-  constructor() {
-    super();
-
-    this._blocks = [];
+  /**
+   * @param {import('./game_module').BlockRegistrar} blockRegistrar 
+   */
+  constructor(blockRegistrar) {
+    this._unbakedBlocks = [];
+    this._blocks = {};
+    this._blockRegistrar = blockRegistrar;
   }
 
   addBlock(block) {
-    this._blocks.push(block);
+    this._unbakedBlocks.push(block);
   }
 
   async bake() {
     const baker = new engine.TextureBaker();
 
     const blocksAndAreas = await Promise.all(
-      this._blocks.map(async block => {
+      this._unbakedBlocks.map(async block => {
         if (!block.texture) {
-          return {block};
+          return {area: null, block};
         }
 
         const {width, height} = await imageSize(block.texture);
@@ -42,6 +45,7 @@ class BlockRegistrar extends game.BlockRegistrarBase {
 
     const image = new Jimp(textureDim, textureDim);
     await Promise.all(blocksAndAreas.map(async ({block, area}) => {
+      let blockOffset;
       if (area) {
         assert.ok(block.texture)
 
@@ -64,16 +68,22 @@ class BlockRegistrar extends game.BlockRegistrarBase {
           }
         }
 
-        super.addBlock(uvCorrectedBlock);
+        blockOffset = this._blockRegistrar.addBlock(uvCorrectedBlock);
       } else {
-        super.addBlock(block);
+        blockOffset = this._blockRegistrar.addBlock(block);
       }
+
+      this._blocks[block.id] = blockOffset;
     }));
 
     const textureCacheFilePath = files.cacheFile('texture.png');
     await image.writeAsync(textureCacheFilePath);
 
-    super.loadTexture(textureCacheFilePath);
+    this._blockRegistrar.loadTexture(textureCacheFilePath);
+  }
+
+  getBlockIds() {
+    return this._blocks;
   }
 };
 
@@ -92,7 +102,7 @@ function createScene() {
 }
 
 module.exports = {
-  BlockRegistrar,
+  ResourceRegistrar,
   ...game,
   createScene
 };

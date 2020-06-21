@@ -30,7 +30,7 @@ namespace chunklands::modules {
 
   JSObject InitGame(JSEnv env, JSObject exports) {
     using namespace modules::game;
-    EXPORT(BlockRegistrarBase);
+    EXPORT(BlockRegistrar);
     EXPORT(ChunkGenerator);
     EXPORT(Scene);
     EXPORT(World);

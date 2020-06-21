@@ -16,7 +16,7 @@ const {
     TextRenderer,
   },
   game: {
-    BlockRegistrar,
+    ResourceRegistrar,
     ChunkGenerator,
     World,
     createScene
@@ -30,6 +30,7 @@ const {
 } = require('../chunklands');
 const SimpleWorldGen = require('./world/SimpleWorldGen')
 const blockLoader     = require('./blocks');
+const game = require('../chunklands/modules/game');
 
 module.exports = class Game {
   /**
@@ -45,11 +46,13 @@ module.exports = class Game {
 
     // blocks
     const blocks = await blockLoader();
-    const blockRegistrar = new BlockRegistrar();
+    const blockRegistrar = new game.BlockRegistrar();
+
+    const resourceRegistrar = new game.ResourceRegistrar(blockRegistrar);
     for (const block of blocks) {
-      blockRegistrar.addBlock(block);
+      resourceRegistrar.addBlock(block);
     }
-    await blockRegistrar.bake();
+    await resourceRegistrar.bake();
 
     const chunkGenerator = new ChunkGenerator();
     chunkGenerator.setBlockRegistrar(blockRegistrar);
@@ -57,7 +60,7 @@ module.exports = class Game {
     
     // world
 
-    const worldGenerator = new SimpleWorldGen(blockRegistrar.getBlockIds());
+    const worldGenerator = new SimpleWorldGen(resourceRegistrar.getBlockIds());
     chunkGenerator.setWorldGenerator(worldGenerator);
 
     const world = new World();

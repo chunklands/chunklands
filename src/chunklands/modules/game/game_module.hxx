@@ -37,16 +37,14 @@ namespace chunklands::modules::game {
     std::unordered_map<std::string, std::vector<GLfloat>> faces_vertex_data_;
   };
 
-  class BlockRegistrarBase : public JSObjectWrap<BlockRegistrarBase> {
-    JS_IMPL_WRAP(BlockRegistrarBase, ONE_ARG({
+  class BlockRegistrar : public JSObjectWrap<BlockRegistrar> {
+    JS_IMPL_WRAP(BlockRegistrar, ONE_ARG({
       JS_CB(addBlock),
-      JS_CB(loadTexture),
-      JS_CB(getBlockIds)
+      JS_CB(loadTexture)
     }))
 
-    JS_DECL_CB_VOID(addBlock)
+    JS_DECL_CB(addBlock)
     JS_DECL_CB_VOID(loadTexture)
-    JS_DECL_CB(getBlockIds)
 
   public:
     BlockDefinition* GetByIndex(int index);
@@ -162,7 +160,7 @@ namespace chunklands::modules::game {
       JS_SETTER(WorldGenerator),
     }))
 
-    JS_IMPL_SETTER_WRAP(BlockRegistrarBase, BlockRegistrar)
+    JS_IMPL_SETTER_WRAP(BlockRegistrar, BlockRegistrar)
     JS_IMPL_SETTER_OBJECT(WorldGenerator)
 
   public:
