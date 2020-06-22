@@ -7,85 +7,92 @@ const imageSize = promisify(require('image-size'));
 const Jimp = require('jimp');
 const { Scene } = require('./game_module');
 
-const files = require('../../../files');
+/**
+ * @param {{faces: {[face: string]: number[]}, texture?: string}[]} models 
+ */
+async function bakeModels(models) {
 
-class ResourceRegistrar {
-
-  /**
-   * @param {import('./game_module').BlockRegistrar} blockRegistrar 
-   */
-  constructor(blockRegistrar) {
-    this._unbakedBlocks = [];
-    this._blocks = {};
-    this._blockRegistrar = blockRegistrar;
-  }
-
-  addBlock(block) {
-    this._unbakedBlocks.push(block);
-  }
-
-  async bake() {
-    const baker = new engine.TextureBaker();
-
-    const blocksAndAreas = await Promise.all(
-      this._unbakedBlocks.map(async block => {
-        if (!block.texture) {
-          return {area: null, block};
-        }
-
-        const {width, height} = await imageSize(block.texture);
-
-        const area = baker.addArea(width, height);
-        return {area, block};
-      })
-    );
-
-    const n = getNextPOT(baker.maxDim);
-    const textureDim = 1 << n;
-
-    const image = new Jimp(textureDim, textureDim);
-    await Promise.all(blocksAndAreas.map(async ({block, area}) => {
-      let blockOffset;
-      if (area) {
-        assert.ok(block.texture)
-
-        const texture = await Jimp.create(block.texture);
-        assert.strictEqual(texture.getWidth(), area.w);
-        assert.strictEqual(texture.getHeight(), area.h);
-
-        image.blit(texture, area.x, area.y);
-
-        const uvCorrectedBlock = {...block};
-        const vertexData = uvCorrectedBlock.vertexData = {...uvCorrectedBlock.vertexData};
-        for (const face of Object.keys(vertexData)) {
-          const faceVertexData = vertexData[face] = [...vertexData[face]];
-          for (let v = 0; v < faceVertexData.length / 8; v++) {
-            const uIndex = v * 8 + 6;
-            const vIndex = uIndex + 1;
-
-            faceVertexData[uIndex] = (area.x + (faceVertexData[uIndex] * area.w)) / textureDim;
-            faceVertexData[vIndex] = (area.y + (faceVertexData[vIndex] * area.h)) / textureDim;
-          }
-        }
-
-        blockOffset = this._blockRegistrar.addBlock(uvCorrectedBlock);
-      } else {
-        blockOffset = this._blockRegistrar.addBlock(block);
+  // load texture sizes
+  const myMetaModels = await Promise.all(
+    models.map(async (model, index) => {
+      if (!model.texture) {
+        return {model, index};
       }
 
-      this._blocks[block.id] = blockOffset;
-    }));
+      const size = await imageSize(model.texture);
+      return {
+        model,
+        size,
+        index
+      };
+    })
+  );
+  
+  // sort by size: large textures first is better
+  myMetaModels.sort((a, b) => {
+    const aSize = a.size ? a.size.width * a.size.height : 0;
+    const bSize = b.size ? b.size.width * b.size.height : 0;
 
-    const textureCacheFilePath = files.cacheFile('texture.png');
-    await image.writeAsync(textureCacheFilePath);
+    if (aSize < bSize) {
+      return 1;
+    }
 
-    this._blockRegistrar.loadTexture(textureCacheFilePath);
+    if (aSize > bSize) {
+      return -1;
+    }
+
+    return 0;
+  });
+
+  const baker = new engine.TextureBaker();
+  for (const myMetaModel of myMetaModels) {
+    const { size } = myMetaModel;
+    console.log({size});
+    if (size) {
+      myMetaModel.area = baker.addArea(size.width, size.height);
+    }
   }
 
-  getBlockIds() {
-    return this._blocks;
+  const textureSize = 1 << getNextPOT(baker.maxDim);
+  const texture = await Jimp.create(textureSize, textureSize);
+
+  await Promise.all(myMetaModels.map(async myMetaModel => {
+    const { area } = myMetaModel;
+
+    if (!area) {
+      return;
+    }
+
+    // copy texture
+    const modelTexture = await Jimp.create(myMetaModel.model.texture);
+    assert(modelTexture.getWidth() === area.w && modelTexture.getHeight() === area.h);
+    texture.blit(modelTexture, area.x, area.y);
+
+    // update uv
+    const myModel = myMetaModel.model = {...myMetaModel.model};
+    const myFaces = myModel.faces = {...myModel.faces};
+
+    for (const faceName in myFaces) {
+      const myVertexData = myFaces[faceName] = [...myFaces[faceName]];
+      assert(myVertexData.length % 8 === 0);
+      console.log({myVertexData})
+      for (let i = 0; i < myVertexData.length; i += 8) {
+        const uI = i + 6;
+        const vI = i + 7;
+        
+        myVertexData[uI] = (area.x + (myVertexData[uI] * area.w)) / textureSize;
+        myVertexData[vI] = (area.y + (myVertexData[vI] * area.h)) / textureSize;
+      }
+    }
+  }));
+
+  myMetaModels.sort((a, b) => a.index < b.index ? 1 : -1);
+
+  return {
+    texture,
+    models: myMetaModels.map(myMetaModel => myMetaModel.model)
   }
-};
+}
 
 function getNextPOT(num) {
   let n;
@@ -104,5 +111,6 @@ function createScene() {
 module.exports = {
   ResourceRegistrar,
   ...game,
-  createScene
+  createScene,
+  bakeModels
 };

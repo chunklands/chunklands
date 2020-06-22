@@ -1,5 +1,5 @@
 module.exports = () => ({
   id: 'block.air',
-  vertexData: [],
+  faces: {},
   opaque: false
 });

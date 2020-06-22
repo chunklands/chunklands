@@ -2,7 +2,7 @@ import * as engine from '../engine/engine_module'
 import { EventEmitter } from 'events'
 
 export declare class BlockRegistrar {
-  addBlock(block: {id: string, opaque: boolean, vertexData: {[face: string]: number[]}}): number
+  addBlock(block: {id: string, opaque: boolean, faces: {[face: string]: number[]}}): number
   loadTexture(texture: string): void
 }
 

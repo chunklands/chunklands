@@ -2,7 +2,7 @@ const { MessageChannel, Worker } = require('worker_threads');
 
 module.exports = class SimpleWorldGen {
   /**
-   * @param {number[]} blocks 
+   * @param {{[blockId: string]: number}} blocks 
    */
   constructor(blocks) {
 

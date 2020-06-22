@@ -7,7 +7,7 @@ module.exports = async () => {
 
   return {
     id: 'block.monkey',
-    vertexData: {
+    faces: {
       all: buf
     },
     opaque: true,

@@ -1,7 +1,7 @@
 
 module.exports = () => ({
   id: 'block.water',
-  vertexData: {
+  faces: {
       // VERTEX1      NORMAL1          UV1        VERTEX2         NORMAL2          UV2        VERTEX3         NORMAL3          UV3
     front: [
       0.0, 1.0, 0.0,  0.0, 0.0, -1.0,  0.0, 1.0,  0.0, 0.0, 0.0,  0.0, 0.0, -1.0,  0.0, 0.0,  1.0, 0.0, 0.0,  0.0, 0.0, -1.0,  1.0, 0.0,

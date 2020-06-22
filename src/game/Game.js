@@ -16,10 +16,10 @@ const {
     TextRenderer,
   },
   game: {
-    ResourceRegistrar,
     ChunkGenerator,
     World,
-    createScene
+    createScene,
+    bakeModels
   },
   gl: {
     Program
@@ -31,6 +31,7 @@ const {
 const SimpleWorldGen = require('./world/SimpleWorldGen')
 const blockLoader     = require('./blocks');
 const game = require('../chunklands/modules/game');
+const files = require('../files');
 
 module.exports = class Game {
   /**
@@ -46,13 +47,18 @@ module.exports = class Game {
 
     // blocks
     const blocks = await blockLoader();
-    const blockRegistrar = new game.BlockRegistrar();
+    const bakedModels = await bakeModels(blocks);
 
-    const resourceRegistrar = new game.ResourceRegistrar(blockRegistrar);
-    for (const block of blocks) {
-      resourceRegistrar.addBlock(block);
+    const blockRegistrar = new game.BlockRegistrar();
+    const blockIds = {};
+    for (const bakedBlock of bakedModels.models) {
+      const blockId = blockRegistrar.addBlock(bakedBlock);
+      blockIds[bakedBlock.id] = blockId;
     }
-    await resourceRegistrar.bake();
+
+    const texturePath = files.cacheFile('texture.png');
+    await bakedModels.texture.writeAsync(texturePath)
+    blockRegistrar.loadTexture(texturePath);
 
     const chunkGenerator = new ChunkGenerator();
     chunkGenerator.setBlockRegistrar(blockRegistrar);
@@ -60,7 +66,7 @@ module.exports = class Game {
     
     // world
 
-    const worldGenerator = new SimpleWorldGen(resourceRegistrar.getBlockIds());
+    const worldGenerator = new SimpleWorldGen(blockIds);
     chunkGenerator.setWorldGenerator(worldGenerator);
 
     const world = new World();

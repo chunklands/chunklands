@@ -117,11 +117,11 @@ namespace chunklands::modules::game {
     JS_ASSERT(info.Env(), js_opaque.IsBoolean());
     bool opaque = js_opaque.ToBoolean();
 
-    auto&& js_vertex_data = js_block_definition.Get("vertexData");
-    JS_ASSERT(info.Env(), js_vertex_data.IsObject());
+    auto&& js_faces = js_block_definition.Get("faces");
+    JS_ASSERT(info.Env(), js_faces.IsObject());
 
-    auto&& js_vertex_data_obj = js_vertex_data.As<JSObject>();
-    auto&& js_facenames_arr = js_vertex_data_obj.GetPropertyNames();
+    auto&& js_faces_obj = js_faces.As<JSObject>();
+    auto&& js_facenames_arr = js_faces_obj.GetPropertyNames();
     std::unordered_map<std::string, std::vector<GLfloat>> faces;
 
     for (unsigned i = 0; i < js_facenames_arr.Length(); i++) {
@@ -129,22 +129,22 @@ namespace chunklands::modules::game {
       assert(js_facename.IsString());
       
       auto&& js_facename_str = js_facename.ToString();
-      auto&& js_face_vertex_data = js_vertex_data_obj.Get(js_facename_str);
-      JS_ASSERT(info.Env(), js_face_vertex_data.IsArray());
-      auto&& js_face_vertex_data_arr = js_face_vertex_data.As<JSArray>();
+      auto&& js_face = js_faces_obj.Get(js_facename_str);
+      JS_ASSERT(info.Env(), js_face.IsArray());
+      auto&& js_face_arr = js_face.As<JSArray>();
 
-      std::vector<GLfloat> face_vertex_data;
-      face_vertex_data.reserve(js_face_vertex_data_arr.Length());
+      std::vector<GLfloat> face;
+      face.reserve(js_face_arr.Length());
 
-      for(unsigned i = 0; i < js_face_vertex_data_arr.Length(); i++) {
-        auto&& js_face_vertex_value = js_face_vertex_data_arr.Get(i);
-        JS_ASSERT(info.Env(), js_face_vertex_value.IsNumber());
+      for(unsigned i = 0; i < js_face_arr.Length(); i++) {
+        auto&& js_vertex_value = js_face_arr.Get(i);
+        JS_ASSERT(info.Env(), js_vertex_value.IsNumber());
 
-        face_vertex_data.push_back(js_face_vertex_value.ToNumber().FloatValue());
+        face.push_back(js_vertex_value.ToNumber().FloatValue());
       }
 
       auto&& facename = js_facename_str.Utf8Value();
-      faces.insert(std::make_pair(facename, std::move(face_vertex_data)));
+      faces.insert(std::make_pair(facename, std::move(face)));
     }
 
     auto&& block_definition = std::make_unique<BlockDefinition>(id,
@@ -154,17 +154,6 @@ namespace chunklands::modules::game {
     block_definitions_.push_back(std::move(block_definition));
     return JSNumber::New(info.Env(), block_definitions_.size() - 1);
   }
-
-  // JSValue BlockRegistrar::JSCall_getBlockIds(JSCbi info) {
-  //   auto&& js_block_ids = JSObject::New(info.Env());
-
-  //   for (unsigned i = 0; i < block_definitions_.size(); i++) {
-  //     auto&& block_definition = block_definitions_[i];
-  //     js_block_ids.Set(block_definition->GetId(), JSNumber::New(info.Env(), i));
-  //   }
-
-  //   return js_block_ids;
-  // }
 
   void BlockRegistrar::JSCall_loadTexture(JSCbi info) {
     JS_ASSERT(info.Env(), info[0].IsString());
