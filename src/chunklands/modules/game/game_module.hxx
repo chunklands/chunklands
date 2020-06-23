@@ -56,6 +56,25 @@ namespace chunklands::modules::game {
     gl::Texture texture_;
   };
 
+  struct sprite_definition {
+    std::string id;
+    std::unordered_map<std::string, std::vector<GLfloat>> faces;
+  };
+
+  class SpriteRegistrar : public JSObjectWrap<SpriteRegistrar> {
+    JS_IMPL_WRAP(SpriteRegistrar, ONE_ARG({
+      JS_CB(addSprite),
+    }))
+
+    JS_DECL_CB_VOID(addSprite)
+
+  public:
+    const sprite_definition* GetSprite(const std::string& id) const;
+
+  private:
+    std::unordered_map<std::string, std::unique_ptr<sprite_definition>> sprites_;
+  };
+
   enum ChunkState {
     kEmpty,
     kModelIsPreparing,
@@ -168,8 +187,6 @@ namespace chunklands::modules::game {
     bool ProcessNextModel();
     void GenerateView(Chunk& chunk, const Chunk* neighbors[kNeighborCount]);
 
-    void BindTexture();
-
   private:
 
     std::queue<detail::loaded_chunks_data> loaded_chunks_;
@@ -201,36 +218,61 @@ namespace chunklands::modules::game {
     std::vector<glm::ivec3> nearest_chunks_;
   };
 
+  class GameOverlay : public JSObjectWrap<GameOverlay> {
+    JS_IMPL_WRAP(GameOverlay, ONE_ARG({
+      JS_SETTER(SpriteRegistrar),
+    }))
+
+    JS_IMPL_SETTER_WRAP(SpriteRegistrar, SpriteRegistrar)
+
+  public:
+    void Prepare();
+    void Update(double diff);
+    void Render(double diff);
+
+  private:
+    GLuint vao_ = 0;
+    GLuint vbo_ = 0;
+
+    GLsizei vb_index_count_ = 0;
+  };
+
   class Scene : public JSObjectWrap<Scene>, public engine::IScene {
     JS_IMPL_WRAP(Scene, ONE_ARG({
       JS_SETTER(Window),
       JS_SETTER(World),
+      JS_SETTER(BlockRegistrar), // TODO(daaitch): dirty, only for the texture
       JS_SETTER(GBufferPass),
       JS_SETTER(SSAOPass),
       JS_SETTER(SSAOBlurPass),
       JS_SETTER(LightingPass),
       JS_SETTER(SkyboxPass),
       JS_SETTER(TextRenderer),
+      JS_SETTER(GameOverlayRenderer),
       JS_SETTER(Skybox),
       JS_SETTER(Camera),
       JS_ABSTRACT_WRAP(engine::IScene, IScene),
       JS_SETTER(MovementController),
+      JS_SETTER(GameOverlay),
       JS_SETTER(FlightMode),
       JS_GETTER(FlightMode),
     }))
 
     JS_DECL_SETTER_WRAP(engine::Window, Window)
     JS_DECL_SETTER_WRAP(World, World)
+    JS_IMPL_SETTER_WRAP(BlockRegistrar, BlockRegistrar)
     JS_IMPL_SETTER_WRAP(engine::GBufferPass, GBufferPass)
     JS_IMPL_SETTER_WRAP(engine::SSAOPass, SSAOPass)
     JS_IMPL_SETTER_WRAP(engine::SSAOBlurPass, SSAOBlurPass)
     JS_IMPL_SETTER_WRAP(engine::LightingPass, LightingPass)
     JS_IMPL_SETTER_WRAP(engine::SkyboxPass, SkyboxPass)
     JS_IMPL_SETTER_WRAP(engine::TextRenderer, TextRenderer)
+    JS_IMPL_SETTER_WRAP(engine::GameOverlayRenderer, GameOverlayRenderer)
     JS_IMPL_SETTER_WRAP(engine::Skybox, Skybox)
     JS_IMPL_SETTER_WRAP(engine::Camera, Camera)
     JS_IMPL_ABSTRACT_WRAP(engine::IScene, IScene)
     JS_IMPL_SETTER_WRAP(engine::MovementController, MovementController)
+    JS_IMPL_SETTER_WRAP(GameOverlay, GameOverlay)
     
     JSValue JSCall_GetFlightMode(JSCbi info) {
       return JSBoolean::New(info.Env(), flight_mode_);

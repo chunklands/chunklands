@@ -47,7 +47,6 @@ async function bakeModels(models) {
   const baker = new engine.TextureBaker();
   for (const myMetaModel of myMetaModels) {
     const { size } = myMetaModel;
-    console.log({size});
     if (size) {
       myMetaModel.area = baker.addArea(size.width, size.height);
     }
@@ -75,7 +74,7 @@ async function bakeModels(models) {
     for (const faceName in myFaces) {
       const myVertexData = myFaces[faceName] = [...myFaces[faceName]];
       assert(myVertexData.length % 8 === 0);
-      console.log({myVertexData})
+
       for (let i = 0; i < myVertexData.length; i += 8) {
         const uI = i + 6;
         const vI = i + 7;
@@ -109,7 +108,6 @@ function createScene() {
 }
 
 module.exports = {
-  ResourceRegistrar,
   ...game,
   createScene,
   bakeModels

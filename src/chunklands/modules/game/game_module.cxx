@@ -173,6 +173,48 @@ namespace chunklands::modules::game {
 
 
   /////////////////////////////////////////////////////////////////////////////
+  // SpriteRegistrar //////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////
+
+  JS_DEF_WRAP(SpriteRegistrar)
+
+  void SpriteRegistrar::JSCall_addSprite(JSCbi info) {
+    auto&& sprite = std::make_unique<sprite_definition>();
+
+    auto&& js_model = info[0].ToObject();
+    sprite->id = js_model.Get("id").ToString();
+
+    auto&& js_faces = js_model.Get("faces").ToObject();
+    auto&& js_keys = js_faces.GetPropertyNames();
+
+    for (uint32_t i = 0; i < js_keys.Length(); i++) {
+      auto&& js_key = js_keys.Get(i);
+      auto&& js_face = js_faces.Get(js_key).As<JSArray>();
+      std::vector<GLfloat> face;
+      face.reserve(js_face.Length());
+
+      for (uint32_t i = 0; i < js_face.Length(); i++) {
+        face.push_back(js_face.Get(i).ToNumber());
+      }
+
+      sprite->faces.insert(std::make_pair(js_key.ToString(), std::move(face)));
+    }
+
+    sprites_.insert(std::make_pair(sprite->id, std::move(sprite)));
+  }
+
+  const sprite_definition* SpriteRegistrar::GetSprite(const std::string& id) const {
+    auto&& it = sprites_.find(id);
+    if (it == sprites_.end()) {
+      return nullptr;
+    }
+
+    return it->second.get();
+  }
+
+
+
+  /////////////////////////////////////////////////////////////////////////////
   // Chunk ////////////////////////////////////////////////////////////////////
   /////////////////////////////////////////////////////////////////////////////
 
@@ -415,8 +457,59 @@ namespace chunklands::modules::game {
     chunk.state_ = kViewPrepared;
   }
 
-  void ChunkGenerator::BindTexture() {
-    js_BlockRegistrar->BindTexture();
+
+
+  /////////////////////////////////////////////////////////////////////////////
+  // GameOverlay //////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////
+
+  JS_DEF_WRAP(GameOverlay)
+
+  void GameOverlay::Prepare() {
+    CHECK_GL();
+    auto&& crosshair = js_SpriteRegistrar->GetSprite("sprite.crosshair");
+    assert(crosshair);
+
+    glGenVertexArrays(1, &vao_);
+    glGenBuffers(1, &vbo_);
+
+    auto&& all = crosshair->faces.at("all");
+    vb_index_count_ = all.size();
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo_);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * all.size(),
+                 all.data(), GL_STATIC_DRAW);
+
+    glBindVertexArray(vao_);
+
+    constexpr GLsizei stride = (3 + 3 + 2) * sizeof(GLfloat);
+
+    // position attribute
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, (void*)(0 * sizeof(GLfloat)));
+    glEnableVertexAttribArray(0);
+    
+    // normal attribute
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, stride, (void*)(3 * sizeof(GLfloat)));
+    glEnableVertexAttribArray(1);
+
+    // uv attribute
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, stride, (void*)(6 * sizeof(GLfloat)));
+    glEnableVertexAttribArray(2);
+
+    glBindVertexArray(0);
+    CHECK_GL_HERE();
+  }
+
+  void GameOverlay::Update(double) {
+
+  }
+
+  void GameOverlay::Render(double ) {
+    assert(vao_ > 0 && vb_index_count_ > 0);
+    CHECK_GL();
+
+    glBindVertexArray(vao_);
+    glDrawArrays(GL_TRIANGLES, 0, vb_index_count_);
   }
 
 
@@ -467,6 +560,7 @@ namespace chunklands::modules::game {
 
     // world
     js_World->Prepare();
+    js_GameOverlay->Prepare();
   }
 
   void Scene::Update(double diff) {
@@ -540,11 +634,6 @@ namespace chunklands::modules::game {
 
     }
 
-    // if (js_Window->GetMouseButton(GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
-    //   js_Window->StartMouseGrab();
-    //   last_cursor_pos_ = js_Window->GetCursorPos(); // TODO(daaitch): last cursor position
-    // }
-
     int axis = js_MovementController->AddMovement(movement);
     if (axis & math::CollisionAxis::kY) {
       vy_ = 0.f;
@@ -552,6 +641,7 @@ namespace chunklands::modules::game {
 
     js_Camera->Update(diff);
     js_World->Update(diff, *js_Camera);
+    js_GameOverlay->Update(diff);
   }
 
   void Scene::Render(double diff) {
@@ -566,6 +656,7 @@ namespace chunklands::modules::game {
       js_GBufferPass->Begin();
       js_GBufferPass->UpdateProjection(js_Camera->GetProjection());
       js_GBufferPass->UpdateView(js_Camera->GetView());
+      js_BlockRegistrar->BindTexture();
       js_World->Render(diff, *js_Camera);
       js_GBufferPass->End();
       glEndQuery(GL_TIME_ELAPSED);
@@ -638,6 +729,18 @@ namespace chunklands::modules::game {
       CHECK_GL_HERE();
     }
 
+    { // game overlay
+      CHECK_GL_HERE();
+      glDisable(GL_CULL_FACE); // TODO(daaitch): culling problem
+      js_GameOverlayRenderer->Begin();
+      js_BlockRegistrar->BindTexture();
+      js_GameOverlayRenderer->UpdateProjection();
+      js_GameOverlay->Render(diff);
+      js_GameOverlayRenderer->End();
+      glEnable(GL_CULL_FACE);
+      CHECK_GL_HERE();
+    }
+
     {
       js_Window->SwapBuffers();
 
@@ -692,6 +795,7 @@ namespace chunklands::modules::game {
     js_SSAOBlurPass->UpdateBufferSize(width, height);
     js_LightingPass->UpdateBufferSize(width, height);
     js_TextRenderer->UpdateBufferSize(width, height);
+    js_GameOverlayRenderer->UpdateBufferSize(width, height);
   }
 
 
@@ -860,9 +964,6 @@ namespace chunklands::modules::game {
     CHECK_GL();
 
     glm::ivec3 center_chunk_pos = chunklands::math::get_center_chunk(camera.GetPosition(), Chunk::SIZE);
-
-    // TODO(daaitch): should be set by g_buffer_pass
-    js_ChunkGenerator->BindTexture();
 
     // map render all chunks
     unsigned rendered_index_count = 0;

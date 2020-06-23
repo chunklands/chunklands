@@ -30,9 +30,6 @@ function create(chunkDim, blocks) {
     }
 
     blockAt(x, y, z) {
-      if (!(0 <= z && z < this.sz)) {
-        console.log({z})
-      }
       assert(0 <= x && x < this.sx);
       assert(0 <= y && y < this.sy);
       assert(0 <= z && z < this.sz);
@@ -124,7 +121,7 @@ function create(chunkDim, blocks) {
         buf.push(blocks[c]);
       }
     }
-    console.log({buf})
+
     return buf;
   }
   

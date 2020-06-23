@@ -29,9 +29,10 @@ const {
   }
 } = require('../chunklands');
 const SimpleWorldGen = require('./world/SimpleWorldGen')
-const blockLoader     = require('./blocks');
+const modelLoader    = require('./models');
 const game = require('../chunklands/modules/game');
 const files = require('../files');
+const { GameOverlayRenderer } = require('../chunklands/modules/engine');
 
 module.exports = class Game {
   /**
@@ -46,14 +47,20 @@ module.exports = class Game {
 
 
     // blocks
-    const blocks = await blockLoader();
-    const bakedModels = await bakeModels(blocks);
+    const models = await modelLoader();
+    const bakedModels = await bakeModels(models);
 
     const blockRegistrar = new game.BlockRegistrar();
+    const spriteRegistrar = new game.SpriteRegistrar();
+
     const blockIds = {};
-    for (const bakedBlock of bakedModels.models) {
-      const blockId = blockRegistrar.addBlock(bakedBlock);
-      blockIds[bakedBlock.id] = blockId;
+    for (const bakedModel of bakedModels.models) {
+      if (bakedModel.id.startsWith('block.')) {
+        const blockId = blockRegistrar.addBlock(bakedModel);
+        blockIds[bakedModel.id] = blockId;
+      } else if (bakedModel.id.startsWith('sprite.')) {
+        spriteRegistrar.addSprite(bakedModel);
+      }
     }
 
     const texturePath = files.cacheFile('texture.png');
@@ -72,11 +79,15 @@ module.exports = class Game {
     const world = new World();
     world.setChunkGenerator(chunkGenerator);
 
+    // game overlay
+    const gameOverlay = new game.GameOverlay();
+    gameOverlay.setSpriteRegistrar(spriteRegistrar);
 
     // scene
-
     const scene = createScene();
     scene.setWorld(world);
+    scene.setGameOverlay(gameOverlay);
+    scene.setBlockRegistrar(blockRegistrar);
 
 
     // render pipeline
@@ -118,6 +129,13 @@ module.exports = class Game {
       scene.setSkybox(skybox);
     }
 
+    // skybox
+    {
+      const gameOverlayRenderer = new GameOverlayRenderer();
+      gameOverlayRenderer.setProgram(await createProgram('game_overlay'));
+      scene.setGameOverlayRenderer(gameOverlayRenderer);
+    }
+
 
     // camera
     const camera = new Camera();
@@ -131,6 +149,7 @@ module.exports = class Game {
     movementController.setCollisionSystem(world);
     scene.setMovementController(movementController);
 
+    // text renderer
     const fontLoader = await createFontLoader('ubuntu');
     const textRenderer = new TextRenderer();
     textRenderer.setFontLoader(fontLoader);

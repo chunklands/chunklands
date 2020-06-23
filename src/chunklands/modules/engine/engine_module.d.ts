@@ -67,3 +67,6 @@ export declare class TextRenderer extends RenderPass {
   setFontLoader(loader: FontLoader): void
   write(text: string): void
 }
+
+export declare class GameOverlayRenderer extends RenderPass {
+}

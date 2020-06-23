@@ -25,15 +25,18 @@ namespace chunklands::modules {
     EXPORT(MovementController);
     EXPORT(FontLoader);
     EXPORT(TextRenderer);
+    EXPORT(GameOverlayRenderer);
     return exports;
   }
 
   JSObject InitGame(JSEnv env, JSObject exports) {
     using namespace modules::game;
     EXPORT(BlockRegistrar);
+    EXPORT(SpriteRegistrar);
     EXPORT(ChunkGenerator);
     EXPORT(Scene);
     EXPORT(World);
+    EXPORT(GameOverlay);
     return exports;
   }
 
