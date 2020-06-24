@@ -3,7 +3,7 @@
 
 namespace chunklands {
 
-  constexpr bool DEBUG_COLLISION = true;
+  constexpr bool DEBUG_COLLISION = false;
 }
 
 #endif

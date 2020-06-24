@@ -1074,9 +1074,9 @@ namespace chunklands::modules::game {
 
         math::ivec3 block_coord{ chunk_coord + block_pos };
 
-        // if (DEBUG_COLLISION) {
+        if (DEBUG_COLLISION) {
           std::cout << "collision #" << collision_index << std::endl;
-        // }
+        }
 
         auto&& block_collision = block_def->ProcessCollision(block_coord, box, look.span);
         if (block_collision.ctime < ctime) {
