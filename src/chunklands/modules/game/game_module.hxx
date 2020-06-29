@@ -239,6 +239,8 @@ namespace chunklands::modules::game {
     engine::collision_result ProcessNextCollision(const math::fAABB3 &box, const math::fvec3 &movement) override;
     std::optional<math::ivec3> FindPointingBlock(const math::fLine3& look);
 
+    const BlockDefinition* GetBlock(const glm::ivec3& coord) const;
+
   public:
     void Prepare();
     void Update(double diff, const engine::Camera& camera);
@@ -284,6 +286,7 @@ namespace chunklands::modules::game {
       JS_SETTER(SkyboxPass),
       JS_SETTER(TextRenderer),
       JS_SETTER(GameOverlayRenderer),
+      JS_SETTER(BlockSelectPass),
       JS_SETTER(Skybox),
       JS_SETTER(Camera),
       JS_ABSTRACT_WRAP(engine::IScene, IScene),
@@ -303,6 +306,7 @@ namespace chunklands::modules::game {
     JS_IMPL_SETTER_WRAP(engine::SkyboxPass, SkyboxPass)
     JS_IMPL_SETTER_WRAP(engine::TextRenderer, TextRenderer)
     JS_IMPL_SETTER_WRAP(engine::GameOverlayRenderer, GameOverlayRenderer)
+    JS_IMPL_SETTER_WRAP(engine::BlockSelectPass, BlockSelectPass)
     JS_IMPL_SETTER_WRAP(engine::Skybox, Skybox)
     JS_IMPL_SETTER_WRAP(engine::Camera, Camera)
     JS_IMPL_ABSTRACT_WRAP(engine::IScene, IScene)
@@ -340,12 +344,16 @@ namespace chunklands::modules::game {
     bool flight_mode_ = true;
     float vy_ = 0.f;
 
+    std::optional<glm::ivec3> pointing_block_;
+
     GLuint  render_gbuffer_query_ = 0,
             render_ssao_query_ = 0,
             render_ssaoblur_query_ = 0,
             render_lighting_query_ = 0,
             render_skybox_query_ = 0,
             render_text_query_ = 0;
+
+    JSObjectRef js_Events;
   };
 }
 

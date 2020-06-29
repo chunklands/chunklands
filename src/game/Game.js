@@ -14,6 +14,7 @@ const {
     Window: EngineWindow,
     FontLoader,
     TextRenderer,
+    BlockSelectPass,
   },
   game: {
     ChunkGenerator,
@@ -130,11 +131,18 @@ module.exports = class Game {
       scene.setSkybox(skybox);
     }
 
-    // skybox
+    // game overlay
     {
       const gameOverlayRenderer = new GameOverlayRenderer();
       gameOverlayRenderer.setProgram(await createProgram('game_overlay'));
       scene.setGameOverlayRenderer(gameOverlayRenderer);
+    }
+
+    // block select
+    {
+      const blockSelectPass = new BlockSelectPass();
+      blockSelectPass.setProgram(await createProgram('block_select'));
+      scene.setBlockSelectPass(blockSelectPass);
     }
 
 
@@ -187,28 +195,28 @@ module.exports = class Game {
         if (!this._window.getGameControl()) {
           this._window.setGameControl(true);
         } else {
-          const position = this._camera.getPosition();
-          const look = this._camera.getLook();
-          console.log({position, look});
           const blockCoord = this._world.findPointingBlock(
             this._camera.getPosition(),
             this._camera.getLook()
           );
 
           if (blockCoord) {
-            console.log({blockCoord});
             this._world.replaceBlock(blockCoord, this._blockIds['block.air']);
           }
         }
       }
     });
 
+    this._scene.events.on('point', coord => {
+      console.log(`point event at: ${coord}`)
+    })
+
     const profiler = new Profiler();
 
     setInterval(() => {
       const metrics = profiler.getMetrics();
       this._textRenderer.write(`${(1000000 / metrics['gameloop_loop']).toFixed(1)} fps`);
-    //   console.log(metrics);
+      console.log(metrics);
     }, 1000);
 
     return await new Promise((resolve, reject) => {

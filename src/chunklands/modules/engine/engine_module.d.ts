@@ -75,3 +75,6 @@ export declare class TextRenderer extends RenderPass {
 
 export declare class GameOverlayRenderer extends RenderPass {
 }
+
+export declare class BlockSelectPass extends RenderPass {
+}

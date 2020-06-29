@@ -481,7 +481,7 @@ namespace chunklands::modules::game {
     glGenBuffers(1, &vbo_);
 
     auto&& all = crosshair->faces.at("all");
-    vb_index_count_ = all.size();
+    vb_index_count_ = all.size() / 8;
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo_);
     glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * all.size(),
@@ -568,6 +568,8 @@ namespace chunklands::modules::game {
     // world
     js_World->Prepare();
     js_GameOverlay->Prepare();
+
+    js_Events = Napi::Persistent(Value().Get("events").ToObject());
   }
 
   void Scene::Update(double diff) {
@@ -649,6 +651,31 @@ namespace chunklands::modules::game {
     js_Camera->Update(diff);
     js_World->Update(diff, *js_Camera);
     js_GameOverlay->Update(diff);
+
+    {
+      auto&& pos = js_Camera->GetPosition();
+      auto&& look = js_Camera->GetLook();
+
+      glm::vec3 look_center(-sinf(look.x) * cosf(look.y),
+                             sinf(look.y),
+                            -cosf(look.x) * cosf(look.y));
+
+      auto&& new_pointing_block = js_World->FindPointingBlock(math::fLine3::from_range(pos, pos + look_center * 2.f));
+      if (new_pointing_block != pointing_block_) {
+        pointing_block_ = new_pointing_block;
+
+        JSValue value = pointing_block_ ? jsmath::vec3(js_Events.Env(), pointing_block_.value()) : Env().Undefined();
+
+        js_Events.Get("emit").As<JSFunction>().Call(js_Events.Value(), { JSString::New(Env(), "point"), value });
+        
+        if (pointing_block_) {
+          auto&& def = js_World->GetBlock(pointing_block_.value());
+          if (def) {
+            js_BlockSelectPass->UpdateBlock(def->GetFacesVertexData());
+          }
+        }
+      }
+    }
   }
 
   void Scene::Render(double diff) {
@@ -723,6 +750,16 @@ namespace chunklands::modules::game {
       js_Skybox->Render();
       js_SkyboxPass->End();
       glEndQuery(GL_TIME_ELAPSED);
+      CHECK_GL_HERE();
+    }
+
+    if (pointing_block_) {
+      CHECK_GL_HERE();
+      js_BlockSelectPass->Begin();
+      js_BlockSelectPass->UpdateProjection(js_Camera->GetProjection());
+      js_BlockSelectPass->UpdateView(js_Camera->GetView() * glm::translate(glm::mat4(1.f), glm::vec3(pointing_block_.value())));
+      js_BlockSelectPass->Render();
+      js_BlockSelectPass->End();
       CHECK_GL_HERE();
     }
 
@@ -1095,8 +1132,17 @@ namespace chunklands::modules::game {
     return {result};
   }
 
+  const BlockDefinition* World::GetBlock(const glm::ivec3& coord) const {
+    auto&& it = chunk_map_.find(math::get_center_chunk(coord, Chunk::SIZE));
+    if (it == chunk_map_.cend()) {
+      return nullptr;
+    }
+
+    return it->second->BlockAt(math::get_pos_in_chunk(coord, Chunk::SIZE));
+  }
+
   JSValue World::JSCall_findPointingBlock(JSCbi info) {
-    auto&& pos = jsmath::vec3<float>(info[0]); // + math::fvec3(0, 1.4f, 0);
+    auto&& pos = jsmath::vec3<float>(info[0]);
     auto&& look = jsmath::vec2<float>(info[1]);
 
     glm::vec3 look_center(-sinf(look.x) * cosf(look.y),
@@ -1128,12 +1174,6 @@ namespace chunklands::modules::game {
     
     auto&& chunk = chunk_result->second;
     auto&& pos_in_chunk = math::get_pos_in_chunk(coord, Chunk::SIZE);
-    std::cout
-      <<   "coord:         " << coord
-      << "\nchunk->GetPos: " << chunk->GetPos()
-      << "\nchunk_pos:     " << chunk_pos
-      << "\npos_in_chunk:  " << pos_in_chunk
-      << std::endl;
     chunk->UpdateBlock(pos_in_chunk, block_def);
   }
 }

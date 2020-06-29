@@ -26,6 +26,7 @@ namespace chunklands::modules {
     EXPORT(FontLoader);
     EXPORT(TextRenderer);
     EXPORT(GameOverlayRenderer);
+    EXPORT(BlockSelectPass);
     return exports;
   }
 
