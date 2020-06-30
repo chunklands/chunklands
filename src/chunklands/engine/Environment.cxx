@@ -1,7 +1,7 @@
 
 #include "Environment.hxx"
 
-#include <chunklands/modules/gl/glfw.hxx>
+#include <chunklands/gl/glfw.hxx>
 
 namespace chunklands::engine {
 

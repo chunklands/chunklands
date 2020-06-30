@@ -3,7 +3,8 @@
 
 #include <chunklands/js.hxx>
 #include "RenderPass.hxx"
-#include <chunklands/modules/gl/glfw.hxx>
+#include <chunklands/gl/glfw.hxx>
+#include <chunklands/gl/Uniform.hxx>
 
 namespace chunklands::engine {
 
@@ -37,14 +38,14 @@ namespace chunklands::engine {
 
   protected:
     void InitializeProgram() override {
-      modules::gl::Uniform texture{"u_texture"};
+      gl::Uniform texture{"u_texture"};
       *js_Program >> texture >> uniforms_.proj;
       texture.Update(0);
     }
 
   private:
     struct {
-      modules::gl::Uniform proj{"u_proj"};
+      gl::Uniform proj{"u_proj"};
     } uniforms_;
 
     glm::mat4 proj_;

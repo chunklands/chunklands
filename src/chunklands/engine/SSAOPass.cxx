@@ -11,7 +11,7 @@ namespace chunklands::engine {
 
   void SSAOPass::InitializeProgram() {
 
-    modules::gl::Uniform position{"u_position"},
+    gl::Uniform position{"u_position"},
                 normal{"u_normal"},
                 noise{"u_noise"};
 
@@ -38,7 +38,7 @@ namespace chunklands::engine {
       scale = glm::lerp(.1f, 1.f, scale * scale);
       sample *= scale;
 
-      modules::gl::Uniform sample_uniform{"u_samples", i};
+      gl::Uniform sample_uniform{"u_samples", i};
       *js_Program >> sample_uniform;
       sample_uniform.Update(sample);
     }

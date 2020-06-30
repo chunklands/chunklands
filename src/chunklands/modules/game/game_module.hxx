@@ -3,7 +3,6 @@
 
 #include <chunklands/debug.hxx>
 #include <chunklands/js.hxx>
-#include <chunklands/modules/gl/gl_module.hxx>
 #include <chunklands/engine/IScene.hxx>
 #include <chunklands/engine/ICollisionSystem.hxx>
 #include <chunklands/engine/Camera.hxx>
@@ -20,6 +19,7 @@
 #include <chunklands/engine/Camera.hxx>
 #include <chunklands/engine/IScene.hxx>
 #include <chunklands/engine/MovementController.hxx>
+#include <chunklands/gl/RenderQuad.hxx>
 #include <chunklands/math.hxx>
 #include <glm/vec3.hpp>
 #include <queue>

@@ -6,7 +6,7 @@ namespace chunklands::engine {
   JS_DEF_WRAP(LightingPass)
 
   void LightingPass::InitializeProgram() {
-    modules::gl::Uniform position_texture{"u_position_texture"},
+    gl::Uniform position_texture{"u_position_texture"},
               normal_texture{"u_normal_texture"},
               color_texture{"u_color_texture"},
               ssao_texture{"u_ssao_texture"};

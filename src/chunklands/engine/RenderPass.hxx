@@ -2,12 +2,12 @@
 #define __CHUNKLANDS_ENGINE_RENDERPASS_HXX__
 
 #include <chunklands/js.hxx>
-#include <chunklands/modules/gl/gl_module.hxx>
+#include <chunklands/gl/ProgramBase.hxx>
 
 namespace chunklands::engine {
 
   class RenderPass {
-    JS_ATTR_WRAP(modules::gl::ProgramBase, Program)
+    JS_ATTR_WRAP(gl::ProgramBase, Program)
   public:
     virtual ~RenderPass() {}
 

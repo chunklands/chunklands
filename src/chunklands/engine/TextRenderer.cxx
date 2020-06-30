@@ -98,7 +98,7 @@ namespace chunklands::engine {
 
   void TextRenderer::InitializeProgram() {
     CHECK_GL();
-    modules::gl::Uniform texture {"u_texture"};
+    gl::Uniform texture {"u_texture"};
     *js_Program >> texture >> uniforms_.proj;
 
     texture.Update(0);

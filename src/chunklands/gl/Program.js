@@ -1,8 +1,8 @@
-const gl = require('./gl_module');
 const fs = require('fs');
 const { promisify } = require('util');
+const { ProgramBase } = require('./_');
 
-class Program extends gl.ProgramBase {
+module.exports = class Program extends ProgramBase {
 
   static async create({vertexShader, fragmentShader}) {
     const program = new Program();
@@ -19,9 +19,4 @@ class Program extends gl.ProgramBase {
 
     super.compile(vsh, fsh);
   }
-};
-
-module.exports = {
-  Program,
-  ...gl
 };

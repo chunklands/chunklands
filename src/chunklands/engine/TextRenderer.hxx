@@ -4,6 +4,7 @@
 #include <chunklands/js.hxx>
 #include "RenderPass.hxx"
 #include "FontLoader.hxx"
+#include <chunklands/gl/Uniform.hxx>
 
 namespace chunklands::engine {
 
@@ -48,7 +49,7 @@ namespace chunklands::engine {
     glm::mat4 proj_;
 
     struct {
-      modules::gl::Uniform proj{"u_proj"};
+      gl::Uniform proj{"u_proj"};
     } uniforms_;
 
     int height_ = 0;

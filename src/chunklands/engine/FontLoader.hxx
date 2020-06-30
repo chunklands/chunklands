@@ -3,7 +3,7 @@
 
 #include <chunklands/js.hxx>
 #include <glm/vec2.hpp>
-#include <chunklands/modules/gl/gl_module.hxx>
+#include <chunklands/gl/Texture.hxx>
 #include <unordered_map>
 #include <optional>
 
@@ -34,13 +34,13 @@ namespace chunklands::engine {
       return {it->second};
     }
 
-    const modules::gl::Texture& GetTexture() const {
+    const gl::Texture& GetTexture() const {
       return texture_;
     }
 
   private:
     std::unordered_map<std::string, font_loader_char> meta_;
-    modules::gl::Texture texture_;
+    gl::Texture texture_;
   };
 
 } // namespace chunklands::engine

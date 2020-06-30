@@ -2,7 +2,7 @@
 #define __CHUNKLANDS_ENGINE_SKYBOXTEXTURE_HXX__
 
 #include <string>
-#include <chunklands/modules/gl/glfw.hxx>
+#include <chunklands/gl/glfw.hxx>
 
 namespace chunklands::engine {
 

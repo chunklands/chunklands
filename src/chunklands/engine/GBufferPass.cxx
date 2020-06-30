@@ -6,7 +6,7 @@ namespace chunklands::engine {
   JS_DEF_WRAP(GBufferPass)
 
   void GBufferPass::InitializeProgram() {
-    modules::gl::Uniform texture {"u_texture"};
+    gl::Uniform texture {"u_texture"};
     *js_Program >> uniforms_.proj >> uniforms_.view >> texture;
 
     texture.Update(0);

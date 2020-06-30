@@ -2,8 +2,7 @@
 #define __CHUNKLANDS_ENGINE_SSAOPASS_HXX__
 
 #include <chunklands/js.hxx>
-#include <chunklands/modules/gl/glfw.hxx>
-#include <chunklands/modules/gl/gl_module.hxx>
+#include <chunklands/gl/Uniform.hxx>
 #include "RenderPass.hxx"
 
 namespace chunklands::engine {
@@ -60,7 +59,7 @@ namespace chunklands::engine {
 
   public:
     struct {
-      modules::gl::Uniform proj{"u_proj"};
+      gl::Uniform proj{"u_proj"};
     } uniforms_;
 
     GLuint framebuffer_ = 0;

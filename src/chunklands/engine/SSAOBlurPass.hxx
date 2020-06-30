@@ -3,6 +3,7 @@
 
 #include <chunklands/js.hxx>
 #include "RenderPass.hxx"
+#include <chunklands/gl/Uniform.hxx>
 
 namespace chunklands::engine {
 
@@ -33,7 +34,7 @@ namespace chunklands::engine {
 
   protected:
     void InitializeProgram() override {
-      modules::gl::Uniform ssao{"u_ssao"};
+      gl::Uniform ssao{"u_ssao"};
       *js_Program >> ssao;
       ssao.Update(0);
     }

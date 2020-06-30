@@ -2,7 +2,7 @@
 #define __CHUNKLANDS_ENGINE_WINDOW_HXX__
 
 #include <chunklands/js.hxx>
-#include <chunklands/modules/gl/glfw.hxx>
+#include <chunklands/gl/glfw.hxx>
 #include <glm/vec2.hpp>
 #include <boost/signals2.hpp>
 

@@ -1,7 +1,7 @@
 #ifndef __CHUNKLANDS_ENGINE_LIGHTINGPASS_HXX__
 #define __CHUNKLANDS_ENGINE_LIGHTINGPASS_HXX__
 
-#include <chunklands/modules/gl/gl_module.hxx>
+#include <chunklands/gl/Uniform.hxx>
 #include "RenderPass.hxx"
 #include <chunklands/js.hxx>
 
@@ -57,7 +57,7 @@ namespace chunklands::engine {
 
   private:
     struct {
-      modules::gl::Uniform render_distance{"u_render_distance"},
+      gl::Uniform render_distance{"u_render_distance"},
                 sun_position{"u_sun_position"};
     } uniforms_;
   };

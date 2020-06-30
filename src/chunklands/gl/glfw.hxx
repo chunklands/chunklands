@@ -1,5 +1,5 @@
-#ifndef __CHUNKLANDS_MODULES_GL_GLFW_HXX__
-#define __CHUNKLANDS_MODULES_GL_GLFW_HXX__
+#ifndef __CHUNKLANDS_GL_GLFW_HXX__
+#define __CHUNKLANDS_GL_GLFW_HXX__
 
 #include <glad/gl.h>
 #include <GLFW/glfw3.h>
@@ -19,13 +19,13 @@
 #else // NDEBUG
 
 #define CHECK_GL() \
-  ::chunklands::modules::gl::GLCheck gl_check(POSITION);
+  ::chunklands::gl::GLCheck gl_check(POSITION);
 
 #define CHECK_GL_HERE() \
   gl_check.Check(POSITION)
 #endif // NDEBUG
 
-namespace chunklands::modules::gl {
+namespace chunklands::gl {
 
   class GLCheck {
   public:
@@ -36,6 +36,6 @@ namespace chunklands::modules::gl {
     void Check(const char* hint);
   };
 
-} // namespace chunklands::modules::gl
+} // namespace chunklands::gl
 
 #endif

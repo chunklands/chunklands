@@ -3,7 +3,7 @@
 
 #include <chunklands/js.hxx>
 #include "RenderPass.hxx"
-#include <chunklands/modules/gl/gl_module.hxx>
+#include <chunklands/gl/Uniform.hxx>
 
 namespace chunklands::engine {
 
@@ -46,7 +46,7 @@ namespace chunklands::engine {
 
   public:
     struct {
-      modules::gl::Uniform proj {"u_proj"},
+      gl::Uniform proj {"u_proj"},
                   view {"u_view"};
     } uniforms_;
 

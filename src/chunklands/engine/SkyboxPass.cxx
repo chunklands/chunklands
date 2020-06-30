@@ -8,7 +8,7 @@ namespace chunklands::engine {
   void SkyboxPass::InitializeProgram() {
     CHECK_GL();
 
-    modules::gl::Uniform skybox_texture{"u_skybox_texture"};
+    gl::Uniform skybox_texture{"u_skybox_texture"};
 
     *js_Program
       >> skybox_texture

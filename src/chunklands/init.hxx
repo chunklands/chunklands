@@ -1,5 +1,5 @@
-#ifndef __CHUNKLANDS_MODULES_INIT_H__
-#define __CHUNKLANDS_MODULES_INIT_H__
+#ifndef __CHUNKLANDS_INIT_H__
+#define __CHUNKLANDS_INIT_H__
 
 #include <chunklands/js.hxx>
 

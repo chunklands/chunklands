@@ -1,6 +1,6 @@
 
 #include "GameLoop.hxx"
-#include <chunklands/modules/gl/glfw.hxx>
+#include <chunklands/gl/glfw.hxx>
 #include <chunklands/modules/misc/misc_module.hxx>
 
 namespace chunklands::engine {
