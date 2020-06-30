@@ -33,7 +33,7 @@ const SimpleWorldGen = require('./world/SimpleWorldGen')
 const modelLoader    = require('./models');
 const game = require('../chunklands/modules/game');
 const files = require('../files');
-const { GameOverlayRenderer } = require('../chunklands/modules/engine');
+const { GameOverlayRenderer } = require('../chunklands/engine');
 
 module.exports = class Game {
   /**

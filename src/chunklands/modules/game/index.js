@@ -1,5 +1,5 @@
 const game = require('./game_module');
-const engine = require('../engine');
+const engine = require('../../engine');
 const assert = require('assert');
 const { EventEmitter } = require('events')
 const {promisify} = require('util');
