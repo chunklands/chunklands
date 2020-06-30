@@ -5,7 +5,7 @@
 
 #include <chunklands/modules/misc/misc_module.hxx>
 
-namespace chunklands {
+namespace chunklands::modules::gl {
   GLCheck::GLCheck(const char* hint) {
     Check(hint);
   }
@@ -41,9 +41,8 @@ namespace chunklands {
     
     throw std::runtime_error(ss.str());
   }
-}
 
-namespace chunklands::modules::gl {
+
 
   /////////////////////////////////////////////////////////////////////////////
   // ProgramBase //////////////////////////////////////////////////////////////
