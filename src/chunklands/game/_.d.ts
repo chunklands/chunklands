@@ -1,4 +1,4 @@
-import * as engine from '../engine/engine_module'
+import * as engine from '../engine/_'
 import { EventEmitter } from 'events'
 
 export declare class BlockRegistrar {

@@ -1,44 +1,13 @@
 const fs = require('fs');
 const { promisify } = require('util');
-const {
-  engine: {
-    GBufferPass,
-    SSAOPass,
-    SSAOBlurPass,
-    LightingPass,
-    SkyboxPass,
-    MovementController,
-    Skybox,
-    GameLoop,
-    Camera,
-    Window: EngineWindow,
-    FontLoader,
-    TextRenderer,
-    BlockSelectPass,
-  },
-  game: {
-    ChunkGenerator,
-    World,
-    createScene,
-    bakeModels
-  },
-  gl: {
-    Program
-  },
-  misc: {
-    Profiler
-  }
-} = require('../chunklands');
+const { engine, game, gl, misc } = require('../chunklands');
 const SimpleWorldGen = require('./world/SimpleWorldGen')
 const modelLoader    = require('./models');
-const game = require('../chunklands/modules/game');
 const files = require('../files');
-const { GameOverlayRenderer } = require('../chunklands/engine');
 
 module.exports = class Game {
   /**
-   * 
-   * @param {EngineWindow} window 
+   * @param {import('../chunklands/engine/_').Window} window 
    */
   constructor(window) {
     this._window = window;
@@ -49,7 +18,7 @@ module.exports = class Game {
 
     // blocks
     const models = await modelLoader();
-    const bakedModels = await bakeModels(models);
+    const bakedModels = await game.bakeModels(models);
 
     const blockRegistrar = new game.BlockRegistrar();
     const spriteRegistrar = new game.SpriteRegistrar();
@@ -68,7 +37,7 @@ module.exports = class Game {
     await bakedModels.texture.writeAsync(texturePath)
     blockRegistrar.loadTexture(texturePath);
 
-    const chunkGenerator = new ChunkGenerator();
+    const chunkGenerator = new game.ChunkGenerator();
     chunkGenerator.setBlockRegistrar(blockRegistrar);
 
     
@@ -77,7 +46,7 @@ module.exports = class Game {
     const worldGenerator = new SimpleWorldGen(this._blockIds);
     chunkGenerator.setWorldGenerator(worldGenerator);
 
-    this._world = new World();
+    this._world = new game.World();
     this._world.setChunkGenerator(chunkGenerator);
     this._world.setBlockRegistrar(blockRegistrar);
 
@@ -86,7 +55,7 @@ module.exports = class Game {
     gameOverlay.setSpriteRegistrar(spriteRegistrar);
 
     // scene
-    const scene = createScene();
+    const scene = game.createScene();
     scene.setGameOverlay(gameOverlay);
     scene.setBlockRegistrar(blockRegistrar);
     scene.setWorld(this._world);
@@ -94,31 +63,31 @@ module.exports = class Game {
 
     // render pipeline
     {
-      const gbufferPass = new GBufferPass();
+      const gbufferPass = new engine.GBufferPass();
       gbufferPass.setProgram(await createProgram('gbuffer'));
       scene.setGBufferPass(gbufferPass);
     }
 
     {
-      const ssaoPass = new SSAOPass();
+      const ssaoPass = new engine.SSAOPass();
       ssaoPass.setProgram(await createProgram('ssao'));
       scene.setSSAOPass(ssaoPass);
     }
 
     {
-      const ssaoBlurPass = new SSAOBlurPass();
+      const ssaoBlurPass = new engine.SSAOBlurPass();
       ssaoBlurPass.setProgram(await createProgram('ssaoblur'));
       scene.setSSAOBlurPass(ssaoBlurPass);
     }
 
     {
-      const lightingPass = new LightingPass();
+      const lightingPass = new engine.LightingPass();
       lightingPass.setProgram(await createProgram('lighting'));
       scene.setLightingPass(lightingPass);
     }
 
     {
-      const skyboxPass = new SkyboxPass();
+      const skyboxPass = new engine.SkyboxPass();
       skyboxPass.setProgram(await createProgram('skybox'));
       scene.setSkyboxPass(skyboxPass);
     }
@@ -126,41 +95,41 @@ module.exports = class Game {
 
     // skybox
     {
-      const skybox = new Skybox();
+      const skybox = new engine.Skybox();
       skybox.initialize(`${__dirname}/skyboxes/skybox_day/`);
       scene.setSkybox(skybox);
     }
 
     // game overlay
     {
-      const gameOverlayRenderer = new GameOverlayRenderer();
+      const gameOverlayRenderer = new engine.GameOverlayRenderer();
       gameOverlayRenderer.setProgram(await createProgram('game_overlay'));
       scene.setGameOverlayRenderer(gameOverlayRenderer);
     }
 
     // block select
     {
-      const blockSelectPass = new BlockSelectPass();
+      const blockSelectPass = new engine.BlockSelectPass();
       blockSelectPass.setProgram(await createProgram('block_select'));
       scene.setBlockSelectPass(blockSelectPass);
     }
 
 
     // camera
-    this._camera = new Camera();
+    this._camera = new engine.Camera();
     this._camera.setPosition(0, 30, 0);
     scene.setCamera(this._camera);
 
 
     // movement controller
-    const movementController = new MovementController();
+    const movementController = new engine.MovementController();
     movementController.setCamera(this._camera);
     movementController.setCollisionSystem(this._world);
     scene.setMovementController(movementController);
 
     // text renderer
     const fontLoader = await createFontLoader('ubuntu');
-    const textRenderer = new TextRenderer();
+    const textRenderer = new engine.TextRenderer();
     textRenderer.setFontLoader(fontLoader);
     textRenderer.setProgram(await createProgram('text'));
     scene.setTextRenderer(textRenderer);
@@ -171,7 +140,7 @@ module.exports = class Game {
 
     // gameloop
 
-    const gameLoop = new GameLoop();
+    const gameLoop = new engine.GameLoop();
     gameLoop.setScene(scene);
 
     this._scene = scene;
@@ -211,7 +180,7 @@ module.exports = class Game {
       console.log(`point event at: ${coord}`)
     })
 
-    const profiler = new Profiler();
+    const profiler = new misc.Profiler();
 
     setInterval(() => {
       const metrics = profiler.getMetrics();
@@ -248,14 +217,14 @@ async function createProgram(shaderName) {
   const vertexShader = `${__dirname}/shader/${shaderName}.vert`;
   const fragmentShader = `${__dirname}/shader/${shaderName}.frag`;
 
-  return await Program.create({vertexShader, fragmentShader});
+  return await gl.Program.create({vertexShader, fragmentShader});
 }
 
 /**
  * @param {string} name 
  */
 async function createFontLoader(name) {
-  const fontLoader = new FontLoader();
+  const fontLoader = new engine.FontLoader();
   const basePath = `${__dirname}/fonts/${name}`
   const json = JSON.parse(await promisify(fs.readFile)(`${basePath}.json`));
   fontLoader.load(json, `${basePath}.png`);

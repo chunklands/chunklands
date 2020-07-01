@@ -1,16 +1,13 @@
-const game = require('./game_module');
-const engine = require('../../engine');
+const engine = require('../engine');
 const assert = require('assert');
-const { EventEmitter } = require('events')
-const {promisify} = require('util');
+const { promisify } = require('util');
 const imageSize = promisify(require('image-size'));
 const Jimp = require('jimp');
-const { Scene } = require('./game_module');
 
 /**
  * @param {{faces: {[face: string]: number[]}, texture?: string}[]} models 
  */
-async function bakeModels(models) {
+module.exports = async function bakeModels(models) {
 
   // load texture sizes
   const myMetaModels = await Promise.all(
@@ -91,7 +88,7 @@ async function bakeModels(models) {
     texture,
     models: myMetaModels.map(myMetaModel => myMetaModel.model)
   }
-}
+};
 
 function getNextPOT(num) {
   let n;
@@ -99,16 +96,3 @@ function getNextPOT(num) {
 
   return n;
 }
-
-function createScene() {
-  const scene = new Scene();
-  scene.events = new EventEmitter();
-
-  return scene;
-}
-
-module.exports = {
-  ...game,
-  createScene,
-  bakeModels
-};
