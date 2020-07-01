@@ -12,11 +12,11 @@ jobs:
       uses: actions/setup-node@v1
       with:
         node-version: 14.4
-    - name: Setup clang
+    - name: Setup clang and GL
       run: |
         sudo add-apt-repository 'deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-10 main'
         sudo apt update
-        sudo apt install clang-10
+        sudo apt install clang-10 mesa-common-dev
     - name: Versions
       run: |
         node -v
@@ -26,7 +26,9 @@ jobs:
     - uses: actions/checkout@v2
     - name: Setup .env
       run: |
-        echo "CLANG_BIN = clang-10" > $GITHUB_WORKSPACE/.env
+        touch $GITHUB_WORKSPACE/.env
+        echo "CLANG_BIN=clang-10" >> $GITHUB_WORKSPACE/.env
+        echo "CLANG_TIDY=clang-tidy-10" >> $GITHUB_WORKSPACE/.env
     - name: Build
       run: |
         make setup
