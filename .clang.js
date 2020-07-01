@@ -15,12 +15,12 @@ const DEV = process.env.NODE_ENV !== 'production';
     clangNoTidy: process.env.CLANG_NO_TIDY === 'true'
   })
   .addMakefileTarget('deps/glfw/src/libglfw3.a', {
-    cmd: `@cmake -DGLFW_BUILD_DOCS=OFF -DGLFW_BUILD_TESTS=OFF -DGLFW_BUILD_EXAMPLES=OFF -DCMAKE_BUILD_TYPE=${DEV ? 'Debug' : 'Release'} --build deps/glfw`
-      + ' && make -C deps/glfw'
+    cmd: `@cd deps/glfw && cmake -DGLFW_BUILD_DOCS=OFF -DGLFW_BUILD_TESTS=OFF -DGLFW_BUILD_EXAMPLES=OFF -DCMAKE_BUILD_TYPE=${DEV ? 'Debug' : 'Release'} --build .`
+      + ' && make'
   })
   .addMakefileTarget('deps/googletest/lib/libgtestd.a', {
-    cmd: `@cmake -DCMAKE_BUILD_TYPE=${DEV ? 'Debug' : 'Release'} -Dgtest_force_shared_crt=ON -DCMAKE_POSITION_INDEPENDENT_CODE=ON deps/googletest`
-      + ' && make -C deps/googletest'
+    cmd: `@cd deps/googletest && cmake -DCMAKE_BUILD_TYPE=${DEV ? 'Debug' : 'Release'} -Dgtest_force_shared_crt=ON -DCMAKE_POSITION_INDEPENDENT_CODE=ON .`
+      + ' && make'
   });
 
   const gladCs = await new clang.CompileSet(buildSet, {std: 'c99', fPIC: true})
