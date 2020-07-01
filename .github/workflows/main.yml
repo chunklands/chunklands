@@ -20,7 +20,7 @@ jobs:
         
     - name: Setup graphical drivers
       run: |
-        sudo apt install mesa-common-dev libxrandr-dev libxinerama-dev
+        sudo apt install mesa-common-dev libxrandr-dev libxinerama-dev libxcursor-dev
     - name: Print versions
       run: |
         echo "Node:"
