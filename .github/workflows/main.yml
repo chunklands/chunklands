@@ -21,9 +21,12 @@ jobs:
       run: |
         node -v
         npm -v
-        clang --version
+        clang-10 --version
         make -v
     - uses: actions/checkout@v2
+    - name: Setup .env
+      run: |
+        echo "CLANG_BIN = clang-10" > $GITHUB_WORKSPACE/.env
     - name: Build
       run: |
         make setup
