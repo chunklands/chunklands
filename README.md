@@ -7,6 +7,7 @@ If you want to read more of the project, goals, etc. please have a look at [chun
 
 ## Technologies
 
+![CI](https://github.com/20hoibe/chunklands/workflows/CI/badge.svg?branch=master)
 ![C++](doc/cpp.svg)
 ![NodeJS](doc/nodejs.svg)
 ![N-API](doc/napi.svg)
@@ -20,7 +21,7 @@ If you want to read more of the project, goals, etc. please have a look at [chun
 Requirements:
 
 - node.js 14+
-- clang-9+
+- clang-10+
 - cmake 3.0+ (for glfw)
 
 **Linux**
