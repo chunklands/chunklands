@@ -16,20 +16,28 @@ jobs:
       run: |
         sudo add-apt-repository 'deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-10 main'
         sudo apt update
-        sudo apt install clang-10 mesa-common-dev
+        sudo apt install clang-10 clang-tidy-10 mesa-common-dev
     - name: Versions
       run: |
+        echo "Node:"
         node -v
+        echo ""
+        echo "npm:"
         npm -v
+        echo ""
+        echo "clang:"
         clang-10 --version
+        echo ""
+        echo "make:"
         make -v
+        echo ""
     - uses: actions/checkout@v2
     - name: Setup .env
       run: |
         touch $GITHUB_WORKSPACE/.env
         echo "CLANG_BIN=clang-10" >> $GITHUB_WORKSPACE/.env
         echo "CLANG_TIDY_BIN=clang-tidy-10" >> $GITHUB_WORKSPACE/.env
+    - name: Setup
+      run: make setup
     - name: Build
-      run: |
-        make setup
-        make
+      run: make
