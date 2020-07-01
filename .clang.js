@@ -14,15 +14,13 @@ const DEV = process.env.NODE_ENV !== 'production';
     clangTidyBin: process.env.CLANG_TIDY_BIN,
     clangNoTidy: process.env.CLANG_NO_TIDY === 'true'
   })
-  .addMakefileTarget('../deps/glfw/src/libglfw3.a', {
-    cmd: 'cd ../deps/glfw'
-      + ` && cmake -DGLFW_BUILD_DOCS=OFF -DGLFW_BUILD_TESTS=OFF -DGLFW_BUILD_EXAMPLES=OFF -DCMAKE_BUILD_TYPE=${DEV ? 'Debug' : 'Release'} --build .`
-      + ' && make'
+  .addMakefileTarget('deps/glfw/src/libglfw3.a', {
+    cmd: `@cmake -DGLFW_BUILD_DOCS=OFF -DGLFW_BUILD_TESTS=OFF -DGLFW_BUILD_EXAMPLES=OFF -DCMAKE_BUILD_TYPE=${DEV ? 'Debug' : 'Release'} --build deps/glfw`
+      + ' && make -C deps/glfw'
   })
-  .addMakefileTarget('../deps/googletest/lib/libgtestd.a', {
-    cmd: 'cd ../deps/googletest'
-      + ` && cmake -DCMAKE_BUILD_TYPE=${DEV ? 'Debug' : 'Release'} -Dgtest_force_shared_crt=ON -DCMAKE_POSITION_INDEPENDENT_CODE=ON .`
-      + ' && make'
+  .addMakefileTarget('deps/googletest/lib/libgtestd.a', {
+    cmd: `@cmake -DCMAKE_BUILD_TYPE=${DEV ? 'Debug' : 'Release'} -Dgtest_force_shared_crt=ON -DCMAKE_POSITION_INDEPENDENT_CODE=ON deps/googletest`
+      + ' && make -C deps/googletest'
   });
 
   const gladCs = await new clang.CompileSet(buildSet, {std: 'c99', fPIC: true})
@@ -64,7 +62,7 @@ const DEV = process.env.NODE_ENV !== 'production';
     )
     .addLink(os.platform() === 'linux' ? 'X11' : null)
     .addMacOSFramework('CoreVideo', 'OpenGL', 'IOKit', 'Cocoa', 'Carbon')
-    .addToBuildSet('chunklands.node');
+    .addToBuildSet('build/chunklands.node');
 
   await new clang.CompileSet(buildSet, {std: 'c++20', fPIC: true, shared: true})
     .addSystemInclude(
@@ -81,7 +79,7 @@ const DEV = process.env.NODE_ENV !== 'production';
       'deps/glfw/src/libglfw3.a',
       'deps/googletest/lib/libgtestd.a',
     )
-    .addToBuildSet('chunklands_test.node');
+    .addToBuildSet('build/chunklands_test.node');
 
-  await buildSet.printMakefile('chunklands.node', process.stdout);
+  await buildSet.printMakefile('build/chunklands.node', process.stdout);
 })();

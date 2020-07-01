@@ -10,15 +10,15 @@ module.exports = class CompileSet {
    * @param {*} param1 
    */
   constructor(buildSet, {std, fPIC, shared, 'static': static_}) {
-    this._buildRelativeIncludeDirGlobs = [];
-    this._buildRelativeSourceGlobs = [];
-    this._buildRelativeSystemIncludeDirGlobs = [];
-    this._buildRelativeSystemSourceGlobs = [];
+    this._includeDirGlobs = [];
+    this._sourceGlobs = [];
+    this._systemIncludeDirGlobs = [];
+    this._systemSourceGlobs = [];
 
-    this._buildRelativeIncludeDirs = [];
-    this._buildRelativeSources = [];
-    this._buildRelativeSystemSources = [];
-    this._buildRelativeLibraries = [];
+    this._includeDirs = [];
+    this._sources = [];
+    this._systemSources = [];
+    this._libraries = [];
     this._buildLink = [];
     this._buildMacOSFrameworks = [];
 
@@ -33,7 +33,7 @@ module.exports = class CompileSet {
 
   addInclude(...dirs) {
     for (const dir of dirs) {
-      this._buildRelativeIncludeDirGlobs.push(this._buildSet.buildRelative(dir))
+      this._includeDirGlobs.push(dir);
     }
 
     return this;
@@ -41,7 +41,7 @@ module.exports = class CompileSet {
 
   addSystemInclude(...dirs) {
     for (const dir of dirs) {
-      this._buildRelativeSystemIncludeDirGlobs.push(this._buildSet.buildRelative(dir))
+      this._systemIncludeDirGlobs.push(dir);
     }
 
     return this;
@@ -49,7 +49,7 @@ module.exports = class CompileSet {
 
   addSource(...files) {
     for (const file of files) {
-      this._buildRelativeSourceGlobs.push(this._buildSet.buildRelative(file))
+      this._sourceGlobs.push(file);
     }
 
     return this;
@@ -57,7 +57,7 @@ module.exports = class CompileSet {
 
   addSystemSource(...files) {
     for (const file of files) {
-      this._buildRelativeSystemSourceGlobs.push(this._buildSet.buildRelative(file))
+      this._systemSourceGlobs.push(file);
     }
 
     return this;
@@ -65,7 +65,7 @@ module.exports = class CompileSet {
 
   addLibrary(...files) {
     for (const file of files) {
-      this._buildRelativeLibraries.push(this._buildSet.buildRelative(file));
+      this._libraries.push(file);
     }
 
     return this;
@@ -83,20 +83,20 @@ module.exports = class CompileSet {
 
   async _prepare() {
     [
-      this._buildRelativeSources,
-      this._buildRelativeSystemSources,
-      this._buildRelativeIncludeDirs,
-      this._buildRelativeSystemIncludeDirs,
+      this._sources,
+      this._systemSources,
+      this._includeDirs,
+      this._systemIncludeDirs,
     ] = await Promise.all([
-      this._buildSet.buildRelativeResolveGlobs(this._buildRelativeSourceGlobs),
-      this._buildSet.buildRelativeResolveGlobs(this._buildRelativeSystemSourceGlobs),
-      this._buildSet.buildRelativeResolveGlobs(this._buildRelativeIncludeDirGlobs),
-      this._buildSet.buildRelativeResolveGlobs(this._buildRelativeSystemIncludeDirGlobs),
+      this._buildSet.resolveGlobs(this._sourceGlobs),
+      this._buildSet.resolveGlobs(this._systemSourceGlobs),
+      this._buildSet.resolveGlobs(this._includeDirGlobs),
+      this._buildSet.resolveGlobs(this._systemIncludeDirGlobs),
     ]);
 
     // -I dir1 -I dir2
     this._clangIncludeDirsArgs = [];
-    for (const dir of this._buildRelativeIncludeDirs) {
+    for (const dir of this._includeDirs) {
       if (dir) {
         this._clangIncludeDirsArgs.push('-I', dir);
       }
@@ -104,7 +104,7 @@ module.exports = class CompileSet {
 
     // -isystem dir1 -isystem dir2
     this._clangSystemIncludeDirsArgs = [];
-    for (const dir of this._buildRelativeSystemIncludeDirs) {
+    for (const dir of this._systemIncludeDirs) {
       if (dir) {
         this._clangSystemIncludeDirsArgs.push('-isystem', dir);
       }
@@ -121,19 +121,15 @@ module.exports = class CompileSet {
       .map(framework => `-framework ${framework}`);
   }
 
-  _getBuildRelativeObjectPaths() {
+  getObjectPaths() {
     const deps = []
-    for (const sources of [this._buildRelativeSources, this._buildRelativeSystemSources]) {
+    for (const sources of [this._sources, this._systemSources]) {
       for (const source of sources) {
         deps.push(this._buildSet.rootRelative(util.sourceToObjectPath(source)));
       }
     }
 
     return deps;
-  }
-
-  getObjectPaths() {
-    return this._getBuildRelativeObjectPaths().map(buildRelativePath => this._buildSet.rootRelative(buildRelativePath));
   }
 
   _clangStdArg() {
@@ -215,7 +211,7 @@ module.exports = class CompileSet {
       ...this._clangIncludeDirsArgs,
       ...this._clangSystemIncludeDirsArgs,
       ...inputs,
-      ...this._buildRelativeLibraries,
+      ...this._libraries,
       ...this._clangLinkArgs,
       ...this._clangFrameworkArgs(),
       '-o',
@@ -228,7 +224,7 @@ module.exports = class CompileSet {
 
     const targets = [];
 
-    for (const [system, sources] of [[false, this._buildRelativeSources], [true, this._buildRelativeSystemSources]]) {
+    for (const [system, sources] of [[false, this._sources], [true, this._systemSources]]) {
       for (const source of sources) {
         const targetWithDeps = await this._makefileTarget(source);
         const [target, depsString] = targetWithDeps.split(':', 2);
@@ -236,24 +232,25 @@ module.exports = class CompileSet {
 
         const objectCmd = this._clangObjectCmd(source, system);
 
-        this._buildSet.addMakefileTarget(target, {
+        this._buildSet.addMakefileTarget(this._buildSet.rootRelative(target), {
           normalDeps: deps,
           cmd: (system || this._buildSet.clangNoTidy)
-            ? objectCmd
-            : `${this._clangTidyCmd(source)} && ${objectCmd}`
+            ? `@${objectCmd} && echo "\\033[1;32mOK\\033[0m  compile ${source}" || echo "\\033[1;31mERR\\033[0m compile ${source}"`
+            : `@${this._clangTidyCmd(source)} && ${objectCmd} && echo "\\033[1;32mOK\\033[0m  compile+tidy ${source}" || echo "\\033[1;31mERR\\033[0m compile+tidy ${source}"`
         });
 
-        targets.push(target);
+        targets.push(this._buildSet.rootRelative(target));
       }
     }
 
     if (resultTarget) {
+      const cmd = this._clangCompileCmd(resultTarget, targets);
       this._buildSet.addMakefileTarget(resultTarget, {
         normalDeps: [
-          ...this._getBuildRelativeObjectPaths(),
-          ...this._buildRelativeLibraries
+          ...this.getObjectPaths(),
+          ...this._libraries
         ],
-        cmd: this._clangCompileCmd(resultTarget, targets)
+        cmd: `@${cmd} && echo "\\033[1;32mOK  RESULT\\033[0m ${resultTarget}" || echo "\\033[1;31mERR RESULT\\033[0m ${resultTarget}"`
       });
     }
 
@@ -261,7 +258,7 @@ module.exports = class CompileSet {
   }
 
   async _makefileTarget(filename) {
-    const relativeDir = path.dirname(this._buildSet.rootRelative(filename));
+    const relativeDir = path.dirname(filename);
     
     const result = await this._buildSet.clang(util.cleanArgs([
       '-MM',

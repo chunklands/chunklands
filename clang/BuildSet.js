@@ -18,10 +18,9 @@ module.exports = class BuildSet {
       throw new TypeError('need absolute clangfile path');
     }
 
-    this._buildRelativeClangfile = path.relative(buildAbsolutePath, clangfileAbsolutePath);
+    this._clangfileAbsolutePath = clangfileAbsolutePath;
     this._rootAbsolutePath = rootAbsolutePath;
     this._buildAbsolutePath = buildAbsolutePath;
-    this._buildRelativeRootPath = path.relative(buildAbsolutePath, rootAbsolutePath);
     this.debug = debug;
 
     this.clangBin = clangBin;
@@ -37,19 +36,12 @@ module.exports = class BuildSet {
     return result;
   }
 
-  buildRelative(rootRelativePath) {
-    // should be normalized
-    // we don't like `../build/deps/file.o` but `deps/file.o` for library paths
-    const absolutePath = path.join(this._rootAbsolutePath, rootRelativePath);
-    return path.relative(this._buildAbsolutePath, absolutePath);
-  }
-
   /**
-   * @param {string[]} buildRelativePaths 
+   * @param {string[]} paths 
    */
-  async buildRelativeResolveGlobs(buildRelativePaths) {
+  async resolveGlobs(paths) {
     const resolvedDirs = await Promise.all(
-      buildRelativePaths.map(p => globProm(p, { cwd: this._buildAbsolutePath }))
+      paths.map(p => globProm(p, { cwd: this._rootAbsolutePath }))
     );
 
     const flatResolved = [];
@@ -58,7 +50,7 @@ module.exports = class BuildSet {
       if (resolvedDir.length > 0) {
         flatResolved.push(...resolvedDir);
       } else {
-        throw new Error(`warning: globbing ${buildRelativePaths[i]} expands to nothing. This is maybe a typo`);
+        throw new Error(`warning: globbing ${paths[i]} expands to nothing. This is maybe a typo`);
       }
     }
 
@@ -66,7 +58,7 @@ module.exports = class BuildSet {
   }
 
   clang(args) {
-    return execa(this.clangBin, args, { cwd: this._buildAbsolutePath });
+    return execa(this.clangBin, args, { cwd: this._rootAbsolutePath });
   }
 
   addMakefileTarget(target, {normalDeps = [], orderOnlyDeps = [], cmd}) {
@@ -88,7 +80,7 @@ module.exports = class BuildSet {
     }
 
     this.addMakefileTarget(dir, {
-      cmd: `mkdir -p "${dir}"`
+      cmd: `@mkdir -p "${dir}"`
     });
 
     return this;
@@ -96,7 +88,7 @@ module.exports = class BuildSet {
 
   async printMakefile(firstTarget, out = process.stdout) {
     const makefileTargets = this._makefileTargets;
-    const buildRelativeClangfile = this._buildRelativeClangfile;
+    const clangfilePath = path.relative(this._rootAbsolutePath, this._clangfileAbsolutePath);
 
     await util.printMakefile(out, (function *() {
       yield {target: firstTarget, ...makefileTargets[firstTarget]};
@@ -108,7 +100,7 @@ module.exports = class BuildSet {
             ...makefileTargets[target],
             normalDeps: [
               ...makefileTargets[target].normalDeps,
-              buildRelativeClangfile
+              clangfilePath
             ]
           };
         }

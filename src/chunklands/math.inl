@@ -117,7 +117,7 @@ namespace chunklands::math {
     if (std::numeric_limits<T>::has_infinity) {
       if (std::isinf(a.origin.x) && std::isinf(a.span.x)) { // NOLINT (clang-analyzer-core.CallAndMessage)
         return b;
-      } else if (std::isinf(b.origin.x) && std::isinf(b.span.x)) {
+      } else if (std::isinf(b.origin.x) && std::isinf(b.span.x)) { // NOLINT (clang-analyzer-core.CallAndMessage)
         return a;
       }
     }
