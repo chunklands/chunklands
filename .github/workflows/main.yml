@@ -28,7 +28,7 @@ jobs:
       run: |
         touch $GITHUB_WORKSPACE/.env
         echo "CLANG_BIN=clang-10" >> $GITHUB_WORKSPACE/.env
-        echo "CLANG_TIDY=clang-tidy-10" >> $GITHUB_WORKSPACE/.env
+        echo "CLANG_TIDY_BIN=clang-tidy-10" >> $GITHUB_WORKSPACE/.env
     - name: Build
       run: |
         make setup
