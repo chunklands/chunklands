@@ -11,11 +11,11 @@ JSValue Test(JSCbi info) {
   return JSBoolean::New(info.Env(), result == 0);
 }
 
-JSObject Init(JSEnv env, JSObject exports) {
-  chunklands::modules::Init(env, exports);
+JSObject InitModule(JSEnv env, JSObject exports) {
+  chunklands::Init(env, exports);
   exports["test"] = JSFunction::New(env, Test, "test");
 
   return exports;
 }
 
-NODE_API_MODULE(chunklands_test, Init)
+NODE_API_MODULE(chunklands_test, InitModule)

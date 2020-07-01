@@ -3,8 +3,10 @@
 
 #include <chunklands/js.hxx>
 
-namespace chunklands::modules {
+namespace chunklands {
+
   JSObject Init(JSEnv env, JSObject exports);
-}
+
+} // namespace hunklands
 
 #endif

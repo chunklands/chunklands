@@ -1,7 +1,7 @@
 const engine = require('./engine');
 const game = require('./game');
 const gl = require('./gl');
-const misc = require('./modules/misc');
+const misc = require('./misc');
 
 module.exports = {
   engine,

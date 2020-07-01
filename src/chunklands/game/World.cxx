@@ -1,8 +1,9 @@
 
 #include "World.hxx"
-#include <chunklands/modules/misc/misc_module.hxx>
 #include <chunklands/debug.hxx>
 #include <chunklands/jsmath.hxx>
+#include <chunklands/misc/Profiler.hxx>
+#include <iostream>
 
 namespace chunklands::game {
 
@@ -186,8 +187,8 @@ namespace chunklands::game {
       chunk->Render();
     }
 
-    modules::misc::Profiler::SetGauge("rendered_chunk_count", rendered_chunk_count);
-    modules::misc::Profiler::SetGauge("rendered_index_count", rendered_index_count);
+    misc::Profiler::SetGauge("rendered_chunk_count", rendered_chunk_count);
+    misc::Profiler::SetGauge("rendered_index_count", rendered_index_count);
   }
 
   int World::GetRenderDistance() const {

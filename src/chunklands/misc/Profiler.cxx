@@ -1,12 +1,8 @@
-#include "misc_module.hxx"
 
-#include <unordered_map>
+#include "Profiler.hxx"
 #include <numeric>
 
-namespace chunklands::modules::misc {
-  /////////////////////////////////////////////////////////////////////////////
-  // Profiler //////////////////////////////////////////////////////////////////
-  /////////////////////////////////////////////////////////////////////////////
+namespace chunklands::misc {
 
   std::unordered_map<const char*, std::shared_ptr<boost::circular_buffer<long>>> Profiler::histograms_;
   std::unordered_map<const char*, long> Profiler::gauges_;
@@ -46,4 +42,5 @@ namespace chunklands::modules::misc {
   void Profiler::SetGauge(const char* name, long value) {
     gauges_.insert_or_assign(name, value);
   }
-}
+
+} // namespace chunklands::misc

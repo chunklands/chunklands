@@ -1,7 +1,7 @@
 
 #include "GameLoop.hxx"
 #include <chunklands/gl/glfw.hxx>
-#include <chunklands/modules/misc/misc_module.hxx>
+#include <chunklands/misc/Profiler.hxx>
 
 namespace chunklands::engine {
 

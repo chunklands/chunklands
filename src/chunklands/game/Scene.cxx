@@ -1,6 +1,7 @@
 
 #include "Scene.hxx"
 #include <chunklands/jsmath.hxx>
+#include <chunklands/misc/Profiler.hxx>
 
 namespace chunklands::game {
 

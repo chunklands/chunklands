@@ -3,9 +3,9 @@
 
 using namespace chunklands;
 
-JSObject Init(JSEnv env, JSObject exports) {
-  chunklands::modules::Init(env, exports);
+JSObject InitModule(JSEnv env, JSObject exports) {
+  chunklands::Init(env, exports);
   return exports;
 }
 
-NODE_API_MODULE(chunklands, Init)
+NODE_API_MODULE(chunklands, InitModule)

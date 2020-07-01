@@ -1,6 +1,5 @@
 #include <gtest/gtest.h>
 #include <chunklands/math.hxx>
-#include <chunklands/modules/misc/misc_module.hxx>
 
 namespace chunklands::math {
 

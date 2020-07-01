@@ -1,6 +1,6 @@
 
 #include "ProgramBase.hxx"
-#include <chunklands/modules/misc/misc_module.hxx>
+#include <chunklands/misc/flow.hxx>
 
 namespace chunklands::gl {
 

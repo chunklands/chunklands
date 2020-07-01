@@ -1,7 +1,8 @@
 
 #include "MovementController.hxx"
-#include <chunklands/modules/misc/misc_module.hxx>
 #include <chunklands/debug.hxx>
+#include <chunklands/misc/Profiler.hxx>
+#include <iostream>
 
 namespace chunklands::engine {
 

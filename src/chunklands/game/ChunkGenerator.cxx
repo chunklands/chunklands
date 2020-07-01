@@ -1,6 +1,6 @@
 
 #include "ChunkGenerator.hxx"
-#include <chunklands/modules/misc/misc_module.hxx>
+#include <chunklands/misc/Profiler.hxx>
 
 namespace chunklands::game {
 
@@ -9,7 +9,7 @@ namespace chunklands::game {
   struct generate_model_callback_data {
     JSWrapRef<ChunkGenerator> js_generator;
     std::shared_ptr<Chunk> chunk;
-    modules::misc::prof profiler;
+    misc::prof profiler;
   };
 
   void ChunkGenerator::GenerateModel(std::shared_ptr<Chunk>& chunk) {
