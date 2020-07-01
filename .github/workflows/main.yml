@@ -16,7 +16,7 @@ jobs:
       run: |
         sudo add-apt-repository 'deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-10 main'
         sudo apt update
-        sudo apt install clang-10 clang-tidy-10 mesa-common-dev
+        sudo apt install clang-10 clang-tidy-10 mesa-common-dev libxrandr-dev
     - name: Versions
       run: |
         echo "Node:"
@@ -27,6 +27,9 @@ jobs:
         echo ""
         echo "clang:"
         clang-10 --version
+        echo ""
+        echo "clang-tidy:"
+        clang-tidy-10 --version
         echo ""
         echo "make:"
         make -v
