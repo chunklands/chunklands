@@ -52,8 +52,15 @@ jobs:
     runs-on: macos-10.14
     name: MacOS Build
     steps:
-    - name: Instal macOS headers
+    - name: Find stdio.h
       run: |
+        find / -name 'stdio.h' -type f 2> /dev/null
+    - name: Install macOS headers
+      run: |
+        ls -al /Library || echo not found
+        ls -al /Library/Developer || echo not found
+        ls -al /Library/Developer/CommandLineTools || echo not found
+        ls -al /Library/Developer/CommandLineTools/Packages || echo not found
         open /Library/Developer/CommandLineTools/Packages/macOS_SDK_headers_for_macOS_10.14.pkg
     - name: Setup node.js
       uses: actions/setup-node@v1
