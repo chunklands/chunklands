@@ -48,6 +48,8 @@ jobs:
       run: |
         make
         ls -al build
+    - name: Test
+      run: npm test
   macos-build:
     runs-on: macos-latest
     env:
@@ -80,3 +82,5 @@ jobs:
       run: |
         make
         ls -al build
+    - name: Test
+      run: npm test

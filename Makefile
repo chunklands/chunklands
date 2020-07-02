@@ -2,7 +2,7 @@ prog: build/Makefile
 	make -f build/Makefile -j8
 
 test: build/Makefile
-	make -f build/Makefile -j8 chunklands_test.node
+	make -f build/Makefile -j8 build/chunklands_test.node
 
 build:
 	mkdir -p build
