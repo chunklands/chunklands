@@ -33,10 +33,10 @@ jobs:
         npm -v
         echo ""
         echo "clang:"
-        $(CLANG_BIN) --version
+        $CLANG_BIN --version
         echo ""
         echo "clang-tidy:"
-        $(CLANG_TIDY_BIN) --version
+        $CLANG_TIDY_BIN --version
         echo ""
         echo "make:"
         make -v
