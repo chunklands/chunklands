@@ -56,6 +56,9 @@ jobs:
       uses: maxim-lobanov/setup-xcode@1.0
       with:
         xcode-version: latest
+    - name: Install xcode
+      run: |
+        xcode-select --install
     - name: Setup node.js
       uses: actions/setup-node@v1
       with:
