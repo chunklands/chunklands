@@ -58,6 +58,12 @@ jobs:
       uses: actions/setup-node@v1
       with:
         node-version: 14.4
+    - name: Setup clang
+      run: |
+        mkdir clang
+        wget -cO- https://github.com/llvm/llvm-project/releases/download/llvmorg-10.0.0/clang+llvm-10.0.0-x86_64-apple-darwin.tar.xz | tar xJC clang --strip-components 1
+        export CLANG_BIN=$(pwd)/clang/bin/clang
+        export CLANG_TIDY_BIN=$(pwd)/clang/bin/clang-tidy
     - name: Print Versions
       run: |
         echo "Node:"
@@ -65,4 +71,13 @@ jobs:
         echo ""
         echo "npm:"
         npm -v
+        echo ""
+        echo "clang:"
+        $CLANG_BIN --version
+        echo ""
+        echo "clang-tidy:"
+        $CLANG_TIDY_BIN --version
+        echo ""
+        echo "make:"
+        make -v
         echo ""
