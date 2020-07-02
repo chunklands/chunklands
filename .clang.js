@@ -38,7 +38,7 @@ const DEV = process.env.NODE_ENV !== 'production';
     'node_modules/node-addon-api',
   ];
 
-  const chunklandsGenericCs = await new clang.CompileSet(buildSet, {std: 'c++20', fPIC: true})
+  const chunklandsGenericCs = await new clang.CompileSet(buildSet, {std: 'c++2a', fPIC: true})
     .addSystemInclude(...systemInclude)
     .addInclude('src')
     .addSource(
@@ -49,7 +49,7 @@ const DEV = process.env.NODE_ENV !== 'production';
     )
     .addToBuildSet();
 
-  await new clang.CompileSet(buildSet, {std: 'c++20', fPIC: true, shared: true})
+  await new clang.CompileSet(buildSet, {std: 'c++2a', fPIC: true, shared: true})
     .addSystemInclude(...systemInclude)
     .addInclude('src')
     .addSource(
@@ -64,7 +64,7 @@ const DEV = process.env.NODE_ENV !== 'production';
     .addMacOSFramework('CoreVideo', 'OpenGL', 'IOKit', 'Cocoa', 'Carbon')
     .addToBuildSet('build/chunklands.node');
 
-  await new clang.CompileSet(buildSet, {std: 'c++20', fPIC: true, shared: true})
+  await new clang.CompileSet(buildSet, {std: 'c++2a', fPIC: true, shared: true})
     .addSystemInclude(
       ...systemInclude,
       'deps/googletest/googletest/include'
