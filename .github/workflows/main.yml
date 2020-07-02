@@ -62,8 +62,8 @@ jobs:
       run: |
         mkdir clang
         wget -cO- https://github.com/llvm/llvm-project/releases/download/llvmorg-10.0.0/clang+llvm-10.0.0-x86_64-apple-darwin.tar.xz | tar xJC clang --strip-components 1
-        export CLANG_BIN=$(pwd)/clang/bin/clang
-        export CLANG_TIDY_BIN=$(pwd)/clang/bin/clang-tidy
+        echo "::set-env name=CLANG_BIN::$(pwd)/clang/bin/clang"
+        echo "::set-env name=CLANG_TIDY_BIN::$(pwd)/clang/bin/clang-tidy"
     - name: Print Versions
       run: |
         echo "Node:"
