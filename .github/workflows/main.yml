@@ -49,16 +49,12 @@ jobs:
     - name: Build
       run: make
   macos-build:
-    runs-on: macos-latest
+    runs-on: macos-10.14
     name: MacOS Build
     steps:
-#    - name: Setup xcode
-#      uses: maxim-lobanov/setup-xcode@1.0
-#      with:
-#        xcode-version: latest
-    - name: Install xcode
+    - name: Instal macOS headers
       run: |
-        xcode-select --install
+        open /Library/Developer/CommandLineTools/Packages/macOS_SDK_headers_for_macOS_10.14.pkg
     - name: Setup node.js
       uses: actions/setup-node@v1
       with:
