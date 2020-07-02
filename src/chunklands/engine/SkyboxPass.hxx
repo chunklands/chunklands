@@ -13,30 +13,12 @@ namespace chunklands::engine {
     }))
 
   public:
-    void Begin() override {
-      glDisable(GL_CULL_FACE);
-      glDepthFunc(GL_LEQUAL);
-      RenderPass::Begin();
-    }
+    void Begin() override;
+    void End() override;
 
-    void End() override {
-      RenderPass::End();
-      glDepthFunc(GL_LESS);
-      glEnable(GL_CULL_FACE);
-    }
-
-    void UpdateProjection(const glm::mat4& matrix) {
-      glUniformMatrix4fv(uniforms_.proj, 1, GL_FALSE, glm::value_ptr(matrix));
-    }
-    
-    void UpdateView(const glm::mat4& matrix) {
-      glUniformMatrix4fv(uniforms_.view, 1, GL_FALSE, glm::value_ptr(matrix));
-    }
-
-    void BindSkyboxTexture(GLuint texture) {
-      glActiveTexture(GL_TEXTURE0);
-      glBindTexture(GL_TEXTURE_2D, texture);
-    }
+    void UpdateProjection(const glm::mat4& matrix);
+    void UpdateView(const glm::mat4& matrix);
+    void BindSkyboxTexture(GLuint texture);
 
   protected:
     void InitializeProgram() override;

@@ -46,4 +46,13 @@ namespace chunklands::engine {
     }
   }
 
+  const std::optional<font_loader_char> FontLoader::Get(const std::string& ch) const {
+    auto&& it = meta_.find(ch);
+    if (it == meta_.cend()) {
+      return {};
+    }
+
+    return {it->second};
+  }
+
 } // namespace chunklands::engine

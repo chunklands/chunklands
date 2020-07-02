@@ -15,14 +15,8 @@ namespace chunklands::engine {
     JS_DECL_CB_VOID(initialize)
 
   public:
-    ~Skybox() {
-      DeleteGLArrays();
-    }
-
-    void DeleteGLArrays() {
-      glDeleteBuffers(1, &vbo_);
-      glDeleteVertexArrays(1, &vao_);
-    }
+    ~Skybox();
+    void DeleteGLArrays();
 
   public:
     void Render();

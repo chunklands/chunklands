@@ -13,30 +13,14 @@ namespace chunklands::engine {
     }))
 
   public:
-    virtual ~GBufferPass() {
-      DeleteBuffers();
-    }
+    virtual ~GBufferPass();
 
   public:
-    void Begin() override {
-      glBindFramebuffer(GL_FRAMEBUFFER, framebuffer_);
-      glClearColor(0.f, 0.f, 0.f, 1.f);
-      glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-      RenderPass::Begin();
-    }
+    void Begin() override;
+    void End() override;
 
-    void End() override {
-      RenderPass::End();
-      glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    }
-
-    void UpdateProjection(const glm::mat4& proj) {
-      glUniformMatrix4fv(uniforms_.proj, 1, GL_FALSE, glm::value_ptr(proj));
-    }
-
-    void UpdateView(const glm::mat4& view) {
-      glUniformMatrix4fv(uniforms_.view, 1, GL_FALSE, glm::value_ptr(view));
-    }
+    void UpdateProjection(const glm::mat4& proj);
+    void UpdateView(const glm::mat4& view);
 
     void UpdateBufferSize(int width, int height) override;
     void DeleteBuffers();

@@ -11,11 +11,7 @@ namespace chunklands::gl {
     ~RenderQuad();
 
   public:
-    void Render() {
-      glBindVertexArray(vao_);
-      glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-      glBindVertexArray(0);
-    }
+    void Render();
 
   private:
     GLuint vao_ = 0;

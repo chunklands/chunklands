@@ -74,15 +74,7 @@ namespace chunklands::game {
       return blocks_[at.z][at.y][at.x];
     }
 
-    void UpdateBlock(const glm::ivec3& at, BlockDefinition* block_def) {
-      assert(block_def);
-
-      assert(at.x >= 0 && at.y >= 0 && at.z >= 0);
-      assert(at.x < (int)SIZE && at.y < (int)SIZE && at.z < (int)SIZE);
-
-      blocks_[at.z][at.y][at.x] = block_def;
-      state_ = ChunkState::kModelPrepared;
-    }
+    void UpdateBlock(const glm::ivec3& at, BlockDefinition* block_def);
 
   private:
     ChunkState state_ = kEmpty;

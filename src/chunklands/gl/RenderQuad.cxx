@@ -31,4 +31,10 @@ namespace chunklands::gl {
     glDeleteVertexArrays(1, &vao_);
   }
 
+  void RenderQuad::Render() {
+    glBindVertexArray(vao_);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    glBindVertexArray(0);
+  }
+
 } // namespace chunklands::gl

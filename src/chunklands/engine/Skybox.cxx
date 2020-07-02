@@ -49,6 +49,15 @@ namespace chunklands::engine {
 
   JS_DEF_WRAP(Skybox)
 
+  Skybox::~Skybox() {
+    DeleteGLArrays();
+  }
+
+  void Skybox::DeleteGLArrays() {
+    glDeleteBuffers(1, &vbo_);
+    glDeleteVertexArrays(1, &vao_);
+  }
+
   void Skybox::JSCall_initialize(JSCbi info) {
     CHECK_GL();
     DeleteGLArrays();

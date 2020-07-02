@@ -25,14 +25,7 @@ namespace chunklands::engine {
 
   public:
   
-    const std::optional<font_loader_char> Get(const std::string& ch) const {
-      auto&& it = meta_.find(ch);
-      if (it == meta_.cend()) {
-        return {};
-      }
-
-      return {it->second};
-    }
+    const std::optional<font_loader_char> Get(const std::string& ch) const;
 
     const gl::Texture& GetTexture() const {
       return texture_;

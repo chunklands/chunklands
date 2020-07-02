@@ -24,24 +24,8 @@ namespace chunklands::engine {
     JS_DECL_CB_VOID(close)
 
   protected:
-    JSValue JSCall_GetGameControl(JSCbi info) {
-      return JSBoolean::New(info.Env(), game_control_);
-    }
-
-    void JSCall_SetGameControl(JSCbi info) {
-      bool next_game_control = info[0].ToBoolean().Value();
-      if (next_game_control == game_control_) {
-        return;
-      }
-
-      if (next_game_control) {
-        StartMouseGrab();
-        game_control_ = true;
-      } else {
-        StopMouseGrab();
-        game_control_ = false;
-      }
-    }
+    JSValue JSCall_GetGameControl(JSCbi info);
+    void JSCall_SetGameControl(JSCbi info);
 
   public:
     void SwapBuffers();

@@ -108,6 +108,25 @@ namespace chunklands::engine {
     glfwSwapBuffers(window_);
   }
 
+  JSValue Window::JSCall_GetGameControl(JSCbi info) {
+    return JSBoolean::New(info.Env(), game_control_);
+  }
+
+  void Window::JSCall_SetGameControl(JSCbi info) {
+    bool next_game_control = info[0].ToBoolean().Value();
+    if (next_game_control == game_control_) {
+      return;
+    }
+
+    if (next_game_control) {
+      StartMouseGrab();
+      game_control_ = true;
+    } else {
+      StopMouseGrab();
+      game_control_ = false;
+    }
+  }
+
   int Window::GetKey(int key) {
     return glfwGetKey(window_, key);
   }

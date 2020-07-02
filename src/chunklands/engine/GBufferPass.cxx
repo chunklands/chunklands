@@ -5,6 +5,30 @@ namespace chunklands::engine {
 
   JS_DEF_WRAP(GBufferPass)
 
+  GBufferPass::~GBufferPass() {
+    DeleteBuffers();
+  }
+
+  void GBufferPass::Begin() {
+    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer_);
+    glClearColor(0.f, 0.f, 0.f, 1.f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    RenderPass::Begin();
+  }
+
+  void GBufferPass::End() {
+    RenderPass::End();
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  }
+
+  void GBufferPass::UpdateProjection(const glm::mat4& proj) {
+    glUniformMatrix4fv(uniforms_.proj, 1, GL_FALSE, glm::value_ptr(proj));
+  }
+
+  void GBufferPass::UpdateView(const glm::mat4& view) {
+    glUniformMatrix4fv(uniforms_.view, 1, GL_FALSE, glm::value_ptr(view));
+  }
+
   void GBufferPass::InitializeProgram() {
     gl::Uniform texture {"u_texture"};
     *js_Program >> uniforms_.proj >> uniforms_.view >> texture;

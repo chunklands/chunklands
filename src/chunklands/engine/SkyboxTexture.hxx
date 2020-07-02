@@ -8,16 +8,11 @@ namespace chunklands::engine {
 
   class SkyboxTexture {
   public:
-    ~SkyboxTexture() {
-      glDeleteTextures(1, &texture_);
-    }
+    ~SkyboxTexture();
 
   public:
     void LoadTexture(const std::string& prefix);
-    void ActiveAndBind(GLenum texture) {
-      glActiveTexture(texture);
-      glBindTexture(GL_TEXTURE_CUBE_MAP, texture_);
-    }
+    void ActiveAndBind(GLenum texture);
   
   private:
     GLuint texture_ = 0;

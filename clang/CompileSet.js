@@ -236,7 +236,7 @@ module.exports = class CompileSet {
           normalDeps: deps,
           cmd: (system || this._buildSet.clangNoTidy)
             ? `@${objectCmd} && echo "\\033[1;32mOK\\033[0m  compile ${source}" || (echo "\\033[1;31mERR\\033[0m compile ${source}" && exit 1)`
-            : `@${this._clangTidyCmd(source)} && ${objectCmd} && echo "\\033[1;32mOK\\033[0m  compile+tidy ${source}" || (echo "\\033[1;31mERR\\033[0m compile+tidy ${source}" && exit 1)`
+            : `@(${this._clangTidyCmd(source)} || exit 1) && ${objectCmd} && echo "\\033[1;32mOK\\033[0m  compile+tidy ${source}" || (echo "\\033[1;31mERR\\033[0m compile+tidy ${source}" && exit 1)`
         });
 
         targets.push(this._buildSet.rootRelative(target));

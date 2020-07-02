@@ -45,4 +45,14 @@ namespace chunklands::game {
     glDrawArrays(GL_TRIANGLES, 0, vb_index_count_);
   }
 
+  void Chunk::UpdateBlock(const glm::ivec3& at, BlockDefinition* block_def) {
+    assert(block_def);
+
+    assert(at.x >= 0 && at.y >= 0 && at.z >= 0);
+    assert(at.x < (int)SIZE && at.y < (int)SIZE && at.z < (int)SIZE);
+
+    blocks_[at.z][at.y][at.x] = block_def;
+    state_ = ChunkState::kModelPrepared;
+  }
+
 } // namespace chunklands::game

@@ -96,6 +96,24 @@ namespace chunklands::engine {
     CHECK_GL();
   }
 
+  void TextRenderer::Begin() {
+    glDepthFunc(GL_ALWAYS);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    RenderPass::Begin();
+  }
+
+  void TextRenderer::End() {
+    RenderPass::End();
+    glDepthFunc(GL_LESS);
+    glDisable(GL_BLEND);
+  }
+
+  void TextRenderer::UpdateBufferSize(int width, int height) {
+    height_ = height;
+    proj_ = glm::ortho(0.f, float(width), 0.f, float(height));
+  }
+
   void TextRenderer::InitializeProgram() {
     CHECK_GL();
     gl::Uniform texture {"u_texture"};

@@ -38,9 +38,7 @@ namespace chunklands::game {
     int GetRenderDistance() const;
 
   private:
-
     std::unordered_map<glm::ivec3, std::shared_ptr<Chunk>, math::ivec3_hasher> chunk_map_;
-
     std::vector<glm::ivec3> nearest_chunks_;
   };
 

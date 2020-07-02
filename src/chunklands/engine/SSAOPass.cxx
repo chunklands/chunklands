@@ -10,6 +10,37 @@ namespace chunklands::engine {
 
   JS_DEF_WRAP(SSAOPass)
 
+  SSAOPass::~SSAOPass() {
+    DeleteBuffers();
+  }
+
+  void SSAOPass::Begin() {
+    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer_);
+    glClearColor(0.f, 0.f, 0.f, 1.0);
+    glClear(GL_COLOR_BUFFER_BIT);
+    RenderPass::Begin();
+    BindNoiseTexture();
+  }
+
+  void SSAOPass::End() {
+    RenderPass::End();
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  }
+
+  void SSAOPass::UpdateProjection(const glm::mat4& proj) {
+    glUniformMatrix4fv(uniforms_.proj, 1, GL_FALSE, glm::value_ptr(proj));
+  }
+
+  void SSAOPass::BindPositionTexture(GLuint texture) {
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, texture);
+  }
+
+  void SSAOPass::BindNormalTexture(GLuint texture) {
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, texture);
+  }
+
   void SSAOPass::InitializeProgram() {
 
     gl::Uniform position{"u_position"},
@@ -88,6 +119,11 @@ namespace chunklands::engine {
     glDeleteTextures(1, &textures_.color);
     glDeleteTextures(1, &textures_.noise);
     glDeleteFramebuffers(1, &framebuffer_);
+  }
+
+  void SSAOPass::BindNoiseTexture() {
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_2D, textures_.noise);
   }
 
 } // namespace chunklands::engine

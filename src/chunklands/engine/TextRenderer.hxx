@@ -19,24 +19,11 @@ namespace chunklands::engine {
     JS_DECL_CB_VOID(write)
 
   public:
+    void Begin() override;
+    void End() override;
+
+    void UpdateBufferSize(int width, int height) override;
     void Render();
-    virtual void Begin() override {
-      glDepthFunc(GL_ALWAYS);
-      glEnable(GL_BLEND);
-      glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-      RenderPass::Begin();
-    }
-
-    virtual void End() override {
-      RenderPass::End();
-      glDepthFunc(GL_LESS);
-      glDisable(GL_BLEND);
-    }
-
-    void UpdateBufferSize(int width, int height) override {
-      height_ = height;
-      proj_ = glm::ortho(0.f, float(width), 0.f, float(height));
-    }
 
   protected:
     void InitializeProgram() override;

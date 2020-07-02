@@ -5,6 +5,10 @@
 
 namespace chunklands::engine {
 
+  SkyboxTexture::~SkyboxTexture() {
+    glDeleteTextures(1, &texture_);
+  }
+
   void SkyboxTexture::LoadTexture(const std::string& prefix) {
     CHECK_GL();
 
@@ -52,6 +56,11 @@ namespace chunklands::engine {
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+  }
+
+  void SkyboxTexture::ActiveAndBind(GLenum texture) {
+    glActiveTexture(texture);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, texture_);
   }
 
 } // namespace chunklands::engine
