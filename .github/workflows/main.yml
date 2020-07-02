@@ -7,6 +7,9 @@ on:
 jobs:
   ubuntu-build:
     runs-on: ubuntu-latest
+    env:
+      CLANG_BIN: clang-10
+      CLANG_TIDY_BIN: cling-tidy-10
     name: Ubuntu Build
     if: 1 != 1
     steps:
@@ -19,10 +22,6 @@ jobs:
         sudo add-apt-repository 'deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-10 main'
         sudo apt update
         sudo apt install clang-10 clang-tidy-10
-    - name: Setup env
-      run: |
-        echo "::set-env name=CLANG_BIN::clang-10"
-        echo "::set-env name=CLANG_TIDY_BIN::clang-tidy-10"
     - name: Setup graphical drivers
       run: |
         sudo apt install mesa-common-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev
@@ -49,30 +48,33 @@ jobs:
     - name: Build
       run: make
   macos-build:
-    runs-on: macos-10.14
+    runs-on: macos-latest
+    env:
+      CLANG_BIN: clang-10
+      CLANG_TIDY_BIN: cling-tidy-10
     name: MacOS Build
     steps:
-    - name: Find stdio.h
-      run: |
-        find / -name 'stdio.h' -type f 2> /dev/null
-    - name: Install macOS headers
-      run: |
-        ls -al /Library || echo not found
-        ls -al /Library/Developer || echo not found
-        ls -al /Library/Developer/CommandLineTools || echo not found
-        ls -al /Library/Developer/CommandLineTools/Packages || echo not found
-        open /Library/Developer/CommandLineTools/Packages/macOS_SDK_headers_for_macOS_10.14.pkg
+#     - name: Find stdio.h
+#       run: |
+#         find / -name 'stdio.h' -type f 2> /dev/null
+#     - name: Install macOS headers
+#       run: |
+#         ls -al /Library || echo not found
+#         ls -al /Library/Developer || echo not found
+#         ls -al /Library/Developer/CommandLineTools || echo not found
+#         ls -al /Library/Developer/CommandLineTools/Packages || echo not found
+#         open /Library/Developer/CommandLineTools/Packages/macOS_SDK_headers_for_macOS_10.14.pkg
     - name: Setup node.js
       uses: actions/setup-node@v1
       with:
         node-version: 14.4
-    - name: Setup clang
-      run: |
-        mkdir $HOME/clang
-        wget -cqO- https://github.com/llvm/llvm-project/releases/download/llvmorg-10.0.0/clang+llvm-10.0.0-x86_64-apple-darwin.tar.xz | tar xJC $HOME/clang --strip-components 1
-        ls -al $HOME/clang
-        echo "::set-env name=CLANG_BIN::$HOME/clang/bin/clang"
-        echo "::set-env name=CLANG_TIDY_BIN::$HOME/clang/bin/clang-tidy"
+#     - name: Setup clang
+#       run: |
+#         mkdir $HOME/clang
+#         wget -cqO- https://github.com/llvm/llvm-project/releases/download/llvmorg-10.0.0/clang+llvm-10.0.0-x86_64-apple-darwin.tar.xz | tar xJC $HOME/clang --strip-components 1
+#         ls -al $HOME/clang
+#         echo "::set-env name=CLANG_BIN::$HOME/clang/bin/clang"
+#         echo "::set-env name=CLANG_TIDY_BIN::$HOME/clang/bin/clang-tidy"
     - name: Print Versions
       run: |
         echo "Node:"
