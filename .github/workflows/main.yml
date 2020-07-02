@@ -19,7 +19,10 @@ jobs:
         sudo add-apt-repository 'deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-10 main'
         sudo apt update
         sudo apt install clang-10 clang-tidy-10
-        
+    - name: Setup env
+      run: |
+        echo "::set-env name=CLANG_BIN::clang-10"
+        echo "::set-env name=CLANG_TIDY_BIN::clang-tidy-10"
     - name: Setup graphical drivers
       run: |
         sudo apt install mesa-common-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev
@@ -32,20 +35,15 @@ jobs:
         npm -v
         echo ""
         echo "clang:"
-        clang-10 --version
+        $(CLANG_BIN) --version
         echo ""
         echo "clang-tidy:"
-        clang-tidy-10 --version
+        $(CLANG_TIDY_BIN) --version
         echo ""
         echo "make:"
         make -v
         echo ""
     - uses: actions/checkout@v2
-    - name: Setup .env
-      run: |
-        touch $GITHUB_WORKSPACE/.env
-        echo "CLANG_BIN=clang-10" >> $GITHUB_WORKSPACE/.env
-        echo "CLANG_TIDY_BIN=clang-tidy-10" >> $GITHUB_WORKSPACE/.env
     - name: Setup
       run: make setup
     - name: Build
@@ -81,3 +79,8 @@ jobs:
         echo "make:"
         make -v
         echo ""
+    - uses: actions/checkout@v2
+    - name: Setup
+      run: make setup
+    - name: Build
+      run: make
