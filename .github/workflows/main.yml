@@ -5,8 +5,10 @@ on:
   pull_request:
     branches: [ master ]
 jobs:
-  build:
+  ubuntu-build:
     runs-on: ubuntu-latest
+    name: Ubuntu Build
+    if: 1 != 1
     steps:
     - name: Setup node.js
       uses: actions/setup-node@v1
