@@ -51,7 +51,7 @@ jobs:
     runs-on: macos-latest
     env:
       CLANG_BIN: clang
-      CLANG_TIDY_BIN: clang-tidy
+      CLANG_NO_TIDY: true
     name: MacOS Build
     steps:
 #     - name: Find stdio.h
@@ -85,9 +85,6 @@ jobs:
         echo ""
         echo "clang:"
         $CLANG_BIN --version
-        echo ""
-        echo "clang-tidy:"
-        $CLANG_TIDY_BIN --version
         echo ""
         echo "make:"
         make -v
