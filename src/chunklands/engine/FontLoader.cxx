@@ -29,18 +29,18 @@ namespace chunklands::engine {
       std::string key = js_char_key.ToString();
 
       meta_.insert({key, {
-        .pos {
+        .pos = glm::ivec2(
           js_char_value.Get("x").ToNumber().Int32Value(),
           js_char_value.Get("y").ToNumber().Int32Value()
-        },
-        .size {
+        ),
+        .size = glm::ivec2(
           js_char_value.Get("width").ToNumber().Int32Value(),
           js_char_value.Get("height").ToNumber().Int32Value()
-        },
-        .origin {
+        ),
+        .origin = glm::ivec2(
           js_char_value.Get("originX").ToNumber().Int32Value(),
           js_char_value.Get("originY").ToNumber().Int32Value()
-        },
+        ),
         .advance = js_char_value.Get("advance").ToNumber().Int32Value(),
       }});
     }

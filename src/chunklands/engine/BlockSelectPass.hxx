@@ -4,6 +4,7 @@
 #include <chunklands/js.hxx>
 #include "RenderPass.hxx"
 #include <chunklands/gl/Uniform.hxx>
+#include <unordered_map>
 
 namespace chunklands::engine {
 
