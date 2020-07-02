@@ -11,7 +11,6 @@ jobs:
       CLANG_BIN: clang-10
       CLANG_TIDY_BIN: clang-tidy-10
     name: Ubuntu Build
-    if: 1 != 1
     steps:
     - name: Setup node.js
       uses: actions/setup-node@v1
@@ -46,7 +45,9 @@ jobs:
     - name: Setup
       run: make setup
     - name: Build
-      run: make
+      run: |
+        make
+        ls -al build
   macos-build:
     runs-on: macos-latest
     env:
@@ -58,13 +59,6 @@ jobs:
       uses: actions/setup-node@v1
       with:
         node-version: 14.4
-    # - name: Setup clang
-    #   run: |
-    #     mkdir $HOME/clang
-    #     wget -cqO- https://github.com/llvm/llvm-project/releases/download/llvmorg-10.0.0/clang+llvm-10.0.0-x86_64-apple-darwin.tar.xz | tar xJC $HOME/clang --strip-components 1
-    #     ls -al $HOME/clang
-    #     echo "::set-env name=CLANG_BIN::$HOME/clang/bin/clang"
-    #     echo "::set-env name=CLANG_TIDY_BIN::$HOME/clang/bin/clang-tidy"
     - name: Print Versions
       run: |
         echo "Node:"
@@ -81,10 +75,7 @@ jobs:
         echo ""
     - uses: actions/checkout@v2
     - name: Setup
-      run: |
-        ls -al
-        make setup
-        ls -al
+      run: make setup
     - name: Build
       run: |
         make
