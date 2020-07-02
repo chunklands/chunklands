@@ -19,7 +19,7 @@ const DEV = process.env.NODE_ENV !== 'production';
       + ' && make'
   })
   .addMakefileTarget('deps/googletest/lib/libgtestd.a', {
-    cmd: `@cd deps/googletest && cmake -DCMAKE_BUILD_TYPE=${DEV ? 'Debug' : 'Release'} -Dgtest_force_shared_crt=ON -DCMAKE_POSITION_INDEPENDENT_CODE=ON .`
+    cmd: `@cd deps/googletest && cmake -DCMAKE_BUILD_TYPE=${DEV ? 'Debug' : 'Release'} -DCMAKE_CXX_STANDARD=17 -Dgtest_force_shared_crt=ON -DCMAKE_POSITION_INDEPENDENT_CODE=ON .`
       + ' && make'
   });
 
