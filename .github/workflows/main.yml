@@ -52,10 +52,10 @@ jobs:
     runs-on: macos-latest
     name: MacOS Build
     steps:
-    - name: Setup xcode
-      uses: maxim-lobanov/setup-xcode@1.0
-      with:
-        xcode-version: latest
+#    - name: Setup xcode
+#      uses: maxim-lobanov/setup-xcode@1.0
+#      with:
+#        xcode-version: latest
     - name: Install xcode
       run: |
         xcode-select --install
