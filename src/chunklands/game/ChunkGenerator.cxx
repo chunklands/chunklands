@@ -25,7 +25,7 @@ namespace chunklands::game {
       chunk->state_ = kModelIsPreparing;
 
       std::unique_ptr<generate_model_callback_data> data(new generate_model_callback_data{
-        .js_generator {*this},
+        .js_generator = *this,
         .chunk = chunk,
         .profiler = PROF_MOVE()
       });

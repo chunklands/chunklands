@@ -15,8 +15,8 @@ namespace chunklands::game {
         .prio = 0,
         .axis = math::CollisionAxis::kNone,
         .ctime = 1,
-        .collisionfree_movement{movement},
-        .outstanding_movement{0,0,0}
+        .collisionfree_movement = movement,
+        .outstanding_movement = math::fvec3(0, 0, 0)
       };
     }
 
@@ -28,8 +28,8 @@ namespace chunklands::game {
         .prio = 0,
         .axis = math::CollisionAxis::kNone,
         .ctime = 1,
-        .collisionfree_movement{movement},
-        .outstanding_movement{0,0,0}
+        .collisionfree_movement = movement,
+        .outstanding_movement = math::fvec3(0, 0, 0)
       };
     }
     
@@ -38,8 +38,8 @@ namespace chunklands::game {
         .prio = 0,
         .axis = collision.axis,
         .ctime = 0,
-        .collisionfree_movement{0, 0, 0},
-        .outstanding_movement{0, 0, 0}
+        .collisionfree_movement = math::fvec3(0, 0, 0),
+        .outstanding_movement = math::fvec3(0, 0, 0)
       };
     }
 
@@ -48,8 +48,8 @@ namespace chunklands::game {
         .prio = 0,
         .axis = collision.axis,
         .ctime = 1,
-        .collisionfree_movement{movement},
-        .outstanding_movement{0,0,0}
+        .collisionfree_movement = movement,
+        .outstanding_movement = math::fvec3(0, 0, 0)
       };
     }
 
@@ -82,8 +82,8 @@ namespace chunklands::game {
       .prio = prio,
       .axis = collision.axis,
       .ctime = ctime,
-      .collisionfree_movement{good_movement},
-      .outstanding_movement{bad_movement}
+      .collisionfree_movement = good_movement,
+      .outstanding_movement = bad_movement
     };
   }
 

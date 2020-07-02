@@ -235,8 +235,8 @@ module.exports = class CompileSet {
         this._buildSet.addMakefileTarget(this._buildSet.rootRelative(target), {
           normalDeps: deps,
           cmd: (system || this._buildSet.clangNoTidy)
-            ? `@${objectCmd} && echo "\\033[1;32mOK\\033[0m  compile ${source}" || echo "\\033[1;31mERR\\033[0m compile ${source}"`
-            : `@${this._clangTidyCmd(source)} && ${objectCmd} && echo "\\033[1;32mOK\\033[0m  compile+tidy ${source}" || echo "\\033[1;31mERR\\033[0m compile+tidy ${source}"`
+            ? `@${objectCmd} && echo "\\033[1;32mOK\\033[0m  compile ${source}" || (echo "\\033[1;31mERR\\033[0m compile ${source}" && exit 1)`
+            : `@${this._clangTidyCmd(source)} && ${objectCmd} && echo "\\033[1;32mOK\\033[0m  compile+tidy ${source}" || (echo "\\033[1;31mERR\\033[0m compile+tidy ${source}" && exit 1)`
         });
 
         targets.push(this._buildSet.rootRelative(target));
@@ -250,7 +250,7 @@ module.exports = class CompileSet {
           ...this.getObjectPaths(),
           ...this._libraries
         ],
-        cmd: `@${cmd} && echo "\\033[1;32mOK  RESULT\\033[0m ${resultTarget}" || echo "\\033[1;31mERR RESULT\\033[0m ${resultTarget}"`
+        cmd: `@${cmd} && echo "\\033[1;32mOK  RESULT\\033[0m ${resultTarget}" || (echo "\\033[1;31mERR RESULT\\033[0m ${resultTarget}" && exit 1)`
       });
     }
 

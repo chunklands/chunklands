@@ -202,8 +202,8 @@ namespace chunklands::game {
       .prio = std::numeric_limits<int>::max(),
       .axis = math::CollisionAxis::kNone,
       .ctime = std::numeric_limits<float>::max(),
-      .collisionfree_movement{ movement },
-      .outstanding_movement{ math::fvec3 {0.f, 0.f, 0.f} }
+      .collisionfree_movement = movement,
+      .outstanding_movement = math::fvec3(0.f, 0.f, 0.f)
     };
 
     int collision_index = 0;
