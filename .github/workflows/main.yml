@@ -50,8 +50,8 @@ jobs:
   macos-build:
     runs-on: macos-latest
     env:
-      CLANG_BIN: clang-10
-      CLANG_TIDY_BIN: cling-tidy-10
+      CLANG_BIN: clang
+      CLANG_TIDY_BIN: cling-tidy
     name: MacOS Build
     steps:
 #     - name: Find stdio.h
