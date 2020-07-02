@@ -58,10 +58,11 @@ jobs:
         node-version: 14.4
     - name: Setup clang
       run: |
-        mkdir clang
-        wget -cO- https://github.com/llvm/llvm-project/releases/download/llvmorg-10.0.0/clang+llvm-10.0.0-x86_64-apple-darwin.tar.xz | tar xJC clang --strip-components 1
-        echo "::set-env name=CLANG_BIN::$(pwd)/clang/bin/clang"
-        echo "::set-env name=CLANG_TIDY_BIN::$(pwd)/clang/bin/clang-tidy"
+        mkdir $HOME/clang
+        wget -cqO- https://github.com/llvm/llvm-project/releases/download/llvmorg-10.0.0/clang+llvm-10.0.0-x86_64-apple-darwin.tar.xz | tar xJC $HOME/clang --strip-components 1
+        ls -al $HOME/clang
+        echo "::set-env name=CLANG_BIN::$HOME/clang/bin/clang"
+        echo "::set-env name=CLANG_TIDY_BIN::$HOME/clang/bin/clang-tidy"
     - name: Print Versions
       run: |
         echo "Node:"
@@ -81,6 +82,11 @@ jobs:
         echo ""
     - uses: actions/checkout@v2
     - name: Setup
-      run: make setup
+      run: |
+        ls -al
+        make setup
+        ls -al
     - name: Build
-      run: make
+      run: |
+        make
+        ls -al build
