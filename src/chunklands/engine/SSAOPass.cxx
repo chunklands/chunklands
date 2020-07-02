@@ -4,6 +4,7 @@
 #include <random>
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/compatibility.hpp>
+#include <array>
 
 namespace chunklands::engine {
 
