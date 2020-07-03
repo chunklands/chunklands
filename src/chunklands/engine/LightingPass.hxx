@@ -9,8 +9,14 @@ namespace chunklands::engine {
 
   class LightingPass : public JSObjectWrap<LightingPass>, public RenderPass {
     JS_IMPL_WRAP(LightingPass, ONE_ARG({
-      JS_SETTER(Program)
+      JS_SETTER(Program),
+      JS_SETTER(SSAO),
     }))
+
+  protected:
+    void JSCall_SetSSAO(JSCbi info) {
+      ssao_ = info[0].ToBoolean();
+    }
 
   public:
     void Begin() override;
@@ -31,6 +37,8 @@ namespace chunklands::engine {
       gl::Uniform render_distance{"u_render_distance"},
                 sun_position{"u_sun_position"};
     } uniforms_;
+
+    bool ssao_ = true;
   };
 
 } // namespace chunklands::engine

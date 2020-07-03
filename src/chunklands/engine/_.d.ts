@@ -26,7 +26,9 @@ export declare class GameLoop {
 }
 
 export declare class GBufferPass extends RenderPass {}
-export declare class LightingPass extends RenderPass {}
+export declare class LightingPass extends RenderPass {
+  setSSAO(ssao: boolean): void
+}
 export declare class SkyboxPass extends RenderPass {}
 export declare class SSAOBlurPass extends RenderPass {}
 export declare class SSAOPass extends RenderPass {}

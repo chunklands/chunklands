@@ -4,6 +4,7 @@ const { engine, game, gl, misc } = require('../chunklands');
 const SimpleWorldGen = require('./world/SimpleWorldGen')
 const modelLoader    = require('./models');
 const files = require('../files');
+const { same } = require('tap');
 
 module.exports = class Game {
   /**
@@ -59,7 +60,9 @@ module.exports = class Game {
     scene.setGameOverlay(gameOverlay);
     scene.setBlockRegistrar(blockRegistrar);
     scene.setWorld(this._world);
-
+    
+    const ssao = false;
+    scene.setSSAO(ssao);
 
     // render pipeline
     {
@@ -68,13 +71,13 @@ module.exports = class Game {
       scene.setGBufferPass(gbufferPass);
     }
 
-    {
+    if (ssao) {
       const ssaoPass = new engine.SSAOPass();
       ssaoPass.setProgram(await createProgram('ssao'));
       scene.setSSAOPass(ssaoPass);
     }
 
-    {
+    if (ssao) {
       const ssaoBlurPass = new engine.SSAOBlurPass();
       ssaoBlurPass.setProgram(await createProgram('ssaoblur'));
       scene.setSSAOBlurPass(ssaoBlurPass);
@@ -82,7 +85,12 @@ module.exports = class Game {
 
     {
       const lightingPass = new engine.LightingPass();
-      lightingPass.setProgram(await createProgram('lighting'));
+      lightingPass.setSSAO(ssao);
+      lightingPass.setProgram(await createProgram('lighting', {
+        defines: {
+          SSAO: ssao
+        }
+      }));
       scene.setLightingPass(lightingPass);
     }
 
@@ -213,11 +221,11 @@ module.exports = class Game {
   }
 }
 
-async function createProgram(shaderName) {
+async function createProgram(shaderName, opts) {
   const vertexShader = `${__dirname}/shader/${shaderName}.vert`;
   const fragmentShader = `${__dirname}/shader/${shaderName}.frag`;
 
-  return await gl.Program.create({vertexShader, fragmentShader});
+  return await gl.Program.create({vertexShader, fragmentShader}, opts);
 }
 
 /**

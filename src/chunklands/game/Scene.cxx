@@ -178,28 +178,30 @@ namespace chunklands::game {
       CHECK_GL_HERE();
     }
 
-    { // SSAO
-      CHECK_GL_HERE();
-      glBeginQuery(GL_TIME_ELAPSED, render_ssao_query_);
-      js_SSAOPass->Begin();
-      js_SSAOPass->UpdateProjection(js_Camera->GetProjection());
-      js_SSAOPass->BindPositionTexture(js_GBufferPass->textures_.position);
-      js_SSAOPass->BindNormalTexture(js_GBufferPass->textures_.normal);
-      render_quad_.Render();
-      js_SSAOPass->End();
-      glEndQuery(GL_TIME_ELAPSED);
-      CHECK_GL_HERE();
-    }
+    if (ssao_) { // SSAO
+      {
+        CHECK_GL_HERE();
+        glBeginQuery(GL_TIME_ELAPSED, render_ssao_query_);
+        js_SSAOPass->Begin();
+        js_SSAOPass->UpdateProjection(js_Camera->GetProjection());
+        js_SSAOPass->BindPositionTexture(js_GBufferPass->textures_.position);
+        js_SSAOPass->BindNormalTexture(js_GBufferPass->textures_.normal);
+        render_quad_.Render();
+        js_SSAOPass->End();
+        glEndQuery(GL_TIME_ELAPSED);
+        CHECK_GL_HERE();
+      }
 
-    { // SSAO blur
-      CHECK_GL_HERE();
-      glBeginQuery(GL_TIME_ELAPSED, render_ssaoblur_query_);
-      js_SSAOBlurPass->Begin();
-      js_SSAOBlurPass->BindSSAOTexture(js_SSAOPass->textures_.color);
-      render_quad_.Render();
-      js_SSAOBlurPass->End();
-      glEndQuery(GL_TIME_ELAPSED);
-      CHECK_GL_HERE();
+      { // SSAO blur
+        CHECK_GL_HERE();
+        glBeginQuery(GL_TIME_ELAPSED, render_ssaoblur_query_);
+        js_SSAOBlurPass->Begin();
+        js_SSAOBlurPass->BindSSAOTexture(js_SSAOPass->textures_.color);
+        render_quad_.Render();
+        js_SSAOBlurPass->End();
+        glEndQuery(GL_TIME_ELAPSED);
+        CHECK_GL_HERE();
+      }
     }
 
     { // deferred lighting pass
@@ -209,7 +211,9 @@ namespace chunklands::game {
       js_LightingPass->BindPositionTexture(js_GBufferPass->textures_.position);
       js_LightingPass->BindNormalTexture(js_GBufferPass->textures_.normal);
       js_LightingPass->BindColorTexture(js_GBufferPass->textures_.color);
-      js_LightingPass->BindSSAOTexture(js_SSAOBlurPass->textures_.color);
+      if (ssao_) {
+        js_LightingPass->BindSSAOTexture(js_SSAOBlurPass->textures_.color);
+      }
 
       js_LightingPass->UpdateRenderDistance(((float)js_World->GetRenderDistance() - 0.5f) * Chunk::SIZE);
 
@@ -275,11 +279,13 @@ namespace chunklands::game {
       glGetQueryObjectui64v(render_gbuffer_query_, GL_QUERY_RESULT, &result);
       HISTOGRAM_METRIC("render_gbuffer", result / 1000);
 
-      glGetQueryObjectui64v(render_ssao_query_, GL_QUERY_RESULT, &result);
-      HISTOGRAM_METRIC("render_ssao", result / 1000);
+      if (ssao_) {
+        glGetQueryObjectui64v(render_ssao_query_, GL_QUERY_RESULT, &result);
+        HISTOGRAM_METRIC("render_ssao", result / 1000);
 
-      glGetQueryObjectui64v(render_ssaoblur_query_, GL_QUERY_RESULT, &result);
-      HISTOGRAM_METRIC("render_ssaoblur", result / 1000);
+        glGetQueryObjectui64v(render_ssaoblur_query_, GL_QUERY_RESULT, &result);
+        HISTOGRAM_METRIC("render_ssaoblur", result / 1000);
+      }
 
       glGetQueryObjectui64v(render_lighting_query_, GL_QUERY_RESULT, &result);
       HISTOGRAM_METRIC("render_lighting", result / 1000);
@@ -316,8 +322,10 @@ namespace chunklands::game {
     buffer_size_.y = height;
 
     js_GBufferPass->UpdateBufferSize(width, height);
-    js_SSAOPass->UpdateBufferSize(width, height);
-    js_SSAOBlurPass->UpdateBufferSize(width, height);
+    if (ssao_) {
+      js_SSAOPass->UpdateBufferSize(width, height);
+      js_SSAOBlurPass->UpdateBufferSize(width, height);
+    }
     js_LightingPass->UpdateBufferSize(width, height);
     js_TextRenderer->UpdateBufferSize(width, height);
     js_GameOverlayRenderer->UpdateBufferSize(width, height);

@@ -42,6 +42,8 @@ namespace chunklands::game {
       JS_SETTER(GameOverlay),
       JS_SETTER(FlightMode),
       JS_GETTER(FlightMode),
+      JS_SETTER(SSAO),
+      JS_GETTER(SSAO),
     }))
 
     JS_DECL_SETTER_WRAP(engine::Window, Window)
@@ -68,6 +70,14 @@ namespace chunklands::game {
     void JSCall_SetFlightMode(JSCbi info) {
       flight_mode_ = info[0].ToBoolean();
     }
+
+    JSValue JSCall_GetSSAO(JSCbi info) {
+      return JSBoolean::New(info.Env(), ssao_);
+    }
+
+    void JSCall_SetSSAO(JSCbi info) {
+      ssao_ = info[0].ToBoolean();
+    }
   
   public:
     virtual void Prepare() override;
@@ -91,6 +101,8 @@ namespace chunklands::game {
 
     bool flight_mode_ = true;
     float vy_ = 0.f;
+
+    bool ssao_ = true;
 
     std::optional<glm::ivec3> pointing_block_;
 

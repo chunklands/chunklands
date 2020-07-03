@@ -42,6 +42,9 @@ export declare class Scene implements engine.IScene {
   setFlightMode(flightMode: boolean): void
   setGameOverlay(gameOverlay: GameOverlay): void
 
+  getSSAO(): boolean
+  setSSAO(ssao: boolean): void
+
   events: EventEmitter
 }
 
