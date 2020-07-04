@@ -20,7 +20,7 @@ export declare class ChunkGenerator {
 }
 
 export declare class Scene implements engine.IScene {
-  setWindow(window: Window): void
+  setWindow(window: engine.Window): void
   setWorld(world: World): void
   setBlockRegistrar(blockRegistrar: BlockRegistrar): void
 

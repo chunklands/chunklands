@@ -49,9 +49,14 @@ var p = [151,160,137,91,90,15,
 var perm = new Array(512);
 var gradP = new Array(512);
 
-// This isn't a very good seeding function, but it works ok. It supports 2^16
-// different seed values. Write something better if you need more seeds.
+/**
+ * Initializes permutations.
+ * 
+ * @param {number} seed Any seed value
+ */
 function seed(seed) {
+  // This isn't a very good seeding function, but it works ok. It supports 2^16
+  // different seed values. Write something better if you need more seeds.
   if(seed > 0 && seed < 1) {
     // Scale the seed out
     seed *= 65536;
@@ -90,7 +95,12 @@ var G2 = (3-Math.sqrt(3))/6;
 var F3 = 1/3;
 var G3 = 1/6;
 
-// 2D simplex noise
+/**
+ * 2D simplex noise.
+ * 
+ * @param {number} xin The x-value
+ * @param {number} yin The y-value
+ */
 function simplex2(xin, yin) {
   var n0, n1, n2; // Noise contributions from the three corners
   // Skew the input space to determine which simplex cell we're in
@@ -148,7 +158,13 @@ function simplex2(xin, yin) {
   return 70 * (n0 + n1 + n2);
 };
 
-// 3D simplex noise
+/**
+ * 3D simplex noise.
+ * 
+ * @param {number} xin The x-value
+ * @param {number} yin The y-value
+ * @param {number} zin The z-value
+ */
 function simplex3(xin, yin, zin) {
   var n0, n1, n2, n3; // Noise contributions from the four corners
 
@@ -246,7 +262,12 @@ function lerp(a, b, t) {
   return (1-t)*a + t*b;
 }
 
-// 2D Perlin Noise
+/**
+ * 2D perlin noise.
+ * 
+ * @param {number} x The x-value
+ * @param {number} y The y-value
+ */
 function perlin2(x, y) {
   // Find unit grid cell containing point
   var X = Math.floor(x), Y = Math.floor(y);
@@ -271,7 +292,13 @@ function perlin2(x, y) {
       fade(y));
 };
 
-// 3D Perlin Noise
+/**
+ * 3D perlin noise.
+ * 
+ * @param {number} x The x-value
+ * @param {number} y The y-value
+ * @param {number} z The z-value
+ */
 function perlin3(x, y, z) {
   // Find unit grid cell containing point
   var X = Math.floor(x), Y = Math.floor(y), Z = Math.floor(z);
@@ -309,16 +336,39 @@ function perlin3(x, y, z) {
 const PRNG_OFF = 1 / Math.PI;
 const PRNG_MUL = 1 / Math.E / Math.E / Math.E / Math.E / Math.E;
 
+/**
+ * 2D pseudo random number generator.
+ * 
+ * @param {number} x The x-value
+ * @param {number} y The y-value
+ * @param {number} valueOffset Value offset
+ * @param {number} valueMult Value multiplicator
+ * @returns {number} Normalized value [0; 1]
+ */
+function prng2(x, y, valueOffset = PRNG_OFF, valueMult = PRNG_MUL) {
+  return (1 + perlin2(valueOffset + x * valueMult, valueOffset + y * valueMult)) / 2
+}
+
+/**
+ * 3D pseudo random number generator.
+ * 
+ * @param {number} x The x-value
+ * @param {number} y The y-value
+ * @param {number} z The z-value
+ * @param {number} valueOffset Value offset
+ * @param {number} valueMult Value multiplicator
+ * @returns {number} Normalized value [0; 1]
+ */
+function prng3(x, y, z, seedOff = PRNG_OFF, seedMul = PRNG_MUL) {
+  return (1 + perlin3(seedOff + x * seedMul, seedOff + y * seedMul, seedOff + z * seedMul)) / 2
+}
+
 module.exports = {
   perlin2,
   perlin3,
   simplex2,
   simplex3,
   seed,
-  prng2(x, y, seedOff = PRNG_OFF, seedMul = PRNG_MUL) {
-    return (1 + perlin2(seedOff + x * seedMul, seedOff + y * seedMul)) / 2
-  },
-  prng3(x, y, z, seedOff = PRNG_OFF, seedMul = PRNG_MUL) {
-    return (1 + perlin3(seedOff + x * seedMul, seedOff + y * seedMul, seedOff + z * seedMul)) / 2
-  }
+  prng2,
+  prng3
 };

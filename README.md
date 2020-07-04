@@ -67,6 +67,7 @@ npm start
 
 - [GitHub Issues](https://github.com/20hoibe/chunklands/issues)
 - [GitHub Project](https://github.com/20hoibe/chunklands/projects/1)
+- [Code Documentation](https://chunklands.de/wiki)
 
 
 ## Progress

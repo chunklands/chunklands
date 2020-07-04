@@ -1,12 +1,15 @@
 const fs = require('fs');
 const { promisify } = require('util');
 const { engine, game, gl, misc } = require('../chunklands');
-const SimpleWorldGen = require('./world/SimpleWorldGen')
-const modelLoader    = require('./models');
-const files = require('../files');
-const { same } = require('tap');
+const
+  SimpleWorldGen = require('./world/SimpleWorldGen'),
+  modelLoader    = require('./models'),
+  files          = require('../files');
 
-module.exports = class Game {
+/**
+ * Default implementation for the game.
+ */
+class Game {
   /**
    * @param {import('../chunklands/engine/_').Window} window 
    */
@@ -14,8 +17,10 @@ module.exports = class Game {
     this._window = window;
   }
 
+  /**
+   * Initializes the game. Bake models, create shader, etc.
+   */
   async initialize() {
-
 
     // blocks
     const models = await modelLoader();
@@ -156,6 +161,9 @@ module.exports = class Game {
     this._textRenderer = textRenderer;
   }
 
+  /**
+   * Runs the game (has to be initialized before).
+   */
   async run() {
     this._window.events.on('key', event => {
       if (event.key === 70 && event.action === 0) { // 'F'
@@ -238,3 +246,5 @@ async function createFontLoader(name) {
   fontLoader.load(json, `${basePath}.png`);
   return fontLoader;
 }
+
+module.exports = Game;
