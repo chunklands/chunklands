@@ -1,5 +1,5 @@
 
-const noise = require('../../noise');
+const noise = require('../noise');
 noise.seed(9489032840928);
 
 function createSimplexNoise({f0 = 128, lacunarity, persistence, octaves = 1}) {

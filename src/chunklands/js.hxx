@@ -148,42 +148,49 @@ namespace chunklands {
     }
 
     operator T*() {
-      assert(object_ != nullptr);
+      CheckObject();
       return object_;
     }
 
     const T* operator->() const {
-      assert(object_ != nullptr);
+      CheckObject();
       return object_;
     }
 
     T* operator->() {
-      assert(object_ != nullptr);
+      CheckObject();
       return object_;
     }
 
     T& operator*() {
-      assert(object_ != nullptr);
+      CheckObject();
       return *object_;
     }
 
     T* Get() {
-      assert(object_ != nullptr);
+      CheckObject();
       return object_;
     }
 
     const T* Get() const {
-      assert(object_ != nullptr);
+      CheckObject();
       return object_;
     }
 
     const T& operator*() const {
-      assert(object_ != nullptr);
+      CheckObject();
       return *object_;
     }
 
     bool IsEmpty() const {
       return object_ == nullptr;
+    }
+
+  private:
+    void CheckObject() const {
+      if (!object_) {
+        throw std::runtime_error("object is nullptr");
+      }
     }
 
   private:

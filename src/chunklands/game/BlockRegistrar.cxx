@@ -56,23 +56,12 @@ namespace chunklands::game {
     return JSNumber::New(info.Env(), block_definitions_.size() - 1);
   }
 
-  void BlockRegistrar::JSCall_loadTexture(JSCbi info) {
-    JS_ASSERT(info.Env(), info[0].IsString());
-
-    std::string filepath = info[0].ToString();
-    texture_.LoadTexture(filepath.c_str());
-  }
-
   BlockDefinition* BlockRegistrar::GetByIndex(int index) {
     return block_definitions_[index].get();
   }
 
   const BlockDefinition* BlockRegistrar::GetByIndex(int index) const {
     return block_definitions_[index].get();
-  }
-
-  void BlockRegistrar::BindTexture() {
-    texture_.ActiveAndBind(GL_TEXTURE0);
   }
 
 } // namespace chunklands::game

@@ -9,8 +9,7 @@ namespace chunklands::game {
 
   class BlockRegistrar : public JSObjectWrap<BlockRegistrar> {
     JS_IMPL_WRAP(BlockRegistrar, ONE_ARG({
-      JS_CB(addBlock),
-      JS_CB(loadTexture)
+      JS_CB(addBlock)
     }))
 
     JS_DECL_CB(addBlock)
@@ -19,7 +18,6 @@ namespace chunklands::game {
   public:
     BlockDefinition* GetByIndex(int index);
     const BlockDefinition* GetByIndex(int index) const;
-    void BindTexture();
 
   private:
     std::vector<std::unique_ptr<BlockDefinition>> block_definitions_;

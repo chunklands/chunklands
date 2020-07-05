@@ -1,4 +1,5 @@
 import * as engine from '../engine/_'
+import * as gl from '../gl/_'
 import { EventEmitter } from 'events'
 
 export declare class BlockRegistrar {
@@ -22,7 +23,7 @@ export declare class ChunkGenerator {
 export declare class Scene implements engine.IScene {
   setWindow(window: engine.Window): void
   setWorld(world: World): void
-  setBlockRegistrar(blockRegistrar: BlockRegistrar): void
+  setModelTexture(texture: gl.Texture2): void
 
   setGBufferPass(pass: engine.GBufferPass): void
   setSSAOPass(pass: engine.SSAOPass): void
@@ -30,6 +31,7 @@ export declare class Scene implements engine.IScene {
   setLightingPass(pass: engine.LightingPass): void
   setSkyboxPass(pass: engine.SkyboxPass): void
   setGameOverlayRenderer(renderer: engine.GameOverlayRenderer): void
+  setBlockSelectPass(pass: engine.BlockSelectPass): void
 
   setTextRenderer(renderer: engine.TextRenderer): void
 

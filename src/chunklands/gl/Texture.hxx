@@ -6,6 +6,9 @@
 
 namespace chunklands::gl {
 
+  /**
+   * @deprecated Use Texture2
+   */
   class Texture {
   public:
     ~Texture();

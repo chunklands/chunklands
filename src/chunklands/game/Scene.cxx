@@ -171,7 +171,7 @@ namespace chunklands::game {
       js_GBufferPass->Begin();
       js_GBufferPass->UpdateProjection(js_Camera->GetProjection());
       js_GBufferPass->UpdateView(js_Camera->GetView());
-      js_BlockRegistrar->BindTexture();
+      js_ModelTexture->ActiveAndBind(GL_TEXTURE0);
       js_World->Render(diff, *js_Camera);
       js_GBufferPass->End();
       glEndQuery(GL_TIME_ELAPSED);
@@ -262,7 +262,7 @@ namespace chunklands::game {
       CHECK_GL_HERE();
       glDisable(GL_CULL_FACE); // TODO(daaitch): culling problem
       js_GameOverlayRenderer->Begin();
-      js_BlockRegistrar->BindTexture();
+      js_ModelTexture->ActiveAndBind(GL_TEXTURE0);
       js_GameOverlayRenderer->UpdateProjection();
       js_GameOverlay->Render(diff);
       js_GameOverlayRenderer->End();

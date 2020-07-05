@@ -2,7 +2,7 @@ const assert = require('assert');
 const ocean = require('./ocean');
 const biomes = require('./biomes');
 const math = require('./math');
-const noise = require('../../noise');
+const noise = require('../noise');
 const multiblocks = require('./multiblocks');
 
 function create(chunkDim, blocks) {

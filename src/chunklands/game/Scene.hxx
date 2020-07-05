@@ -19,6 +19,7 @@
 #include "GameOverlay.hxx"
 #include "World.hxx"
 #include <chunklands/gl/RenderQuad.hxx>
+#include <chunklands/gl/Texture2.hxx>
 
 namespace chunklands::game {
 
@@ -26,7 +27,7 @@ namespace chunklands::game {
     JS_IMPL_WRAP(Scene, ONE_ARG({
       JS_SETTER(Window),
       JS_SETTER(World),
-      JS_SETTER(BlockRegistrar), // TODO(daaitch): dirty, only for the texture
+      JS_SETTER(ModelTexture),
       JS_SETTER(GBufferPass),
       JS_SETTER(SSAOPass),
       JS_SETTER(SSAOBlurPass),
@@ -48,7 +49,7 @@ namespace chunklands::game {
 
     JS_DECL_SETTER_WRAP(engine::Window, Window)
     JS_DECL_SETTER_WRAP(World, World)
-    JS_IMPL_SETTER_WRAP(BlockRegistrar, BlockRegistrar)
+    JS_IMPL_SETTER_WRAP(gl::Texture2, ModelTexture)
     JS_IMPL_SETTER_WRAP(engine::GBufferPass, GBufferPass)
     JS_IMPL_SETTER_WRAP(engine::SSAOPass, SSAOPass)
     JS_IMPL_SETTER_WRAP(engine::SSAOBlurPass, SSAOBlurPass)
