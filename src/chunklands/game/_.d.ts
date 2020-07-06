@@ -47,6 +47,8 @@ export declare class Scene implements engine.IScene {
   getSSAO(): boolean
   setSSAO(ssao: boolean): void
 
+  jump(): void
+
   events: EventEmitter
 }
 

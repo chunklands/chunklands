@@ -122,6 +122,11 @@ class DefaultGame {
         if (this._window.getGameControl()) {
           this._window.setGameControl(false);
         }
+      } else if (event.key === 32 && event.action === 1) { // Space
+        if (!this._scene.getFlightMode() && this._window.getGameControl()) {
+          console.log('JUMP')
+          this._scene.jump();
+        }
       }
     });
 

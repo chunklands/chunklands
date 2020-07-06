@@ -29,6 +29,10 @@ namespace chunklands::game {
     UpdateViewport();
   }
 
+  void Scene::JSCall_jump(JSCbi) {
+    vy_ = -10.f;
+  }
+
   void Scene::Prepare() {
     // depth test
     glEnable(GL_DEPTH_TEST);

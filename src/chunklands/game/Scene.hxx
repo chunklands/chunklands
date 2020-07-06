@@ -45,6 +45,7 @@ namespace chunklands::game {
       JS_GETTER(FlightMode),
       JS_SETTER(SSAO),
       JS_GETTER(SSAO),
+      JS_CB(jump),
     }))
 
     JS_DECL_SETTER_WRAP(engine::Window, Window)
@@ -63,6 +64,7 @@ namespace chunklands::game {
     JS_IMPL_ABSTRACT_WRAP(engine::IScene, IScene)
     JS_IMPL_SETTER_WRAP(engine::MovementController, MovementController)
     JS_IMPL_SETTER_WRAP(GameOverlay, GameOverlay)
+    JS_DECL_CB_VOID(jump)
     
     JSValue JSCall_GetFlightMode(JSCbi info) {
       return JSBoolean::New(info.Env(), flight_mode_);
