@@ -17,10 +17,12 @@ namespace chunklands::math {
   template<class T> using vec1 = vec<1, T>;
   template<class T> using vec2 = vec<2, T>;
   template<class T> using vec3 = vec<3, T>;
+  template<class T> using vec4 = vec<4, T>;
 
   using fvec1 = fvec<1>;
   using fvec2 = fvec<2>;
   using fvec3 = fvec<3>;
+  using fvec4 = fvec<4>;
 
   using ivec1 = ivec<1>;
   using ivec2 = ivec<2>;
@@ -64,6 +66,31 @@ namespace chunklands::math {
       }
 
       return AABB<N, T> { origin, span };
+    }
+
+    static AABB<N, T> from_points(const std::initializer_list<vec<N, T>>& list) {
+      if (list.size() == 0) {
+        return AABB<N, T>();
+      }
+
+      auto&& it = list.begin();
+      vec<N, T> min = *it, max = *it;
+      it++;
+
+      for (; it != list.end(); it++) {
+        auto&& current = *it;
+        for (int i = 0; i < N; i++) {
+          if (current[i] < min[i]) {
+            min[i] = current[i];
+          }
+
+          if (current[i] > max[i]) {
+            max[i] = current[i];
+          }
+        }
+      }
+
+      return AABB<N, T>(min, max - min);
     }
 
     bool IsEmpty() const {

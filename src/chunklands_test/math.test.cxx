@@ -112,6 +112,12 @@ namespace chunklands::math {
       (fAABB1{ fvec1{3}, fvec1{5} } & fAABB1{ fvec1{-3}, fvec1{7} }),
       (fAABB1{ fvec1{3}, fvec1{1} })
     );
+
+    // from_points
+    ASSERT_EQ(
+      (fAABB1::from_points({fvec1(1), fvec1(-1), fvec1(-1.5f)})),
+      (fAABB1(fvec1(-1.5f), fvec1(2.5f)))
+    );
   }
 
   TEST(chunklands__math, fAABB2) {
@@ -153,6 +159,12 @@ namespace chunklands::math {
       (fAABB2{ fvec2{2, 2}, fvec2{4, 4} } & fAABB2{ fvec2{0, 0}, fvec2{4, 4} }),
       (fAABB2{ fvec2{2, 2}, fvec2{2, 2} })
     );
+
+    // from_points
+    ASSERT_EQ(
+      (fAABB2::from_points({fvec2(1, -3), fvec2(-1, 2.5f), fvec2(-1.5f, -4.f)})),
+      (fAABB2(fvec2(-1.5f, -4.f), fvec2(2.5f, 6.5f)))
+    );
   }
 
   TEST(chunklands__math, fAABB3) {
@@ -193,6 +205,12 @@ namespace chunklands::math {
     ASSERT_EQ(
       (fAABB3{ fvec3{2, 2, 2}, fvec3{4, 4, 4} } & fAABB3{ fvec3{0, 0, 0}, fvec3{4, 4, 4} }),
       (fAABB3{ fvec3{2, 2, 2}, fvec3{2, 2, 2} })
+    );
+
+    // from_points
+    ASSERT_EQ(
+      (fAABB3::from_points({fvec3(1, -3, 2), fvec3(-1, 2.5f, 1), fvec3(-1.5f, -4.f, 0)})),
+      (fAABB3(fvec3(-1.5f, -4, 0), fvec3(2.5f, 6.5f, 2)))
     );
   }
 

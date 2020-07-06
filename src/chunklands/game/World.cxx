@@ -162,15 +162,35 @@ namespace chunklands::game {
     }
   }
 
+  inline math::fvec3 homogeneous_to_cartesian(const math::fvec4& v) {
+    return math::fvec3(v.x / v.w, v.y / v.w, v.z / v.w);
+  }
+
   void World::Render(double, const engine::Camera& camera) {
     DURATION_METRIC("world_render");
     CHECK_GL();
 
     glm::ivec3 center_chunk_pos = chunklands::math::get_center_chunk(camera.GetPosition(), Chunk::SIZE);
 
+    glm::mat4 inverse_vp = glm::inverse(camera.GetView()) * glm::inverse(camera.GetProjection());
+
+    auto&& frustom_box = math::bound(math::fAABB3::from_points({
+      homogeneous_to_cartesian(inverse_vp * math::fvec4(-1, -1, -0, 1)),
+      homogeneous_to_cartesian(inverse_vp * math::fvec4(-1,  1, -0, 1)),
+      homogeneous_to_cartesian(inverse_vp * math::fvec4( 1, -1, -0, 1)),
+      homogeneous_to_cartesian(inverse_vp * math::fvec4( 1,  1, -0, 1)),
+      homogeneous_to_cartesian(inverse_vp * math::fvec4(-1, -1,  1, 1)),
+      homogeneous_to_cartesian(inverse_vp * math::fvec4(-1,  1,  1, 1)),
+      homogeneous_to_cartesian(inverse_vp * math::fvec4( 1, -1,  1, 1)),
+      homogeneous_to_cartesian(inverse_vp * math::fvec4( 1,  1,  1, 1)),
+    }));
+
     // map render all chunks
     unsigned rendered_index_count = 0;
     unsigned rendered_chunk_count = 0;
+    unsigned omitted_rendered_index_count = 0;
+    unsigned omitted_rendered_chunk_count = 0;
+
     for (auto&& chunk_entry : chunk_map_) {
       auto&& chunk = chunk_entry.second;
 
@@ -182,13 +202,21 @@ namespace chunklands::game {
         continue;
       }
 
-      rendered_index_count += chunk->GetIndexCount();
-      rendered_chunk_count++;
-      chunk->Render();
+      math::iAABB3 chunk_box(chunk->GetPos() * (int)Chunk::SIZE, glm::ivec3(Chunk::SIZE, Chunk::SIZE, Chunk::SIZE));
+      if (chunk_box & frustom_box) {
+        rendered_index_count += chunk->GetIndexCount();
+        rendered_chunk_count++;
+        chunk->Render();
+      } else {
+        omitted_rendered_index_count += chunk->GetIndexCount();
+        omitted_rendered_chunk_count++;
+      }
     }
 
     misc::Profiler::SetGauge("rendered_chunk_count", rendered_chunk_count);
     misc::Profiler::SetGauge("rendered_index_count", rendered_index_count);
+    misc::Profiler::SetGauge("omitted_rendered_chunk_count", omitted_rendered_chunk_count);
+    misc::Profiler::SetGauge("omitted_rendered_index_count", omitted_rendered_index_count);
   }
 
   int World::GetRenderDistance() const {

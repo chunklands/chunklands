@@ -235,6 +235,10 @@ namespace chunklands::math {
 
   template<class T>
   iAABB3 bound(const AABB<3, T>& box) {
+    if (!box) {
+      return iAABB3();
+    }
+
     ivec3 origin = floor(box.origin);
     ivec3 span   = ceil(box.origin + box.span) - origin;
 
