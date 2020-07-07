@@ -153,7 +153,11 @@ module.exports = class CompileSet {
   }
 
   _clangOArg() {
-    return this._buildSet.debug ? '-O0' : '-Ofast'
+    return this._buildSet.debug ? '-O0' : '-Ofast';
+  }
+
+  _clanggArg() {
+    return this._buildSet.debug ? '-g' : null;
   }
 
   _clangObjectCmd(source, system) {
@@ -164,6 +168,7 @@ module.exports = class CompileSet {
       this._clangfPICArg(),
       this._clangStdArg(),
       this._clangOArg(),
+      this._clanggArg(),
       ...this._clangIncludeDirsArgs,
       ...this._clangSystemIncludeDirsArgs,
       source,
@@ -208,6 +213,7 @@ module.exports = class CompileSet {
       this._clangfPICArg(),
       this._clangStdArg(),
       this._clangOArg(),
+      this._clanggArg(),
       ...this._clangIncludeDirsArgs,
       ...this._clangSystemIncludeDirsArgs,
       ...inputs,

@@ -272,7 +272,6 @@ namespace chunklands::game {
   }
 
   std::optional<math::ivec3> World::FindPointingBlock(const math::fLine3& look) {
-    // math::fAABB3 box {look.origin - math::fvec3(.1f, .1f, .1f), math::fvec3(.2f, .2f, .2f)};
     math::fAABB3 box {look.origin, math::fvec3(0.f, 0.f, 0.f)};
     math::fAABB3 movement_box {box | look.span};
 

@@ -214,6 +214,14 @@ namespace chunklands::math {
     );
   }
 
+  TEST(chunklands__math, iAAAB3) {
+    // intersection
+    ASSERT_EQ( // issue #61
+      (iAABB3(ivec3(0, 30, -2), ivec3(1, 0, 2)) & iAABB3(ivec3(0, 16, -16), ivec3(16, 16, 16))),
+      (iAABB3(ivec3(0, 30, -2), ivec3(1, 0, 2)))
+    );
+  }
+
   TEST(chunklands__math, chunk_pos_in_box) {
     chunk_pos_in_box c { fAABB3{ fvec3{-4.01f, -43.73f, 193.3f}, fvec3{52.7f, 23.3f, 3} }, 16};
 

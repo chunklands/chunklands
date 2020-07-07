@@ -45,7 +45,7 @@ namespace chunklands::math {
     };
 
     iAABB3 intersection = bound_box & chunk_box;
-    if (!intersection) {
+    if (!intersection || intersection.span.x == 0 || intersection.span.y == 0 || intersection.span.z == 0) {
       empty_ = true;
       block_min_ = ivec3{0, 0, 0};
       block_max_ = ivec3{0, 0, 0};
