@@ -3,22 +3,13 @@
 
 #include <ostream>
 #include <chunklands/math.hxx>
+#include <chunklands/collision.hxx>
 
 namespace chunklands::engine {
 
-  struct collision_result {
-    int prio;
-    int axis;
-    float ctime;
-    math::fvec3 collisionfree_movement;
-    math::fvec3 outstanding_movement;
-  };
-
-  std::ostream& operator<<(std::ostream& os, const collision_result& c);
-
   class ICollisionSystem {
   public:
-    virtual collision_result ProcessNextCollision(const math::fAABB3 &box, const math::fvec3 &movement) = 0;
+    virtual collision::collision_impulse ProcessNextCollision(const math::fAABB3& box, const math::fvec3& movement) = 0;
   };
 
 } // namespace chunklands::engine

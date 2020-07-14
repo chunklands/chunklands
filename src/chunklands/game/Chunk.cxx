@@ -5,6 +5,13 @@
 namespace chunklands::game {
 
   Chunk::Chunk(glm::ivec3 pos) : pos_(std::move(pos)) {
+    for (unsigned z = 0; z < Chunk::SIZE; z++) {
+      for (unsigned y = 0; y < Chunk::SIZE; y++) {
+        for (unsigned x = 0; x < Chunk::SIZE; x++) {
+          blocks_[z][y][x] = nullptr;
+        }
+      }
+    }
   }
 
   Chunk::~Chunk() {

@@ -46,7 +46,7 @@ class DefaultGame {
     this._scene.setModelTexture(this._modelLoader.texture);
     this._scene.setWorld(this._world);
 
-    const ssao = false;
+    const ssao = true;
     this._scene.setSSAO(ssao);
 
     this._renderPipeline = new RenderPipeline();
@@ -109,7 +109,7 @@ class DefaultGame {
     setInterval(() => {
       const metrics = profiler.getMetrics();
       this._renderPipeline._textRenderer.write(`${(1000000 / metrics['gameloop_loop']).toFixed(1)} fps`);
-      console.log(metrics);
+      // console.log(metrics);
     }, 1000);
   }
 

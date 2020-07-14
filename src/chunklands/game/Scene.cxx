@@ -145,7 +145,7 @@ namespace chunklands::game {
                              sinf(look.y),
                             -cosf(look.x) * cosf(look.y));
 
-      auto&& new_pointing_block = js_World->FindPointingBlock(math::fLine3::from_range(pos, pos + look_center * 2.f));
+      auto&& new_pointing_block = js_World->FindPointingBlock(math::fLine3(pos, look_center * 2.f));
       if (new_pointing_block != pointing_block_) {
         pointing_block_ = new_pointing_block;
 

@@ -5,6 +5,7 @@
 #include <boost/functional/hash.hpp>
 #include <cmath>
 #include <glm/ext/vector_float1.hpp>
+#include <glm/ext/vector_relational.hpp>
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
 #include <ostream>
@@ -13,6 +14,7 @@ namespace chunklands::math {
 
   template<int N, class T> using vec = glm::vec<N, T, glm::defaultp>;
   template<int N> using fvec = vec<N, float>;
+  template<int N> using dvec = vec<N, double>;
   template<int N> using ivec = vec<N, int>;
   template<class T> using vec1 = vec<1, T>;
   template<class T> using vec2 = vec<2, T>;
@@ -24,6 +26,12 @@ namespace chunklands::math {
   using fvec3 = fvec<3>;
   using fvec4 = fvec<4>;
 
+  using dvec1 = dvec<1>;
+  using dvec2 = dvec<2>;
+  using dvec3 = dvec<3>;
+  using dvec4 = dvec<4>;
+
+
   using ivec1 = ivec<1>;
   using ivec2 = ivec<2>;
   using ivec3 = ivec<3>;
@@ -32,25 +40,26 @@ namespace chunklands::math {
     std::size_t operator()(const ivec3& v) const;
   };
 
-  inline ivec3 __WITH_BUG_get_center_chunk(const fvec3& pos, unsigned chunk_size);
   inline ivec3 get_center_chunk(const fvec3& pos, unsigned chunk_size);
   inline ivec3 get_center_chunk(const ivec3& pos, unsigned chunk_size);
 
   inline ivec3 get_pos_in_chunk(const fvec3& pos, unsigned chunk_size);
   inline ivec3 get_pos_in_chunk(const ivec3& pos, unsigned chunk_size);
 
+  
+
   template<int N, class T>
   struct AABB {
     explicit AABB(vec<N, T> origin, vec<N, T> span) : origin(std::move(origin)), span(std::move(span)) {
-#ifndef NDEBUG
-      for (unsigned i = 0; i < N; i++) {
-        assert(span[i] >= (T)0);
-      }
-#endif
     }
 
     explicit AABB() {
-      span.x = (T)-1;
+      origin = vec<N, T>(static_cast<T>(0));
+      span   = vec<N, T>(static_cast<T>(-1));
+    }
+
+    template<class R>
+    explicit AABB(const AABB<N, R>& other) : origin(other.origin), span(other.span) {
     }
 
     static AABB<N, T> from_range(const vec<N, T>& a, const vec<N, T>& b) {
@@ -93,20 +102,20 @@ namespace chunklands::math {
       return AABB<N, T>(min, max - min);
     }
 
-    bool IsEmpty() const {
-      return span.x == (T)-1;
-    }
-
-    bool operator!() const {
-      return IsEmpty();
-    }
-
-    operator bool() const {
-      return !IsEmpty();
-    }
-
     bool operator==(const AABB<N, T>& rhs) const {
-      return (IsEmpty() && rhs.IsEmpty()) || (origin == rhs.origin && span == rhs.span);
+      return origin == rhs.origin && span == rhs.span;
+    }
+
+    vec<N, T> max() const {
+      return origin + span;
+    }
+
+    vec<N, T> min() const {
+      return origin;
+    }
+
+    bool empty() const {
+      return glm::any(glm::lessThan(span, vec<N, T>(0)));
     }
 
     vec<N, T> origin,
@@ -124,6 +133,10 @@ namespace chunklands::math {
   using fAABB2 = AABB<2, float>;
   using fAABB3 = AABB<3, float>;
 
+  using dAABB1 = AABB<1, double>;
+  using dAABB2 = AABB<2, double>;
+  using dAABB3 = AABB<3, double>;
+
   using iAABB1 = AABB<1, int>;
   using iAABB2 = AABB<2, int>;
   using iAABB3 = AABB<3, int>;
@@ -131,26 +144,6 @@ namespace chunklands::math {
   template<int N, class T>
   struct Line {
     explicit Line(vec<N, T> origin, vec<N, T> span) : origin(std::move(origin)), span(std::move(span)) {
-#ifndef NDEBUG
-      for (unsigned i = 0; i < N; i++) {
-        assert(span[i] >= (T)0);
-      }
-#endif
-    }
-
-    static Line<N, T> from_range(const vec<N, T>& a, const vec<N, T>& b) {
-      vec<N, T> origin, span;
-      for (int i = 0; i < N; i++) {
-        if (b[i] >= a[i]) {
-          origin[i] = a[i];
-          span[i] = b[i] - a[i];
-        } else {
-          origin[i] = b[i];
-          span[i] = a[i] - b[i];
-        }
-      }
-
-      return Line<N, T> { origin, span };
     }
 
     vec<N, T> origin,
@@ -252,9 +245,6 @@ namespace chunklands::math {
     box_iterator end_;
   };
 
-
-  
-
   // vec<>
   template<int N, class T> inline vec1<T> x_vec(const vec<N, T>& v);
   template<int N, class T> inline vec1<T> y_vec(const vec<N, T>& v);
@@ -280,15 +270,15 @@ namespace chunklands::math {
   template<class T> AABB<3, T> operator|(const AABB<3, T>& box, const vec3<T>& v);
   template<class T> AABB<3, T> operator&(const AABB<3, T>& a, const AABB<3, T>& b);
 
+  // Line
+  template<int N, class T> std::ostream& operator<<(std::ostream& os, const Line<N, T>& line);
+
   // util
   template<class T> inline ivec3 floor(const vec3<T>& v);
   template<class T> inline ivec3 ceil(const vec3<T>& v);
   template<class T> iAABB3 bound(const AABB<3, T>& box);
 
   template<int N, class T> inline T chess_distance(const vec<N, T>& a, const vec<N, T>& b);
-
-  template<class T>
-  using collision_time = AABB1<T>;
 
   enum CollisionAxis {
     kNone = 0,
@@ -297,27 +287,14 @@ namespace chunklands::math {
     kZ    = 4,
   };
 
-  template<class T>
-  struct axis_collision {
-    int axis;
-    collision_time<T> time;
-
-    bool operator==(const axis_collision<T>& rhs) const {
-      return axis == rhs.axis && time == rhs.time;
-    }
-  };
-
-  template<class T>
-  std::ostream& operator<<(std::ostream& os, const axis_collision<T>& c);
-
-  template<class T> collision_time<T> collision(const AABB1<T>& moving, const vec1<T>& v, const AABB1<T>& fixed);
-  template<class T> axis_collision<T> collision_3d(const AABB3<T>& moving, const vec3<T>& v, const AABB3<T>& fixed);
+  template<class R, class T> R floor(T x);
+  template<class R, class T> R ceil(T x);
 }
 
 namespace std {
-  template<class T> std::ostream& operator<<(std::ostream& os, const chunklands::math::vec1<T>& v);
-  template<class T> std::ostream& operator<<(std::ostream& os, const chunklands::math::vec2<T>& v);
-  template<class T> std::ostream& operator<<(std::ostream& os, const chunklands::math::vec3<T>& v);
+  template<class T> ostream& operator<<(ostream& os, const chunklands::math::vec1<T>& v);
+  template<class T> ostream& operator<<(ostream& os, const chunklands::math::vec2<T>& v);
+  template<class T> ostream& operator<<(ostream& os, const chunklands::math::vec3<T>& v);
 }
 
 #include "math.inl"

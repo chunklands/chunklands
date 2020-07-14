@@ -1,4 +1,6 @@
 #include "math.hxx"
+#include "debug.hxx"
+#include <iostream>
 
 namespace chunklands::math {
   std::size_t ivec3_hasher::operator()(const ivec3& v) const {
@@ -32,8 +34,8 @@ namespace chunklands::math {
   }
 
   chunk_pos_in_box::chunk_pos_in_box(const fAABB3& box, unsigned chunk_size) {
-    chunk_min_ = __WITH_BUG_get_center_chunk(box.origin           , chunk_size);
-    chunk_max_ = __WITH_BUG_get_center_chunk(box.origin + box.span, chunk_size);
+    chunk_min_ = get_center_chunk(box.origin           , chunk_size);
+    chunk_max_ = get_center_chunk(box.origin + box.span, chunk_size);
     end_       = box_iterator::end(chunk_min_, chunk_max_);
   }
 
@@ -45,7 +47,10 @@ namespace chunklands::math {
     };
 
     iAABB3 intersection = bound_box & chunk_box;
-    if (!intersection || intersection.span.x == 0 || intersection.span.y == 0 || intersection.span.z == 0) {
+    // TODO(daaitch): we have different meanings here
+    // - empty() means, any x,y,z value of `span` is < 0, that the AABB don't even can be a flat plane or a point
+    // - the `if` here test for "emptiness" + no span value should be zero 
+    if (glm::any(glm::lessThanEqual(intersection.span, glm::ivec3(0)))) {
       empty_ = true;
       block_min_ = ivec3{0, 0, 0};
       block_max_ = ivec3{0, 0, 0};

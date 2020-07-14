@@ -25,7 +25,7 @@ namespace chunklands::game {
     JS_DECL_CB_VOID(replaceBlock)
 
   public:
-    engine::collision_result ProcessNextCollision(const math::fAABB3 &box, const math::fvec3 &movement) override;
+    collision::collision_impulse ProcessNextCollision(const math::fAABB3& box, const math::fvec3& movement) override;
     std::optional<math::ivec3> FindPointingBlock(const math::fLine3& look);
 
     const BlockDefinition* GetBlock(const glm::ivec3& coord) const;

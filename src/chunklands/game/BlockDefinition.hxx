@@ -26,7 +26,7 @@ namespace chunklands::game {
       return faces_vertex_data_;
     }
 
-    engine::collision_result ProcessCollision(const math::ivec3& block_coord, const math::fAABB3& box, const math::fvec3& movement) const;
+    collision::collision_impulse ProcessCollision(const math::ivec3& block_coord, const math::fAABB3& box, const math::fvec3& movement) const;
 
   private:
     std::string id_;

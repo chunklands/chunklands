@@ -22,8 +22,8 @@ namespace chunklands::engine {
 
   private:
     math::fAABB3 player_box_ {
-      {-.4f, -1.4f, -.4f},
-      { .8f,  1.6f,  .8f}
+      {-.3f, -1.4f, -.3f},
+      { .6f,  1.6f,  .6f}
     };
   };
 

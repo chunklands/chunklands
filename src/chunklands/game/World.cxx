@@ -203,7 +203,7 @@ namespace chunklands::game {
       }
 
       math::iAABB3 chunk_box(chunk->GetPos() * (int)Chunk::SIZE, glm::ivec3(Chunk::SIZE, Chunk::SIZE, Chunk::SIZE));
-      if (chunk_box & frustom_box) {
+      if (!(chunk_box & frustom_box).empty()) {
         rendered_index_count += chunk->GetIndexCount();
         rendered_chunk_count++;
         chunk->Render();
@@ -223,18 +223,16 @@ namespace chunklands::game {
     return RENDER_DISTANCE;
   }
 
-  engine::collision_result World::ProcessNextCollision(const math::fAABB3 &box, const math::fvec3 &movement) {
+  collision::collision_impulse World::ProcessNextCollision(const math::fAABB3& box, const math::fvec3& movement) {
     math::fAABB3 movement_box {box | movement};
 
-    engine::collision_result result {
-      .prio = std::numeric_limits<int>::max(),
-      .axis = math::CollisionAxis::kNone,
-      .ctime = std::numeric_limits<float>::max(),
-      .collisionfree_movement = movement,
-      .outstanding_movement = math::fvec3(0.f, 0.f, 0.f)
-    };
-
     int collision_index = 0;
+
+    collision::collision_impulse result;
+
+    if (DEBUG_COLLISION) {
+      std::cout << "START PROCESS NEXT COLLISION >>>>" << std::endl;
+    }
 
     for (auto&& chunk_pos : math::chunk_pos_in_box {movement_box, Chunk::SIZE}) {
       const auto&& chunk_result = chunk_map_.find(chunk_pos);
@@ -245,6 +243,9 @@ namespace chunklands::game {
       }
 
       auto&& chunk = chunk_result->second;
+      if (chunk->GetState() < ChunkState::kModelPrepared) {
+        continue;
+      }
       math::ivec3 chunk_coord{ chunk_pos * (int)Chunk::SIZE };
 
       for (auto&& block_pos : math::block_pos_in_box {movement_box, chunk_pos, Chunk::SIZE}) {
@@ -257,38 +258,37 @@ namespace chunklands::game {
           std::cout << "collision #" << collision_index << std::endl;
         }
 
-        auto&& block_collision = block_def->ProcessCollision(block_coord, box, movement);
-        if (block_collision.ctime < result.ctime
-          || (block_collision.ctime == result.ctime && block_collision.prio < result.prio)
-        ) {
-          result = block_collision;
+        const collision::collision_impulse impulse = block_def->ProcessCollision(block_coord, box, movement);
+        if (impulse.is_more_relevant_than(result)) {
+          result = impulse;
         }
-
-        ++collision_index;
       }
+    }
+
+    if (DEBUG_COLLISION) {
+      std::cout << "<<<< END PROCESS NEXT COLLISION" << std::endl << std::endl << std::endl;
     }
 
     return result;
   }
 
   std::optional<math::ivec3> World::FindPointingBlock(const math::fLine3& look) {
-    math::fAABB3 box {look.origin, math::fvec3(0.f, 0.f, 0.f)};
+    math::fAABB3 box {look.origin, math::fvec3(0.f)};
     math::fAABB3 movement_box {box | look.span};
 
-    float ctime = std::numeric_limits<float>::infinity();
-    math::ivec3 result;
-
-    int collision_index = 0;
+    collision::collision_impulse result;
+    math::ivec3 result_coord(0);
 
     for (auto&& chunk_pos : math::chunk_pos_in_box {movement_box, Chunk::SIZE}) {
       const auto&& chunk_result = chunk_map_.find(chunk_pos);
       if (chunk_result == chunk_map_.cend()) {
-        // TODO(daaitch): make collision with chunk
-        std::cout << "not loaded: " << chunk_pos << std::endl;
         continue;
       }
 
       auto&& chunk = chunk_result->second;
+      if (chunk->GetState() < ChunkState::kModelPrepared) {
+        continue;
+      }
       math::ivec3 chunk_coord{ chunk_pos * (int)Chunk::SIZE };
 
       for (auto&& block_pos : math::block_pos_in_box {movement_box, chunk_pos, Chunk::SIZE}) {
@@ -297,25 +297,20 @@ namespace chunklands::game {
 
         math::ivec3 block_coord{ chunk_coord + block_pos };
 
-        if (DEBUG_COLLISION) {
-          std::cout << "collision #" << collision_index << std::endl;
+        const collision::collision_impulse impulse = block_def->ProcessCollision(block_coord, box, look.span);
+        
+        if (impulse.is_more_relevant_than(result)) {
+          result = impulse;
+          result_coord = block_coord;
         }
-
-        auto&& block_collision = block_def->ProcessCollision(block_coord, box, look.span);
-        if (block_collision.ctime < ctime) {
-          ctime = block_collision.ctime;
-          result = block_coord;
-        }
-
-        ++collision_index;
       }
     }
 
-    if (ctime >= 1.f) {
-      return {};
+    if (result.collision.in_unittime() && result.collision.will() && !result.collision.never()) {
+      return {result_coord};
     }
 
-    return {result};
+    return {};
   }
 
   const BlockDefinition* World::GetBlock(const glm::ivec3& coord) const {
@@ -335,9 +330,7 @@ namespace chunklands::game {
                            sinf(look.y),
                           -cosf(look.x) * cosf(look.y));
 
-    std::cout << "pos: " << pos << ", look: " << look << ", look_center: " << look_center << std::endl;
-
-    auto&& result = FindPointingBlock(math::fLine3::from_range(pos, pos + look_center * 2.f));
+    auto&& result = FindPointingBlock(math::fLine3(pos, look_center * 2.f));
     if (!result) {
       return info.Env().Null();
     }

@@ -21,10 +21,10 @@ namespace chunklands::math {
     ASSERT_EQ((get_center_chunk(fvec3 {  0,  16,  31}, 16)), (ivec3{  0,  1,  1}));
     ASSERT_EQ((get_center_chunk(fvec3 { -1,   0,   0}, 16)), (ivec3{ -1,  0,  0}));
     ASSERT_EQ((get_center_chunk(fvec3 { 20, -25, -60}, 16)), (ivec3{  1, -2, -4}));
-    ASSERT_EQ((get_center_chunk(fvec3 {-15, -15, -15}, 16)), (ivec3{ -1, -1, -1}));
-    ASSERT_EQ((get_center_chunk(fvec3 {-16, -16, -16}, 16)), (ivec3{ -1, -1, -1}));
+    ASSERT_EQ((get_center_chunk(fvec3 {-15.9f, -15.9f, -15.9f}, 16)), (ivec3{ -1, -1, -1}));
+    ASSERT_EQ((get_center_chunk(fvec3 {-16.9f, -16.9f, -16.9f}, 16)), (ivec3{ -2, -2, -2}));
     ASSERT_EQ((get_center_chunk(fvec3 {-17, -17, -17}, 16)), (ivec3{ -2, -2, -2}));
-
+    ASSERT_EQ((get_center_chunk(fvec3 {- .5f, - .5f, - .5f}, 16)), (ivec3{ -1, -1, -1}));
   }
 
   TEST(chunklands__math, get_pos_in_chunk) {
@@ -43,6 +43,8 @@ namespace chunklands::math {
     ASSERT_EQ((get_pos_in_chunk(fvec3 { 16.1f,   17.1f,   15.9f}, 16)), (ivec3{ 0,  1, 15}));
     ASSERT_EQ((get_pos_in_chunk(fvec3 { -0.1f,  -14.1f,  -15.1f}, 16)), (ivec3{15,  1,  0}));
     ASSERT_EQ((get_pos_in_chunk(fvec3 {-16.1f,  -17.1f,  -15.9f}, 16)), (ivec3{15, 14,  0}));
+    ASSERT_EQ((get_pos_in_chunk(fvec3 {-1.0f,  -1.1f,  -1.9f}, 16)), (ivec3{15, 14,  14}));
+    ASSERT_EQ((get_pos_in_chunk(fvec3 {-0.5f,  -0.1f,  0.f}, 16)), (ivec3{15, 15,  0}));
 
   }
 
@@ -74,12 +76,12 @@ namespace chunklands::math {
     // intersection empty
     // a===a
     //       b===b
-    ASSERT_TRUE((fAABB1{ fvec1{1}, fvec1{1} } & fAABB1{ fvec1{3}, fvec1{1} }).IsEmpty());
+    ASSERT_TRUE((fAABB1{ fvec1{1}, fvec1{1} } & fAABB1{ fvec1{3}, fvec1{1} }).empty());
 
     // intersection empty
     //       a===a
     // b===b
-    ASSERT_TRUE((fAABB1{ fvec1{3}, fvec1{1} } & fAABB1{ fvec1{1}, fvec1{1} }).IsEmpty());
+    ASSERT_TRUE((fAABB1{ fvec1{3}, fvec1{1} } & fAABB1{ fvec1{1}, fvec1{1} }).empty());
 
     // intersection left contains right
     // a=====a
@@ -146,7 +148,7 @@ namespace chunklands::math {
     );
 
     // intersection empty
-    ASSERT_TRUE((fAABB2{ fvec2{0, 0}, fvec2{4, 4} } & fAABB2{ fvec2{5, 2}, fvec2{1, 1} }).IsEmpty());
+    ASSERT_TRUE((fAABB2{ fvec2{0, 0}, fvec2{4, 4} } & fAABB2{ fvec2{5, 2}, fvec2{1, 1} }).empty());
 
     // intersection
     ASSERT_EQ(
@@ -193,7 +195,7 @@ namespace chunklands::math {
     );
 
     // intersection empty
-    ASSERT_TRUE((fAABB3{ fvec3{0, 0, 0}, fvec3{4, 4, 4} } & fAABB3{ fvec3{5, 2, 1}, fvec3{1, 1, 1} }).IsEmpty());
+    ASSERT_TRUE((fAABB3{ fvec3{0, 0, 0}, fvec3{4, 4, 4} } & fAABB3{ fvec3{5, 2, 1}, fvec3{1, 1, 1} }).empty());
 
     // intersection
     ASSERT_EQ(
@@ -391,77 +393,5 @@ namespace chunklands::math {
         ASSERT_EQ(it, end);
       }
     }
-  }
-
-  TEST(chunklands__math, collision_time) {
-    // 1D
-    ASSERT_EQ(
-      (collision(fAABB1{ fvec1{4}, fvec1{2} }, fvec1{2}, fAABB1{ fvec1{0}, fvec1{2} })),
-      (collision_time<float>{})
-    );
-
-    ASSERT_EQ(
-      (collision(fAABB1{ fvec1{0}, fvec1{2} }, fvec1{-2}, fAABB1{ fvec1{4}, fvec1{2} })),
-      (collision_time<float>{})
-    );
-
-    ASSERT_EQ(
-      (collision(fAABB1{ fvec1{4}, fvec1{2} }, fvec1{2}, fAABB1{ fvec1{2}, fvec1{2} })),
-      (collision_time<float>{})
-    );
-
-    ASSERT_EQ(
-      (collision(fAABB1{ fvec1{0}, fvec1{4} }, fvec1{-2}, fAABB1{ fvec1{4}, fvec1{2} })),
-      (collision_time<float>{})
-    );
-
-    ASSERT_EQ(
-      (collision(fAABB1{ fvec1{0}, fvec1{2} }, fvec1{2}, fAABB1{ fvec1{4}, fvec1{2} })),
-      (collision_time<float>{ fvec1{1}, fvec1{2} })
-    );
-
-    ASSERT_EQ(
-      (collision(fAABB1{ fvec1{0}, fvec1{2} }, fvec1{1}, fAABB1{ fvec1{1}, fvec1{2} })),
-      (collision_time<float>{ fvec1{-1}, fvec1{4} })
-    );
-
-    ASSERT_EQ(
-      (collision(fAABB1{ fvec1{4}, fvec1{2} }, fvec1{-2}, fAABB1{ fvec1{0}, fvec1{2} })),
-      (collision_time<float>{ fvec1{1}, fvec1{2} })
-    );
-
-    ASSERT_EQ(
-      (collision(fAABB1{ fvec1{1}, fvec1{2} }, fvec1{-1}, fAABB1{ fvec1{0}, fvec1{2} })),
-      (collision_time<float>{ fvec1{-1}, fvec1{4} })
-    );
-
-    // special cases
-
-    ASSERT_EQ(
-      (collision(fAABB1{ fvec1{0}, fvec1{2} }, fvec1{0}, fAABB1{ fvec1{1}, fvec1{2} })),
-      (collision_time<float>{
-        fvec1{-std::numeric_limits<float>::infinity()},
-        fvec1{std::numeric_limits<float>::infinity()}
-      })
-    );
-
-    ASSERT_EQ(
-      (collision(fAABB1{ fvec1{0}, fvec1{2} }, fvec1{0}, fAABB1{ fvec1{3}, fvec1{2} })),
-      (collision_time<float>{})
-    );
-
-    ASSERT_EQ(
-      (collision(fAABB1{ fvec1{0}, fvec1{2} }, fvec1{0}, fAABB1{ fvec1{2}, fvec1{2} })),
-      (collision_time<float>{})
-    );
-
-    // 3D
-    ASSERT_EQ(
-      (collision_3d(fAABB3{ fvec3{0, 0, 0}, fvec3{1, 1, 1} }, fvec3{1, 2, -1}, fAABB3{ fvec3{-2, -2, -2}, fvec3{4, 4, 4} })),
-      (axis_collision<float>{
-        .axis = CollisionAxis::kY,
-        .time = collision_time<float>{ fvec1{-1.5}, fvec1{2.5} }
-      })
-    );
   }
 }

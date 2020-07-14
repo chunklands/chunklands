@@ -268,14 +268,6 @@ function create(chunkDim, blocks) {
       if (houseRef.touchesChunk(chunk.x, chunk.y, chunk.z)) {
         chunk.multiblockRefs.push(houseRef);
       }
-
-      // if (chunk.x === 0 && chunk.y === 0 && chunk.z === 0) {
-      //   chunk.multiblockRefs.push(treeRef);
-      // } else if (chunk.x === -5 && chunk.y === 1 && chunk.z === 0) {
-      //   chunk.multiblockRefs.push(houseRef);
-      // } else if (chunk.x === -5 && chunk.y === 0 && chunk.z === 0) {
-      //   chunk.multiblockRefs.push(houseRef);
-      // }
     }
 
     /**
