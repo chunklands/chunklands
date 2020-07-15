@@ -15,6 +15,7 @@ namespace chunklands::game {
       JS_SETTER(BlockRegistrar),
       JS_ABSTRACT_WRAP(engine::ICollisionSystem, ICollisionSystem),
       JS_CB(findPointingBlock),
+      JS_CB(findAddingBlock),
       JS_CB(replaceBlock),
     }))
 
@@ -22,11 +23,13 @@ namespace chunklands::game {
     JS_IMPL_SETTER_WRAP(BlockRegistrar, BlockRegistrar)
     JS_IMPL_ABSTRACT_WRAP(engine::ICollisionSystem, ICollisionSystem)
     JS_DECL_CB(findPointingBlock)
+    JS_DECL_CB(findAddingBlock)
     JS_DECL_CB_VOID(replaceBlock)
 
   public:
     collision::collision_impulse ProcessNextCollision(const math::fAABB3& box, const math::fvec3& movement) override;
     std::optional<math::ivec3> FindPointingBlock(const math::fLine3& look);
+    std::optional<math::ivec3> FindAddingBlock(const math::fLine3& look);
 
     const BlockDefinition* GetBlock(const glm::ivec3& coord) const;
 

@@ -46,7 +46,7 @@ class DefaultGame {
     this._scene.setModelTexture(this._modelLoader.texture);
     this._scene.setWorld(this._world);
 
-    const ssao = true;
+    const ssao = false;
     this._scene.setSSAO(ssao);
 
     this._renderPipeline = new RenderPipeline();
@@ -144,6 +144,15 @@ class DefaultGame {
           if (blockCoord) {
             this._world.replaceBlock(blockCoord, this._modelLoader.blockIds['block.air']);
           }
+        }
+      } else if (event.button === 1 && event.action === 0) {
+        const blockCoord = this._world.findAddingBlock(
+          this._camera.getPosition(),
+          this._camera.getLook()
+        );
+
+        if (blockCoord) {
+          this._world.replaceBlock(blockCoord, this._modelLoader.blockIds['block.dirt']);
         }
       }
     });

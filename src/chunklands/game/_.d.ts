@@ -55,7 +55,8 @@ export declare class Scene implements engine.IScene {
 export declare class World implements engine.ICollisionSystem {
   setChunkGenerator(chunkGenerator: ChunkGenerator): void
   setBlockRegistrar(blockRegistrar: BlockRegistrar): void
-  findPointingBlock(pos: engine.vec3, look: engine.vec2): engine.vec3
+  findPointingBlock(pos: engine.vec3, look: engine.vec2): engine.vec3 | undefined
+  findAddingBlock(pos: engine.vec3, look: engine.vec2): engine.vec3 | undefined
   replaceBlock(coord: engine.vec3, blockId: number): void
 }
 

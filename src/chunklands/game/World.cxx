@@ -313,6 +313,58 @@ namespace chunklands::game {
     return {};
   }
 
+  std::optional<math::ivec3> World::FindAddingBlock(const math::fLine3& look) {
+    math::fAABB3 box {look.origin, math::fvec3(0.f)};
+    math::fAABB3 movement_box {box | look.span};
+
+    collision::collision_impulse result;
+    math::ivec3 result_coord(0);
+
+    for (auto&& chunk_pos : math::chunk_pos_in_box {movement_box, Chunk::SIZE}) {
+      const auto&& chunk_result = chunk_map_.find(chunk_pos);
+      if (chunk_result == chunk_map_.cend()) {
+        continue;
+      }
+
+      auto&& chunk = chunk_result->second;
+      if (chunk->GetState() < ChunkState::kModelPrepared) {
+        continue;
+      }
+      math::ivec3 chunk_coord{ chunk_pos * (int)Chunk::SIZE };
+
+      for (auto&& block_pos : math::block_pos_in_box {movement_box, chunk_pos, Chunk::SIZE}) {
+        auto&& block_def = chunk->BlockAt(block_pos);
+        assert(block_def != nullptr);
+
+        math::ivec3 block_coord{ chunk_coord + block_pos };
+
+        const collision::collision_impulse impulse = block_def->ProcessCollision(block_coord, box, look.span);
+        
+        if (impulse.is_more_relevant_than(result)) {
+          result = impulse;
+          result_coord = block_coord;
+        }
+      }
+    }
+
+    if (result.collision.in_unittime() && result.collision.will() && !result.collision.never()) {
+      if (result.is_x_collision) {
+        return {look.span.x >= 0 ? result_coord + math::ivec3(-1, 0, 0) : result_coord + math::ivec3(+1, 0, 0)};
+      }
+      if (result.is_y_collision) {
+        return {look.span.y >= 0 ? result_coord + math::ivec3(0, -1, 0) : result_coord + math::ivec3(0, +1, 0)};
+      }
+      if (result.is_z_collision) {
+        return {look.span.z >= 0 ? result_coord + math::ivec3(0, 0, -1) : result_coord + math::ivec3(0, 0, +1)};
+      }
+
+      // should not happen
+      assert(false);
+    }
+
+    return {};
+  }
+
   const BlockDefinition* World::GetBlock(const glm::ivec3& coord) const {
     auto&& it = chunk_map_.find(math::get_center_chunk(coord, Chunk::SIZE));
     if (it == chunk_map_.cend()) {
@@ -331,6 +383,22 @@ namespace chunklands::game {
                           -cosf(look.x) * cosf(look.y));
 
     auto&& result = FindPointingBlock(math::fLine3(pos, look_center * 2.f));
+    if (!result) {
+      return info.Env().Null();
+    }
+
+    return jsmath::vec3(info.Env(), result.value());
+  }
+
+  JSValue World::JSCall_findAddingBlock(JSCbi info) {
+    auto&& pos = jsmath::vec3<float>(info[0]);
+    auto&& look = jsmath::vec2<float>(info[1]);
+
+    glm::vec3 look_center(-sinf(look.x) * cosf(look.y),
+                           sinf(look.y),
+                          -cosf(look.x) * cosf(look.y));
+
+    auto&& result = FindAddingBlock(math::fLine3(pos, look_center * 2.f));
     if (!result) {
       return info.Env().Null();
     }
