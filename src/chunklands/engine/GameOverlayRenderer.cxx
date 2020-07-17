@@ -22,9 +22,8 @@ namespace chunklands::engine {
     glUniformMatrix4fv(uniforms_.proj, 1, GL_FALSE, glm::value_ptr(proj_));
   }
 
-  void GameOverlayRenderer::UpdateBufferSize(int width, int height) {
-    const float scale = 4.f; // TODO(daaitch): use window pixel scale (4k screens)
-    proj_ = glm::ortho(-float(width) / scale, float(width) / scale, -float(height) / scale, float(height) / scale);
+  void GameOverlayRenderer::UpdateBufferSize(int, int) {
+    proj_ = glm::ortho(0.f, 1.f, 0.f, 1.f);
   }
 
   void GameOverlayRenderer::InitializeProgram() {

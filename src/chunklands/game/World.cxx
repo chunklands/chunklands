@@ -7,16 +7,16 @@
 
 namespace chunklands::game {
 
-  constexpr int RENDER_DISTANCE   = 12;
+  constexpr int RENDER_DISTANCE   = 10;
   constexpr int PREFETCH_DISTANCE = RENDER_DISTANCE + 2;
   constexpr int RETAIN_DISTANCE   = RENDER_DISTANCE + 4;
 
   static_assert(PREFETCH_DISTANCE >  RENDER_DISTANCE,   "prefetch distance has to be greater than render distance");
   static_assert(RETAIN_DISTANCE   >= PREFETCH_DISTANCE, "retain distance has to be greater or equal than prefetch distance");
   
-  constexpr unsigned MAX_CHUNK_VIEW_UPDATES = 6;
-  constexpr unsigned MAX_CHUNK_MODEL_GENERATES = 6;
-  constexpr unsigned MAX_CHUNK_MODEL_PROCESSES = 6;
+  constexpr unsigned MAX_CHUNK_VIEW_UPDATES = 2;
+  constexpr unsigned MAX_CHUNK_MODEL_GENERATES = 2;
+  constexpr unsigned MAX_CHUNK_MODEL_PROCESSES = 2;
 
   JS_DEF_WRAP(World)
 

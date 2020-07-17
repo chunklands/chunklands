@@ -12,6 +12,7 @@ const models = [
   require('./block.water'),
   require('./block.wood'),
   require('./sprite.crosshair'),
+  require('./sprite.item-list'),
 ];
 
 module.exports = () => Promise.all(models.map(createFn => createFn()));

@@ -30,7 +30,7 @@ namespace chunklands::game {
     friend ChunkGenerator;
 
   public:
-    static constexpr unsigned SIZE_LB = 4;
+    static constexpr unsigned SIZE_LB = 5;
     static constexpr unsigned SIZE = 1 << SIZE_LB;
     static constexpr unsigned BLOCK_COUNT = SIZE * SIZE * SIZE;
 

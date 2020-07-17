@@ -4,15 +4,20 @@
 #include <chunklands/js.hxx>
 #include <chunklands/gl/glfw.hxx>
 #include "SpriteRegistrar.hxx"
+#include <chunklands/gl/Vao3fv3fn2ft.hxx>
 
 namespace chunklands::game {
 
   class GameOverlay : public JSObjectWrap<GameOverlay> {
     JS_IMPL_WRAP(GameOverlay, ONE_ARG({
       JS_SETTER(SpriteRegistrar),
+      JS_CB(setItemListActiveItem),
+      JS_CB(getItemListActiveItem),
     }))
 
     JS_IMPL_SETTER_WRAP(SpriteRegistrar, SpriteRegistrar)
+    JS_DECL_CB(getItemListActiveItem)
+    JS_DECL_CB_VOID(setItemListActiveItem)
 
   public:
     void Prepare();
@@ -20,10 +25,12 @@ namespace chunklands::game {
     void Render(double diff);
 
   private:
-    GLuint vao_ = 0;
-    GLuint vbo_ = 0;
+    gl::Vao3fv3fn2ft vao_crosshair_;
+    gl::Vao3fv3fn2ft vao_itemlist_;
 
-    GLsizei vb_index_count_ = 0;
+    struct {
+      int active_item = 0;
+    } itemlist_;
   };
 
 } // namespace chunklands::game

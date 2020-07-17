@@ -9,7 +9,7 @@ module.exports = class SimpleWorldGen {
     this._worker = new Worker(`${__dirname}/chunk_worker/index.js`, {
       workerData: {
         blocks,
-        chunkDim: 16 // TODO(daaitch): magic number
+        chunkDim: 32 // TODO(daaitch): magic number
       }
     });
 

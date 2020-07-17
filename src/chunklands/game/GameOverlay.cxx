@@ -5,51 +5,42 @@ namespace chunklands::game {
 
   JS_DEF_WRAP(GameOverlay)
 
+  JSValue GameOverlay::JSCall_getItemListActiveItem(JSCbi info) {
+    return JSNumber::New(info.Env(), itemlist_.active_item);
+  }
+
+  void GameOverlay::JSCall_setItemListActiveItem(JSCbi info) {
+    itemlist_.active_item = info[0].ToNumber();
+  }
+
   void GameOverlay::Prepare() {
-    CHECK_GL();
-    auto&& crosshair = js_SpriteRegistrar->GetSprite("sprite.crosshair");
-    assert(crosshair);
 
-    glGenVertexArrays(1, &vao_);
-    glGenBuffers(1, &vbo_);
+    // crosshair
+    {
+      const sprite_definition* sprite = js_SpriteRegistrar->GetSprite("sprite.crosshair");
+      assert(sprite);
 
-    auto&& all = crosshair->faces.at("all");
-    vb_index_count_ = all.size() / 8;
+      const std::vector<GLfloat>& all = sprite->faces.at("all");
+      vao_crosshair_.Init(GL_TRIANGLES, all.data(), all.size());
+    }
 
-    glBindBuffer(GL_ARRAY_BUFFER, vbo_);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * all.size(),
-                 all.data(), GL_STATIC_DRAW);
+    // itemlist
+    {
+      const sprite_definition* sprite = js_SpriteRegistrar->GetSprite("sprite.item-list");
+      assert(sprite);
 
-    glBindVertexArray(vao_);
-
-    constexpr GLsizei stride = (3 + 3 + 2) * sizeof(GLfloat);
-
-    // position attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, (void*)(0 * sizeof(GLfloat)));
-    glEnableVertexAttribArray(0);
-    
-    // normal attribute
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, stride, (void*)(3 * sizeof(GLfloat)));
-    glEnableVertexAttribArray(1);
-
-    // uv attribute
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, stride, (void*)(6 * sizeof(GLfloat)));
-    glEnableVertexAttribArray(2);
-
-    glBindVertexArray(0);
-    CHECK_GL_HERE();
+      const std::vector<GLfloat>& all = sprite->faces.at("all");
+      vao_itemlist_.Init(GL_TRIANGLES, all.data(), all.size());
+    }
   }
 
   void GameOverlay::Update(double) {
 
   }
 
-  void GameOverlay::Render(double ) {
-    assert(vao_ > 0 && vb_index_count_ > 0);
-    CHECK_GL();
-
-    glBindVertexArray(vao_);
-    glDrawArrays(GL_TRIANGLES, 0, vb_index_count_);
+  void GameOverlay::Render(double) {
+    vao_crosshair_.Render();
+    vao_itemlist_.Render();
   }
 
 
