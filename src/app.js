@@ -1,10 +1,26 @@
-const { game: { DefaultGame } } = require('./chunklands');
+const chunklands = require('../build/chunklands.node');
 
-const game = new DefaultGame();
+const api = new chunklands.EngineBridge();
+enginePoller();
 
-game.run()
-  .then(() => process.exit(0))
-  .catch(e => {
-    console.error(e);
-    process.exit(1);
+(async () => {
+  await api.GLFWInit();
+  api.GLFWStartPollEvents(true);
+  const win = await api.windowCreate(200, 200, 'chunklands');
+  api.windowOn(win, 'shouldclose', () => {
+    console.log('OK')
+    api.engineShutdown();
   });
+
+  // cleanup();
+
+  // setTimeout(() => {
+  //   eb.engineShutdown()
+  // }, 5000);
+})();
+
+function enginePoller() {
+  if (api.enginePollEvents()) {
+    setImmediate(enginePoller);
+  }
+}

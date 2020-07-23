@@ -29,7 +29,7 @@ const DEV = process.env.NODE_ENV !== 'production';
     .addToBuildSet();
 
   const systemInclude = [
-    'deps/boost_*/include',
+    'deps/boost',
     'deps/glfw/include',
     'deps/glfw/deps',
     'deps/glm',
@@ -43,9 +43,6 @@ const DEV = process.env.NODE_ENV !== 'production';
     .addInclude('src')
     .addSource(
       'src/chunklands/**/*.cxx',
-      'deps/boost_chrono/src/chrono.cpp',
-      'deps/boost_chrono/src/process_cpu_clocks.cpp',
-      'deps/boost_chrono/src/thread_clock.cpp'
     )
     .addToBuildSet();
 
@@ -53,33 +50,34 @@ const DEV = process.env.NODE_ENV !== 'production';
     .addSystemInclude(...systemInclude)
     .addInclude('src')
     .addSource(
-      'src/chunklands_node/chunklands_napimodule.cxx'
-    )
-    .addLibrary(
-      ...chunklandsGenericCs.getObjectPaths(),
-      ...gladCs.getObjectPaths(),
-      'deps/glfw/src/libglfw3.a'
-    )
-    .addLink(os.platform() === 'linux' ? 'X11' : null)
-    .addMacOSFramework('CoreVideo', 'OpenGL', 'IOKit', 'Cocoa', 'Carbon')
-    .addToBuildSet('build/chunklands.node');
-
-  await new clang.CompileSet(buildSet, {std: 'c++2a', fPIC: true, shared: true})
-    .addSystemInclude(
-      ...systemInclude,
-      'deps/googletest/googletest/include'
-    )
-    .addInclude('src')
-    .addSource(
-      'src/chunklands_test/**/*.cxx'
+      'src/napimodule.cxx'
     )
     .addLibrary(
       ...chunklandsGenericCs.getObjectPaths(),
       ...gladCs.getObjectPaths(),
       'deps/glfw/src/libglfw3.a',
-      'deps/googletest/lib/libgtestd.a',
+      'deps/boost/stage/lib/*.a',
     )
-    .addToBuildSet('build/chunklands_test.node');
+    .addLink(os.platform() === 'linux' ? 'X11' : null)
+    .addMacOSFramework('CoreVideo', 'OpenGL', 'IOKit', 'Cocoa', 'Carbon')
+    .addToBuildSet('build/chunklands.node');
+
+  // await new clang.CompileSet(buildSet, {std: 'c++2a', fPIC: true, shared: true})
+  //   .addSystemInclude(
+  //     ...systemInclude,
+  //     'deps/googletest/googletest/include'
+  //   )
+  //   .addInclude('src')
+  //   .addSource(
+  //     'src/chunklands_test/**/*.cxx'
+  //   )
+  //   .addLibrary(
+  //     ...chunklandsGenericCs.getObjectPaths(),
+  //     ...gladCs.getObjectPaths(),
+  //     'deps/glfw/src/libglfw3.a',
+  //     'deps/googletest/lib/libgtestd.a',
+  //   )
+  //   .addToBuildSet('build/chunklands_test.node');
 
   await buildSet.printMakefile('build/chunklands.node', process.stdout);
 })();

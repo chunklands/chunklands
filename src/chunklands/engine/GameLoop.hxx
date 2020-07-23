@@ -1,28 +1,42 @@
 #ifndef __CHUNKLANDS_ENGINE_GAMELOOP_HXX__
 #define __CHUNKLANDS_ENGINE_GAMELOOP_HXX__
 
-#include <chunklands/js.hxx>
-#include "IScene.hxx"
+#include <thread>
+#include "Api.hxx"
+#include <chunklands/libcxx/glfw.hxx>
+#include <boost/thread/thread.hpp>
 
 namespace chunklands::engine {
 
-  class GameLoop : public JSObjectWrap<GameLoop> {
-    JS_IMPL_WRAP(GameLoop, ONE_ARG({
-      JS_CB(start),
-      JS_CB(stop),
-      JS_CB(loop),
-      JS_SETTER(Scene)
-    }))
+  class GameLoop {
+  public:
+    GameLoop(Api* api) : api_(api) {
+    }
 
-    JS_DECL_CB_VOID(start)
-    JS_DECL_CB_VOID(stop)
-    JS_DECL_CB_VOID(loop)
-    JS_IMPL_ABSTRACT_WRAP_SETTER(IScene, Scene)
+    ~GameLoop() {
+      int i = 1;
+      assert(i);
+    }
+
+  public:
+    void Start() {
+      thread_ = std::thread([this](){
+        while (!stop_) {
+          api_->RunCommands();
+          boost::this_thread::yield();
+        }
+      });
+    }
+
+    void Stop() {
+      stop_ = true;
+      thread_.join();
+    }
 
   private:
-    bool running_ = false;
-    double last_update_ = .0;
-    double last_render_ = .0;
+    bool stop_ = false;
+    std::thread thread_;
+    Api* api_;
   };
 
 } // namespace chunklands::engine

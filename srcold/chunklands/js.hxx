@@ -8,9 +8,12 @@
 
 // Wrap
 #define JS_IMPL_WRAP(CLASS, CLASS_DEF)                public: \
-                                                        static Napi::FunctionReference constructor; \
                                                         CLASS(JSCbi info) \
                                                           : JSObjectWrap<CLASS>(info) {} \
+                                                        JS_IMPL_INITCTOR(CLASS, CLASS_DEF)
+
+#define JS_IMPL_INITCTOR(CLASS, CLASS_DEF)            public: \
+                                                        static Napi::FunctionReference constructor; \
                                                         static JSFunction Initialize(JSEnv env) { \
                                                           using JSCurrentWrap = CLASS; \
                                                           auto&& clazz = DefineClass(env, #CLASS, CLASS_DEF); \

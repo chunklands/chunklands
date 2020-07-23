@@ -109,3 +109,30 @@
 [submodule "deps/googletest"]
 	path = deps/googletest
 	url = https://github.com/google/googletest.git
+[submodule "deps/boost_asio"]
+	path = deps/boost_asio
+	url = https://github.com/boostorg/asio.git
+[submodule "deps/boost_thread"]
+	path = deps/boost_thread
+	url = https://github.com/boostorg/thread.git
+[submodule "deps/boost_date_time"]
+	path = deps/boost_date_time
+	url = https://github.com/boostorg/date_time.git
+[submodule "deps/boost_numeric_conversion"]
+	path = deps/boost_numeric_conversion
+	url = https://github.com/boostorg/numeric_conversion.git
+[submodule "deps/boost_tuple"]
+	path = deps/boost_tuple
+	url = https://github.com/boostorg/tuple.git
+[submodule "deps/boost_exception"]
+	path = deps/boost_exception
+	url = https://github.com/boostorg/exception.git
+[submodule "deps/boost_io"]
+	path = deps/boost_io
+	url = https://github.com/boostorg/io.git
+[submodule "deps/boost_container"]
+	path = deps/boost_container
+	url = https://github.com/boostorg/container.git
+[submodule "deps/boost_intrusive"]
+	path = deps/boost_intrusive
+	url = https://github.com/boostorg/intrusive.git
