@@ -6,7 +6,7 @@
 namespace chunklands::engine {
 
   void Api::RunCommands() {
-    loop_.run_queued_closures();
+    loop_.try_executing_one();
 
     if (GLFW_start_poll_events) {
       glfwPollEvents();
@@ -26,6 +26,8 @@ namespace chunklands::engine {
 
   boost::future<WindowHandle*> Api::WindowCreate(int width, int height, std::string title) {
     return EnqueueTask([width, height, title = std::move(title)]() mutable -> WindowHandle* {
+      glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+      glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
       GLFWwindow* const glfw_window = glfwCreateWindow(width, height, title.data(), nullptr, nullptr);
       if (!glfw_window) {
         return nullptr;
@@ -33,6 +35,15 @@ namespace chunklands::engine {
       
       Window* const window = new Window(glfw_window);
       return reinterpret_cast<WindowHandle*>(window);
+    });
+  }
+
+  void Api::WindowMakeContextCurrent(WindowHandle* handle) {
+    Window* const window = reinterpret_cast<Window*>(handle);
+    assert(window);
+
+    EnqueueTask([window]() {
+      window->makeContextCurrent();
     });
   }
 

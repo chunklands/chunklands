@@ -30,21 +30,32 @@ namespace chunklands::engine {
 
   public:
     // GLFW
-    boost::future<bool> GLFWInit();
-    void GLFWStartPollEvents(bool poll);
-    bool GLFWStartPollEvents() const {
+    boost::future<bool>
+    GLFWInit();
+
+    void
+    GLFWStartPollEvents(bool poll);
+
+    bool
+    GLFWStartPollEvents() const {
       return GLFW_start_poll_events;
     }
     
 
     // Window
-    boost::future<WindowHandle*> WindowCreate(int width, int height, std::string title);
-    boost::signals2::scoped_connection WindowOn(WindowHandle* handle, const std::string& event, std::function<void()> callback);
+    boost::future<WindowHandle*>
+    WindowCreate(int width, int height, std::string title);
+    
+    void
+    WindowMakeContextCurrent(WindowHandle* handle);
+
+    boost::signals2::scoped_connection
+    WindowOn(WindowHandle* handle, const std::string& event, std::function<void()> callback);
     
   private:
     template<class F, class R = std::result_of_t<F&&()>>
     inline boost::future<R> EnqueueTask(F&& fn) {
-      boost::packaged_task<R()> task(std::move(fn));
+      boost::packaged_task<R()> task(std::forward<F>(fn));
       boost::future<R> result = task.get_future();
       serial_.submit(std::move(task));
 

@@ -5,38 +5,21 @@
 #include "Api.hxx"
 #include <chunklands/libcxx/glfw.hxx>
 #include <boost/thread/thread.hpp>
+#include <iostream>
 
 namespace chunklands::engine {
 
   class GameLoop {
   public:
-    GameLoop(Api* api) : api_(api) {
-    }
+    GameLoop(Api* api);
 
-    ~GameLoop() {
-      int i = 1;
-      assert(i);
-    }
-
-  public:
-    void Start() {
-      thread_ = std::thread([this](){
-        while (!stop_) {
-          api_->RunCommands();
-          boost::this_thread::yield();
-        }
-      });
-    }
-
-    void Stop() {
-      stop_ = true;
-      thread_.join();
-    }
+    void Start();
+    void Stop();
 
   private:
+    Api* api_ = nullptr;
     bool stop_ = false;
     std::thread thread_;
-    Api* api_;
   };
 
 } // namespace chunklands::engine

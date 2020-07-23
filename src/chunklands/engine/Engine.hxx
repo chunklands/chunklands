@@ -8,21 +8,11 @@ namespace chunklands::engine {
 
   class Engine {
   public:
-    Engine() {
-      api = std::make_unique<Api>();
-      loop_ = std::make_unique<GameLoop>(api.get());
-    }
-  public:
-    void Init() {
-      loop_->Start();
-    }
+    Engine();
 
-    void Terminate() {
-      api->Stop();
-      loop_->Stop();
-    }
+    void Init();
+    void Terminate();
 
-  public:
     std::unique_ptr<Api> api;
 
   private:

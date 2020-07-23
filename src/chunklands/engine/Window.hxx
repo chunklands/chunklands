@@ -7,27 +7,11 @@
 namespace chunklands::engine {
 
   class Window {
-  private:
-    static inline Window* Unwrap(GLFWwindow* w) {
-      void* const ptr = glfwGetWindowUserPointer(w);
-      assert(ptr);
-
-      return reinterpret_cast<Window*>(ptr);
-    }
-
   public:
-    Window(GLFWwindow* glfw_window): glfw_window_(glfw_window) {
-      glfwSetWindowUserPointer(glfw_window, this);
+    Window(GLFWwindow* glfw_window);
+    ~Window();
 
-      glfwSetWindowCloseCallback(glfw_window, [](GLFWwindow* w) {
-        Window* const thiz = Unwrap(w);
-        thiz->on_close();
-      });
-    }
-
-    ~Window() {
-      glfwDestroyWindow(glfw_window_);
-    }
+    void makeContextCurrent();
 
   public:
     boost::signals2::signal<void()> on_close;
