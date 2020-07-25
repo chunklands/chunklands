@@ -18,6 +18,10 @@ const DEV = process.env.NODE_ENV !== 'production';
     cmd: `@cd deps/glfw && cmake -DGLFW_BUILD_DOCS=OFF -DGLFW_BUILD_TESTS=OFF -DGLFW_BUILD_EXAMPLES=OFF -DCMAKE_BUILD_TYPE=${DEV ? 'Debug' : 'Release'} --build .`
       + ' && make'
   })
+  .addMakefileTarget('deps/backward-cpp/libbackward.a', {
+    cmd: `@cd deps/backward-cpp && cmake -DCMAKE_BUILD_TYPE=${DEV ? 'Debug' : 'Release'} --build .`
+    + ' && make'
+  })
   .addMakefileTarget('deps/googletest/lib/libgtestd.a', {
     cmd: `@cd deps/googletest && cmake -DCMAKE_BUILD_TYPE=${DEV ? 'Debug' : 'Release'} -DCMAKE_CXX_STANDARD=17 -Dgtest_force_shared_crt=ON -DCMAKE_POSITION_INDEPENDENT_CODE=ON .`
       + ' && make'
@@ -29,6 +33,7 @@ const DEV = process.env.NODE_ENV !== 'production';
     .addToBuildSet();
 
   const systemInclude = [
+    'deps/backward-cpp',
     'deps/boost',
     'deps/glfw/include',
     'deps/glfw/deps',
@@ -56,6 +61,7 @@ const DEV = process.env.NODE_ENV !== 'production';
       ...chunklandsGenericCs.getObjectPaths(),
       ...gladCs.getObjectPaths(),
       'deps/glfw/src/libglfw3.a',
+      'deps/backward-cpp/libbackward.a',
       'deps/boost/stage/lib/*.a',
     )
     .addLink(os.platform() === 'linux' ? 'X11' : null)

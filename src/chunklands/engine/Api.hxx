@@ -37,10 +37,10 @@ namespace chunklands::engine {
     GLFWStartPollEvents(bool poll);
 
     bool
-    GLFWStartPollEvents() const {
-      return GLFW_start_poll_events;
-    }
+    GLFWStartPollEvents() const { return GLFW_start_poll_events; }
     
+    boost::future<bool>
+    GLFWLoadGL();
 
     // Window
     boost::future<WindowHandle*>

@@ -10,13 +10,8 @@ namespace chunklands::engine {
   void GameLoop::Start() {
     thread_ = std::thread([this](){
       while (!stop_) {
-        double t = glfwGetTime();
         assert(api_);
         api_->RunCommands();
-        
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
-        double diff = glfwGetTime() - t;
-        std::cout << "DIFF: " << diff << std::endl;
       }
     });
   }
