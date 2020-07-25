@@ -11,14 +11,14 @@ namespace chunklands::engine {
     Window(GLFWwindow* glfw_window);
     ~Window();
 
-    void makeContextCurrent();
+    bool LoadGL();
 
   public:
     boost::signals2::signal<void()> on_close;
 
   private:
     GLFWwindow* glfw_window_ = nullptr;
-    
+    bool is_gl_loaded_ = false;
   };
 
 } // namespace chunklands::engine

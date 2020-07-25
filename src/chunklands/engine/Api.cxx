@@ -14,11 +14,13 @@ namespace chunklands::engine {
     }
   }
 
-  boost::future<bool>
+  boost::future<void>
   Api::GLFWInit() {
     return EnqueueTask([]() {
       const int result = glfwInit();
-      return result == GLFW_TRUE;
+      if (result != GLFW_TRUE) {
+        throw_engine_exception("GLFWInit");
+      }
     });
   }
 
@@ -27,40 +29,39 @@ namespace chunklands::engine {
     GLFW_start_poll_events = poll;
   }
 
-  boost::future<bool>
-  Api::GLFWLoadGL() {
-    return EnqueueTask([]() {
-      if (!glfwGetCurrentContext()) {
-        engine::throw_engine_exception("GLFWLoadGL");
-      }
-
-      const int result = gladLoadGL((GLADloadfunc)glfwGetProcAddress);
-      return result != 0;
-    });
-  }
-
   boost::future<WindowHandle*>
   Api::WindowCreate(int width, int height, std::string title) {
-    return EnqueueTask([width, height, title = std::move(title)]() {
+    return EnqueueTask([this, width, height, title = std::move(title)]() {
       glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
       glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
       GLFWwindow* const glfw_window = glfwCreateWindow(width, height, title.data(), nullptr, nullptr);
       if (!glfw_window) {
-        engine::throw_engine_exception("WindowCreate");
+        throw_engine_exception("WindowCreate");
       }
       
+      assert(glfw_window);
       Window* const window = new Window(glfw_window);
-      return reinterpret_cast<WindowHandle*>(window);
+      WindowHandle* const window_handle = reinterpret_cast<WindowHandle*>(window);
+      window_instances_.insert(window_handle);
+      return window_handle;
     });
   }
 
-  void
-  Api::WindowMakeContextCurrent(WindowHandle* handle) {
-    Window* const window = reinterpret_cast<Window*>(handle);
-    assert(window);
+  boost::future<void>
+  Api::WindowLoadGL(WindowHandle* handle) {
+    return EnqueueTask([handle]() {
+      if (!handle) {
+        throw_engine_exception("WindowLoadGL");
+      }
 
-    EnqueueTask([window]() {
-      window->makeContextCurrent();
+      assert(handle);
+      Window* const window = reinterpret_cast<Window*>(handle);
+      assert(window);
+
+      const bool gl_loaded = window->LoadGL();
+      if (!gl_loaded) {
+        throw_engine_exception("GLFWLoadGL");
+      }
     });
   }
 

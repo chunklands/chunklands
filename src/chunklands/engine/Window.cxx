@@ -25,8 +25,11 @@ namespace chunklands::engine {
     glfwDestroyWindow(glfw_window_);
   }
 
-  void Window::makeContextCurrent() {
+  bool Window::LoadGL() {
     glfwMakeContextCurrent(glfw_window_);
+    const int result = gladLoadGL((GLADloadfunc)glfwGetProcAddress);
+    is_gl_loaded_ = result != 0;
+    return is_gl_loaded_;
   }
 
 } // namespace chunklands::engine

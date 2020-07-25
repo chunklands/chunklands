@@ -16,9 +16,8 @@ namespace chunklands::core {
     JS_CB(terminate),
     JS_CB(GLFWInit),
     JS_CB(GLFWStartPollEvents),
-    JS_CB(GLFWLoadGL),
     JS_CB(windowCreate),
-    JS_CB(windowMakeContextCurrent),
+    JS_CB(windowLoadGL),
     JS_CB(windowOn),
   }))
 
@@ -29,26 +28,15 @@ namespace chunklands::core {
 
   JSValue
   EngineApiBridge::JSCall_GLFWInit(JSCbi info) {
-    return FromNodeThreadRunApiResultInNodeThread(info.Env(), api_->GLFWInit(), [](JSEnv env, boost::future<bool> result, JSDeferred deferred) {
-      bool value = result.get();
-      if (value) {
-        deferred.Resolve(env.Undefined());
-      } else {
-        deferred.Reject(env.Undefined());
-      }
+    return FromNodeThreadRunApiResultInNodeThread(info.Env(), api_->GLFWInit(), [](JSEnv env, boost::future<void> result, JSDeferred deferred) {
+      result.get();
+      deferred.Resolve(env.Undefined());
     });
   }
 
   void
   EngineApiBridge::JSCall_GLFWStartPollEvents(JSCbi info) {
     api_->GLFWStartPollEvents(info[0].ToBoolean());
-  }
-
-  JSValue
-  EngineApiBridge::JSCall_GLFWLoadGL(JSCbi info) {
-    return FromNodeThreadRunApiResultInNodeThread(info.Env(), api_->GLFWLoadGL(), [](JSEnv env, boost::future<bool> result, JSDeferred deferred) {
-      deferred.Resolve(JSBoolean::New(env, result.get()));
-    });
   }
 
   JSValue
@@ -65,18 +53,18 @@ namespace chunklands::core {
     });
   }
 
-  void
-  EngineApiBridge::JSCall_windowMakeContextCurrent(JSCbi info) {
+  JSValue
+  EngineApiBridge::JSCall_windowLoadGL(JSCbi info) {
     JSExternal<engine::WindowHandle> js_window = info[0].As<JSExternal<engine::WindowHandle>>();
-    assert(js_window.Data());
-
-    api_->WindowMakeContextCurrent(js_window.Data());
+    return FromNodeThreadRunApiResultInNodeThread(info.Env(), api_->WindowLoadGL(js_window.Data()), [](JSEnv env, boost::future<void> result, JSDeferred deferred) {
+      result.get();
+      deferred.Resolve(env.Undefined());
+    });
   }
 
   JSValue
   EngineApiBridge::JSCall_windowOn(JSCbi info) {
       JSExternal<engine::WindowHandle> js_window = info[0].As<JSExternal<engine::WindowHandle>>();
-      assert(js_window.Data());
       
       std::string type = info[1].ToString();
       JSRef2 js_ref = JSRef2::New(info.Env(), info[2]);

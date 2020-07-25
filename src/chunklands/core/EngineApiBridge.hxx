@@ -25,11 +25,10 @@ namespace chunklands::core {
     // GLFW
     JS_DECL_CB     (GLFWInit)
     JS_DECL_CB_VOID(GLFWStartPollEvents)
-    JS_DECL_CB     (GLFWLoadGL)
 
     // window
     JS_DECL_CB     (windowCreate)
-    JS_DECL_CB_VOID(windowMakeContextCurrent)
+    JS_DECL_CB     (windowLoadGL)
     JS_DECL_CB     (windowOn)
 
   public:

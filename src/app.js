@@ -9,12 +9,7 @@ engine.init();
   await api.GLFWInit();
   api.GLFWStartPollEvents(true);
   const win = await api.windowCreate(200, 200, 'chunklands');
-  api.windowMakeContextCurrent(win);
-
-  const loadedGL = await api.GLFWLoadGL();
-  if (!loadedGL) {
-    throw new Error('could not load OpenGL');
-  }
+  api.windowLoadGL(win);
 
   api.windowOn(win, 'shouldclose', () => {
     console.log('OK');

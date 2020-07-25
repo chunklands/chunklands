@@ -9,6 +9,7 @@
 #include <boost/thread/executors/serial_executor.hpp>
 #include <boost/thread/thread.hpp>
 #include <boost/signals2.hpp>
+#include <set>
 
 namespace chunklands::engine {
 
@@ -18,19 +19,20 @@ namespace chunklands::engine {
   public:
     Api() : serial_(loop_) {}
     ~Api() {
-      int i = 4;
-      assert(i);
+      Stop();
     }
 
   public:
     void RunCommands();
     void Stop() {
-      serial_.close();
+      if (!serial_.closed()) {
+        serial_.close();
+      }
     }
 
   public:
     // GLFW
-    boost::future<bool>
+    boost::future<void>
     GLFWInit();
 
     void
@@ -39,15 +41,13 @@ namespace chunklands::engine {
     bool
     GLFWStartPollEvents() const { return GLFW_start_poll_events; }
     
-    boost::future<bool>
-    GLFWLoadGL();
-
+    
     // Window
     boost::future<WindowHandle*>
     WindowCreate(int width, int height, std::string title);
-    
-    void
-    WindowMakeContextCurrent(WindowHandle* handle);
+
+    boost::future<void>
+    WindowLoadGL(WindowHandle* handle);
 
     boost::signals2::scoped_connection
     WindowOn(WindowHandle* handle, const std::string& event, std::function<void()> callback);
@@ -65,6 +65,8 @@ namespace chunklands::engine {
   private:
     boost::loop_executor loop_;
     boost::serial_executor serial_;
+
+    std::set<WindowHandle*> window_instances_;
 
     bool GLFW_start_poll_events = false;
   };
