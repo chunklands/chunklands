@@ -9,18 +9,22 @@ namespace chunklands::core {
   class EngineBridge : public JSObjectWrap<EngineBridge> {
     JS_DECL_INITCTOR()
 
-    JS_DECL_CB_VOID(init)
-    JS_DECL_CB_VOID(shutdown)
+    JS_DECL_CB_VOID(terminate)
 
   public:
     EngineBridge(JSCbi info);
 
-    engine::Api* GetApi() {
-      return engine_->api.get();
+    engine::Engine& GetEngine() {
+      return engine_;
+    }
+
+    JSTSFunction& GetJSThreadSafeFunction() {
+      return fn_;
     }
 
   private:
-    std::unique_ptr<engine::Engine> engine_;
+    engine::Engine engine_;
+    JSTSFunction fn_;
   };
 
 } // namespace chunklands::core

@@ -4,20 +4,15 @@
 namespace chunklands::core {
 
   EngineBridge::EngineBridge(JSCbi info) : JSObjectWrap<EngineBridge>(info) {
-    engine_ = std::make_unique<engine::Engine>();
+    fn_ = JSTSFunction::New(info.Env(), JSFunction::New(info.Env(), [](JSCbi){}, "dummy"), "EngineApiBridgeCallback", 0, 1);
   }
 
   JS_DEF_INITCTOR(EngineBridge, ONE_ARG({
-    JS_CB(init),
-    JS_CB(shutdown),
+    JS_CB(terminate),
   }))
 
-  void EngineBridge::JSCall_init(JSCbi) {
-    engine_->Init();
-  }
-
-  void EngineBridge::JSCall_shutdown(JSCbi) {
-    engine_->Terminate();
+  void EngineBridge::JSCall_terminate(JSCbi) {
+    fn_.Release();
   }
 
 } // namespace chunklands::core

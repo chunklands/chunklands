@@ -1,20 +1,26 @@
 
 #include "Engine.hxx"
+#include <iostream>
 
 namespace chunklands::engine {
 
-  Engine::Engine() {
-    api = std::make_unique<Api>();
-    loop_ = std::make_unique<GameLoop>(api.get());
+  Engine::Engine() : loop_(), serial_(loop_) {
+    api_ = new Api(loop_);
+    thread_ = std::thread([this]() {
+      std::unique_ptr<Api> api(api_);
+      while (!stop_) {
+        api->Tick();
+        loop_.run_queued_closures();
+      }
+
+      loop_.close();
+    });
   }
 
-  void Engine::Init() {
-    loop_->Start();
-  }
-
-  void Engine::Terminate() {
-    api->Stop();
-    loop_->Stop();
+  Engine::~Engine() {
+    std::cout << "~Engine" << std::endl;
+    stop_ = true;
+    thread_.join();
   }
 
 } // namespace chunklands::engine

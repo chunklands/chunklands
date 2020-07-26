@@ -35,6 +35,14 @@
                                                         return clazz; \
                                                       }
 
+#define JS_DEF_INITCTOR_NOCLASSDEF(CLASS)             Napi::FunctionReference CLASS::constructor; \
+                                                      JSFunction CLASS::Initialize(JSEnv env) { \
+                                                        auto&& clazz = DefineClass(env, #CLASS, {}); \
+                                                        constructor = Napi::Persistent(clazz); \
+                                                        constructor.SuppressDestruct(); \
+                                                        return clazz; \
+                                                      }
+
 // Wrap - Class definition
 #define JS_SETTER(WHAT)                               InstanceMethod("set" #WHAT,           &JSCurrentWrap::JSCall_Set##WHAT)
 #define JS_GETTER(WHAT)                               InstanceMethod("get" #WHAT,           &JSCurrentWrap::JSCall_Get##WHAT)

@@ -1,15 +1,11 @@
 #ifndef __CHUNKLANDS_ENGINE_API_HXX__
 #define __CHUNKLANDS_ENGINE_API_HXX__
 
-#define BOOST_THREAD_VERSION 4
-#define BOOST_THREAD_PROVIDES_FUTURE
-#define BOOST_THREAD_PROVIDES_EXECUTORS
-#define BOOST_THREAD_PROVIDES_FUTURE_CONTINUATION
-#include <boost/thread/executors/loop_executor.hpp>
-#include <boost/thread/executors/serial_executor.hpp>
-#include <boost/thread/thread.hpp>
+#include <chunklands/libcxx/boost_thread.hxx>
 #include <boost/signals2.hpp>
 #include <set>
+#include <thread>
+#include "GBufferPass.hxx"
 
 namespace chunklands::engine {
 
@@ -17,18 +13,12 @@ namespace chunklands::engine {
 
   class Api {
   public:
-    Api() : serial_(loop_) {}
-    ~Api() {
-      Stop();
-    }
+    Api(boost::loop_executor& executor) : executor_(executor) {}
+    ~Api();
 
   public:
-    void RunCommands();
-    void Stop() {
-      if (!serial_.closed()) {
-        serial_.close();
-      }
-    }
+    void Init();
+    void Tick();
 
   public:
     // GLFW
@@ -39,8 +29,7 @@ namespace chunklands::engine {
     GLFWStartPollEvents(bool poll);
 
     bool
-    GLFWStartPollEvents() const { return GLFW_start_poll_events; }
-    
+    GLFWStartPollEvents() const { return GLFW_start_poll_events_; }
     
     // Window
     boost::future<WindowHandle*>
@@ -51,24 +40,31 @@ namespace chunklands::engine {
 
     boost::signals2::scoped_connection
     WindowOn(WindowHandle* handle, const std::string& event, std::function<void()> callback);
+
+    // GBufferPass
+    boost::future<void>
+    GBufferPassInit(WindowHandle* handle, std::string vertex_shader, std::string fragment_shader);
     
   private:
+    bool IsGameLoopThread() const;
+
     template<class F, class R = std::result_of_t<F&&()>>
     inline boost::future<R> EnqueueTask(F&& fn) {
       boost::packaged_task<R()> task(std::forward<F>(fn));
       boost::future<R> result = task.get_future();
-      serial_.submit(std::move(task));
+      executor_.submit(std::move(task));
 
       return result;
     }
 
   private:
-    boost::loop_executor loop_;
-    boost::serial_executor serial_;
+    boost::loop_executor& executor_;
 
-    std::set<WindowHandle*> window_instances_;
+    std::set<WindowHandle*> window_handles_;
 
-    bool GLFW_start_poll_events = false;
+    bool GLFW_start_poll_events_ = false;
+
+    std::unique_ptr<GBufferPass> g_buffer_pass_;
   };
 
 } // namespace chunklands::engine

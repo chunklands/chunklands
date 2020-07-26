@@ -19,7 +19,7 @@ const DEV = process.env.NODE_ENV !== 'production';
       + ' && make'
   })
   .addMakefileTarget('deps/backward-cpp/libbackward.a', {
-    cmd: `@cd deps/backward-cpp && cmake -DCMAKE_BUILD_TYPE=${DEV ? 'Debug' : 'Release'} --build .`
+    cmd: `@cd deps/backward-cpp && cmake -DBACKWARD_HAS_BFD=1 -DCMAKE_BUILD_TYPE=${DEV ? 'Debug' : 'Release'} --build .`
     + ' && make'
   })
   .addMakefileTarget('deps/googletest/lib/libgtestd.a', {
@@ -64,7 +64,7 @@ const DEV = process.env.NODE_ENV !== 'production';
       'deps/backward-cpp/libbackward.a',
       'deps/boost/stage/lib/*.a',
     )
-    .addLink(os.platform() === 'linux' ? 'X11' : null)
+    .addLink(...os.platform() === 'linux' ? ['X11', 'dl', 'bfd'] : [])
     .addMacOSFramework('CoreVideo', 'OpenGL', 'IOKit', 'Cocoa', 'Carbon')
     .addToBuildSet('build/chunklands.node');
 

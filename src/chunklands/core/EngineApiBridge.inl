@@ -2,7 +2,7 @@
 #include "EngineApiBridge.hxx"
 
 #include <chunklands/engine/engine_exception.hxx>
-#include <sstream>
+#include <chunklands/engine/gl/gl_exception.hxx>
 
 namespace chunklands::core {
 
@@ -41,13 +41,10 @@ namespace chunklands::core {
         try {
           fn(env, std::move(data->result), std::move(deferred));
         } catch (const engine::engine_exception& e) {
-          std::ostringstream ss;
-          backward::Printer printer;
-          printer.object = true;
-          printer.color_mode = backward::ColorMode::always;
-          printer.address = false;
-          printer.print(*boost::get_error_info<engine::traced>(e), ss);
-          const std::string message = ss.str();
+          const std::string message = engine::get_engine_exception_message(e);
+          Napi::Error::Fatal(__FILE__, message.data());
+        } catch (const engine::gl::gl_exception& e) {
+          const std::string message = engine::gl::get_gl_exception_message(e);
           Napi::Error::Fatal(__FILE__, message.data());
         }
       });

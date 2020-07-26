@@ -5,13 +5,6 @@
 #include <chunklands/engine/Engine.hxx>
 #include "EngineBridge.hxx"
 #include <memory>
-#define BOOST_THREAD_VERSION 4
-#define BOOST_THREAD_PROVIDES_FUTURE
-#define BOOST_THREAD_PROVIDES_EXECUTORS
-#define BOOST_THREAD_PROVIDES_FUTURE_CONTINUATION
-#include <boost/thread/executors/loop_executor.hpp>
-#include <boost/thread/executors/serial_executor.hpp>
-#include <boost/thread/thread.hpp>
 
 #include <iostream>
 
@@ -19,8 +12,6 @@ namespace chunklands::core {
 
   class EngineApiBridge : public JSObjectWrap<EngineApiBridge> {
     JS_DECL_INITCTOR()
-
-    JS_DECL_CB_VOID(terminate)
 
     // GLFW
     JS_DECL_CB     (GLFWInit)
@@ -31,8 +22,12 @@ namespace chunklands::core {
     JS_DECL_CB     (windowLoadGL)
     JS_DECL_CB     (windowOn)
 
+    // GBufferPass
+    JS_DECL_CB     (gbufferPassInit)
+
   public:
     EngineApiBridge(JSCbi info);
+    ~EngineApiBridge();
 
   private:
     template<class T, class F>
@@ -54,10 +49,10 @@ namespace chunklands::core {
     }
 
   private:
-    JSTSFunction fn_;
+    engine::Api* api_ = nullptr;
     std::thread::id node_thread_id_;
     JSWrapRef<EngineBridge> js_engine_bridge_;
-    engine::Api* api_ = nullptr;
+    JSTSFunction fn_;
   };
 
 } // namespace chunklands::core
