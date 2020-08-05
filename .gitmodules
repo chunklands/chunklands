@@ -139,3 +139,6 @@
 [submodule "deps/backward-cpp"]
 	path = deps/backward-cpp
 	url = https://github.com/bombela/backward-cpp
+[submodule "deps/easy_profiler"]
+	path = deps/easy_profiler
+	url = https://github.com/yse/easy_profiler.git

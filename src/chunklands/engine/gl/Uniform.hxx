@@ -16,14 +16,25 @@ namespace chunklands::engine::gl {
     glUniform3fv(location, 1, glm::value_ptr(value));
   }
 
-  inline void update_uniform(GLint location, glm::mat4& value) {
+  inline void update_uniform(GLint location, const glm::mat4& value) {
     glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(value));
   }
 
   template<class T>
   class Uniform {
   public:
+    Uniform() {}
     Uniform(GLint location) : location_(location) {
+      assert(location_ != -1);
+    }
+
+    Uniform(const Program& program, const std::string& name) {
+      location_ = program.GetUniformLocation(name);
+      assert(location_ != -1);
+    }
+
+    Uniform(const Program& program, const std::string& name, int index) {
+      location_ = program.GetUniformLocation(name, index);
       assert(location_ != -1);
     }
 

@@ -14,16 +14,28 @@ namespace chunklands::core {
     JS_DECL_INITCTOR()
 
     // GLFW
-    JS_DECL_CB     (GLFWInit)
-    JS_DECL_CB_VOID(GLFWStartPollEvents)
+    JS_DECL_CB      (GLFWInit)
+    JS_DECL_CB_VOID (GLFWStartPollEvents)
 
     // window
-    JS_DECL_CB     (windowCreate)
-    JS_DECL_CB     (windowLoadGL)
-    JS_DECL_CB     (windowOn)
+    JS_DECL_CB      (windowCreate)
+    JS_DECL_CB      (windowLoadGL)
+    JS_DECL_CB      (windowOn)
 
-    // GBufferPass
-    JS_DECL_CB     (gbufferPassInit)
+    // RenderPipeline
+    JS_DECL_CB      (renderPipelineInit)
+
+    // Block
+    JS_DECL_CB      (blockCreate)
+    JS_DECL_CB      (blockBake)
+
+    // Chunk
+    JS_DECL_CB      (chunkCreate)
+    JS_DECL_CB      (chunkUpdate)
+
+    // Scene
+    JS_DECL_CB      (sceneAddChunk)
+    JS_DECL_CB      (sceneRemoveChunk)
 
   public:
     EngineApiBridge(JSCbi info);

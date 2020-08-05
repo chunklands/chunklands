@@ -13,6 +13,8 @@ namespace chunklands::engine {
     Engine();
     ~Engine();
 
+    void Terminate();
+
     inline Api* GetApi() {
       assert(api_);
       return api_;

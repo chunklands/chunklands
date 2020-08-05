@@ -16,11 +16,17 @@ namespace chunklands::engine {
     }
   };
 
-  inline BOOST_NORETURN void throw_engine_exception(const char* api_function) {
-    BOOST_THROW_EXCEPTION(engine_exception()
+  inline engine_exception create_engine_exception(const char* api_function) {
+    return engine_exception()
+      << boost::errinfo_api_function(api_function)
+      << libcxx::exception::create_errinfo_stacktrace(1);
+  }
+
+  inline engine_exception create_engine_exception(const char* api_function, std::string message) {
+    return engine_exception()
       << boost::errinfo_api_function(api_function)
       << libcxx::exception::create_errinfo_stacktrace(1)
-    );
+      << libcxx::exception::messaged(std::move(message));
   }
 
   inline std::string get_engine_exception_message(const engine_exception& e) {

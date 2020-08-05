@@ -4,67 +4,56 @@
 #include <chunklands/libcxx/boost_thread.hxx>
 #include <boost/signals2.hpp>
 #include <set>
-#include <thread>
-#include "GBufferPass.hxx"
+#include "api-types.hxx"
 
 namespace chunklands::engine {
 
-  struct WindowHandle;
-
   class Api {
   public:
-    Api(boost::loop_executor& executor) : executor_(executor) {}
+    Api(void* executor);
     ~Api();
 
   public:
-    void Init();
     void Tick();
 
   public:
-    // GLFW
-    boost::future<void>
-    GLFWInit();
-
-    void
-    GLFWStartPollEvents(bool poll);
-
-    bool
-    GLFWStartPollEvents() const { return GLFW_start_poll_events_; }
+    boost::future<void>                 GLFWInit();
+    void                                GLFWStartPollEvents(bool poll);
+    bool                                GLFWStartPollEvents() const { return GLFW_start_poll_events_; }
     
-    // Window
-    boost::future<WindowHandle*>
-    WindowCreate(int width, int height, std::string title);
-
-    boost::future<void>
-    WindowLoadGL(WindowHandle* handle);
-
-    boost::signals2::scoped_connection
-    WindowOn(WindowHandle* handle, const std::string& event, std::function<void()> callback);
-
-    // GBufferPass
-    boost::future<void>
-    GBufferPassInit(WindowHandle* handle, std::string vertex_shader, std::string fragment_shader);
+    boost::future<CEWindowHandle*>      WindowCreate(int width, int height, std::string title);
+    boost::future<void>                 WindowLoadGL(CEWindowHandle* handle);
+    boost::signals2::scoped_connection  WindowOn(CEWindowHandle* handle, const std::string& event, std::function<void()> callback);
     
-  private:
-    bool IsGameLoopThread() const;
+    boost::future<void>                 RenderPipelineInit(CEWindowHandle* handle, CERenderPipelineInit init);
+    
+    boost::future<CEBlockHandle*>       BlockCreate(CEBlockCreateInit init);
+    boost::future<void>                 BlockBake();
 
-    template<class F, class R = std::result_of_t<F&&()>>
-    inline boost::future<R> EnqueueTask(F&& fn) {
-      boost::packaged_task<R()> task(std::forward<F>(fn));
-      boost::future<R> result = task.get_future();
-      executor_.submit(std::move(task));
+    boost::future<CEChunkHandle*>       ChunkCreate(int x, int y, int z);
+    boost::future<void>                 ChunkUpdateData(CEChunkHandle* handle, CEBlockHandle** blocks);
 
-      return result;
-    }
+    boost::future<void>                 SceneAddChunk(CEChunkHandle* handle);
+    boost::future<void>                 SceneRemoveChunk(CEChunkHandle* handle);
 
   private:
-    boost::loop_executor& executor_;
+    void* executor_;
 
-    std::set<WindowHandle*> window_handles_;
-
+    bool GLFW_initialized = false;
     bool GLFW_start_poll_events_ = false;
 
-    std::unique_ptr<GBufferPass> g_buffer_pass_;
+    CEHandle* g_buffer_pass_handle_ = nullptr;
+    CEHandle* lighting_pass_handle_ = nullptr;
+    CEHandle* render_quad_handle_ = nullptr;
+
+    std::set<CEWindowHandle*> windows_;
+    std::set<CEHandle*> unbaked_blocks_;
+    std::set<CEBlockHandle*> blocks_;
+    std::set<CEChunkHandle*> chunks_;
+    std::set<CEChunkHandle*> chunks_by_state_[CE_CHUNK_STATE_COUNT];
+
+    std::set<CEChunkHandle*> scene_chunks_;
+    // std::set<CEGBufferMeshHandle*> g_buffer_meshes_;
   };
 
 } // namespace chunklands::engine

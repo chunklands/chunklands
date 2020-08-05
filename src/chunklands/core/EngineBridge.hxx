@@ -10,6 +10,8 @@ namespace chunklands::core {
     JS_DECL_INITCTOR()
 
     JS_DECL_CB_VOID(terminate)
+    JS_DECL_CB_VOID(startProfiling)
+    JS_DECL_CB_VOID(stopProfiling)
 
   public:
     EngineBridge(JSCbi info);

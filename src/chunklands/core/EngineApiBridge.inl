@@ -6,6 +6,16 @@
 
 namespace chunklands::core {
 
+  inline BOOST_NORETURN void FatalAbort(const engine::engine_exception& e) {
+    const std::string message = engine::get_engine_exception_message(e);
+    Napi::Error::Fatal(__FILE__, message.data());
+  }
+
+  inline BOOST_NORETURN void FatalAbort(const engine::gl::gl_exception& e) {
+    const std::string message = engine::gl::get_gl_exception_message(e);
+    Napi::Error::Fatal(__FILE__, message.data());
+  }
+
   template<class T, class F>
   void EngineApiBridge::RunInNodeThread(std::unique_ptr<T> data, F&& fn) {
     assert(NotIsNodeThread());
@@ -41,11 +51,9 @@ namespace chunklands::core {
         try {
           fn(env, std::move(data->result), std::move(deferred));
         } catch (const engine::engine_exception& e) {
-          const std::string message = engine::get_engine_exception_message(e);
-          Napi::Error::Fatal(__FILE__, message.data());
+          FatalAbort(e);
         } catch (const engine::gl::gl_exception& e) {
-          const std::string message = engine::gl::get_gl_exception_message(e);
-          Napi::Error::Fatal(__FILE__, message.data());
+          FatalAbort(e);
         }
       });
 

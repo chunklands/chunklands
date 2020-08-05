@@ -7,21 +7,34 @@ namespace chunklands::engine {
 
   GBufferPass::GBufferPass(Window* window, std::unique_ptr<gl::Program> program)
     : program_(std::move(program))
-    , u_proj(program_->GetUniformLocation("u_proj"))
-    , u_view(program_->GetUniformLocation("u_view"))
-    , u_texture(program_->GetUniformLocation("u_texture"))
+    , u_proj_(*program_, "u_proj")
+    , u_view_(*program_, "u_view")
+    , u_texture_(*program_, "u_texture")
   {
     assert(window);
     const window_size_t size = window->GetSize();
     UpdateBuffers(size.width, size.height);
+    UpdateProj(size.width, size.height);
+
     window_resize_conn_ = window->on_resize.connect([this](const window_size_t& size) {
       UpdateBuffers(size.width, size.height);
+      UpdateProj(size.width, size.height);
     });
+
+    view_ = glm::lookAt(glm::vec3(12, -4, 50), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
+
+    program_->Use();
+    u_texture_.Update(0);
+    program_->Unuse();
   }
 
   GBufferPass::~GBufferPass() {
     std::cout << "~GBufferPass" << std::endl;
     DeleteBuffers();
+
+    if (texture_ != 0) {
+      glDeleteTextures(1, &texture_);
+    }
   }
 
   void GBufferPass::UpdateBuffers(int width, int height) {
@@ -34,28 +47,28 @@ namespace chunklands::engine {
     glBindFramebuffer(GL_FRAMEBUFFER, framebuffer_);
     GL_CHECK_DEBUG();
 
-    glGenTextures(1, &texture_position);
-    glBindTexture(GL_TEXTURE_2D, texture_position);
+    glGenTextures(1, &texture_position_);
+    glBindTexture(GL_TEXTURE_2D, texture_position_);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, width, height, 0, GL_RGB, GL_FLOAT, nullptr);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture_position, 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture_position_, 0);
     GL_CHECK_DEBUG();
 
-    glGenTextures(1, &texture_normal);
-    glBindTexture(GL_TEXTURE_2D, texture_normal);
+    glGenTextures(1, &texture_normal_);
+    glBindTexture(GL_TEXTURE_2D, texture_normal_);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, width, height, 0, GL_RGB, GL_FLOAT, nullptr);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, texture_normal, 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, texture_normal_, 0);
     GL_CHECK_DEBUG();
 
-    glGenTextures(1, &texture_color);
-    glBindTexture(GL_TEXTURE_2D, texture_color);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+    glGenTextures(1, &texture_color_);
+    glBindTexture(GL_TEXTURE_2D, texture_color_);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, texture_color, 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, texture_color_, 0);
     GL_CHECK_DEBUG();
 
     const GLuint attachments[3] = {
@@ -84,12 +97,54 @@ namespace chunklands::engine {
   void GBufferPass::DeleteBuffers() {
     GL_CHECK_DEBUG();
 
-    glDeleteTextures(1, &texture_position);
-    glDeleteTextures(1, &texture_normal);
-    glDeleteTextures(1, &texture_color);
+    glDeleteTextures(1, &texture_position_);
+    glDeleteTextures(1, &texture_normal_);
+    glDeleteTextures(1, &texture_color_);
     glDeleteRenderbuffers(1, &renderbuffer_);
     glDeleteFramebuffers(1, &framebuffer_);
 
+    GL_CHECK_DEBUG();
+  }
+
+  void GBufferPass::BeginPass() {
+    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer_);
+    glClearColor(1.f, 1.f, 1.f, 1.f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    if (texture_ != 0) {
+      glActiveTexture(GL_TEXTURE0);
+      glBindTexture(GL_TEXTURE_2D, texture_);
+    }
+
+    program_->Use();
+    u_proj_.Update(proj_);
+    u_view_.Update(view_);
+  }
+
+  void GBufferPass::EndPass() {
+    program_->Unuse();
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  }
+
+  void GBufferPass::UpdateProj(int width, int height) {
+    std::cout << "width: " << width << ", height: " << height << std::endl;
+    glViewport(0, 0, width, height);
+    proj_ = glm::perspective(glm::radians(75.f), float(width) / float(height), 0.1f, 1000.0f);
+  }
+
+  void GBufferPass::LoadTexture(GLsizei width, GLsizei height, GLenum format, GLenum type, const void* pixels) {
+  // void GBufferPass::LoadTexture(GLsizei, GLsizei, GLenum, GLenum, const void*) {
+    GL_CHECK_DEBUG();
+
+    glGenTextures(1, &texture_);
+    glBindTexture(GL_TEXTURE_2D, texture_);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, format, type, pixels);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    GL_CHECK_DEBUG();
+    // const unsigned char p[] = {255, 255, 200, 255};
+    // glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, &p);
+    glBindTexture(GL_TEXTURE_2D, 0);
     GL_CHECK_DEBUG();
   }
 

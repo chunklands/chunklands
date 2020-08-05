@@ -19,7 +19,7 @@ namespace chunklands::engine::gl {
     }
 
     GLint GetUniformLocation(const std::string& name) const;
-    GLint GetUniformLocation(const std::string& name, const signed index) const;
+    GLint GetUniformLocation(const std::string& name, const int index) const;
 
   private:
     GLuint program_ = 0;

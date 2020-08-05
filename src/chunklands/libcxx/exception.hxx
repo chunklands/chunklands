@@ -1,6 +1,8 @@
 #ifndef __CHUNKLANDS_LIBCXX_EXCEPTION_HXX__
 #define __CHUNKLANDS_LIBCXX_EXCEPTION_HXX__
 
+#include <boost/exception/all.hpp>
+#include <boost/exception/exception.hpp>
 #include <boost/exception/errinfo_api_function.hpp>
 #include <sstream>
 #define BACKWARD_HAS_BFD 1
@@ -22,6 +24,9 @@ namespace chunklands::libcxx::exception {
     return traced(load_stacktrace(1 + skip)); // skip create_errinfo_stacktrace
   }
 
+  struct tag_message;
+  using messaged = boost::error_info<struct tag_message, std::string>;
+
   template<class E>
   inline void add_exception_name(std::ostream& ss, const E&) {
     ss
@@ -40,6 +45,19 @@ namespace chunklands::libcxx::exception {
     ss
       << "=== API-Function ===" << std::endl
       << *api_function << std::endl
+      << std::endl;
+  }
+
+  template<class E>
+  inline void add_message_message(std::ostream& ss, const E& e) {
+    const std::string* const message = boost::get_error_info<messaged>(e);
+    if (!message) {
+      return;
+    }
+
+    ss
+      << "=== Message ===" << std::endl
+      << *message << std::endl
       << std::endl;
   }
 

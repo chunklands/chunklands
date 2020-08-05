@@ -8,13 +8,13 @@ module.exports = {
 };
 
 async function loadShader(name) {
-  const [vertexShaderSource, fragmentShaderSource] = await Promise.all([
+  const [vertexShader, fragmentShader] = await Promise.all([
     readFile(`${__dirname}/../assets/shader/${name}.vert`),
     readFile(`${__dirname}/../assets/shader/${name}.frag`),
   ]);
 
   return {
-    vertexShaderSource,
-    fragmentShaderSource
+    vertexShader,
+    fragmentShader
   };
 }

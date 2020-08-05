@@ -67,7 +67,7 @@ namespace chunklands::engine::gl {
     return location;
   }
 
-  GLint Program::GetUniformLocation(const std::string& name, const signed index) const {
+  GLint Program::GetUniformLocation(const std::string& name, const int index) const {
     return GetUniformLocation(name + "[" + std::to_string(index) + "]");
   }
 

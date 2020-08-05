@@ -135,6 +135,8 @@ namespace chunklands {
   using JSTSFunction  = Napi::ThreadSafeFunction;
   using JSDeferred    = Napi::Promise::Deferred;
   using JSPromise     = Napi::Promise;
+  template<class T>
+  using JSBuffer      = Napi::Buffer<T>;
 
   inline uint32_t js_index(int i) {
     return i;

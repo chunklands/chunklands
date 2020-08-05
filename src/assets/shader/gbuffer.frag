@@ -14,5 +14,9 @@ uniform sampler2D u_texture;
 void main() {
   position = frag_position;
   normal = frag_normal;
-  color = vec4(texture(u_texture, frag_uv).rgb, 1);
+  color = vec4(
+    texture(u_texture, frag_uv).rgb
+    // * 0.0000001
+    // + vec3(1, 0.2, 0.2)
+    , 1);
 }

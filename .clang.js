@@ -27,6 +27,9 @@ const DEV = process.env.NODE_ENV !== 'production';
       + ' && make'
   });
 
+  // libeasy_profiler
+  // cmake .. -DBUILD_SHARED_LIBS=OFF -DCMAKE_POSITION_INDEPENDENT_CODE=ON
+
   const gladCs = await new clang.CompileSet(buildSet, {std: 'c99', fPIC: true})
     .addSystemInclude('deps/glfw/deps')
     .addSystemSource('deps/glfw/deps/glad_gl.c')
@@ -35,6 +38,7 @@ const DEV = process.env.NODE_ENV !== 'production';
   const systemInclude = [
     'deps/backward-cpp',
     'deps/boost',
+    'deps/easy_profiler/easy_profiler_core/include',
     'deps/glfw/include',
     'deps/glfw/deps',
     'deps/glm',
@@ -63,6 +67,7 @@ const DEV = process.env.NODE_ENV !== 'production';
       'deps/glfw/src/libglfw3.a',
       'deps/backward-cpp/libbackward.a',
       'deps/boost/stage/lib/*.a',
+      'deps/easy_profiler/build/bin/libeasy_profiler.a',
     )
     .addLink(...os.platform() === 'linux' ? ['X11', 'dl', 'bfd'] : [])
     .addMacOSFramework('CoreVideo', 'OpenGL', 'IOKit', 'Cocoa', 'Carbon')
