@@ -66,7 +66,7 @@ const api = new chunklands.EngineApiBridge(engine);
 
 function createChunk(blocks) {
   const arrayBuffer = new ArrayBuffer(32 * 32 * 32 * BigUint64Array.BYTES_PER_ELEMENT);
-  const buffer = new BigInt64Array(arrayBuffer);
+  const buffer = new BigUint64Array(arrayBuffer);
 
   const dirtHandle = blocks['block.dirt'];
   assert(dirtHandle);

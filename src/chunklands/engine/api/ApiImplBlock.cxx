@@ -219,9 +219,9 @@ namespace chunklands::engine {
       const long dim = nextPOT(max_dim);
       assert((dim & (dim - 1)) == 0); // POT check
 
-      std::size_t size = dim * dim * COLOR_COMPONENTS;
+      const std::size_t size = dim * dim * COLOR_COMPONENTS;
       std::unique_ptr<unsigned char[]> data = std::make_unique<unsigned char[]>(size);
-      std::memset(data.get(), 1, size);
+      std::memset(data.get(), 0, size);
       generate(data.get(), dim, root.get());
 
       CHECK(g_buffer_pass_handle_ != nullptr);

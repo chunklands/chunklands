@@ -148,4 +148,8 @@ namespace chunklands::engine {
     GL_CHECK_DEBUG();
   }
 
+  void GBufferPass::UpdateView(const glm::vec3& eye, const glm::vec3& center) {
+    view_ = glm::lookAt(eye, center, glm::vec3(0, 1, 0));
+  }
+
 } // namespace chunklands::engine

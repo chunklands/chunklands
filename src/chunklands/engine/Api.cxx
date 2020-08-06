@@ -8,10 +8,15 @@
 #include "LightingPass.hxx"
 #include "RenderQuad.hxx"
 #include "ChunkMeshDataGenerator.hxx"
+#include "Camera.hxx"
 
 namespace chunklands::engine {
 
-  Api::Api(void* executor) : executor_(executor) {
+  Api::Api(void* executor)
+    : executor_(executor)
+  {
+    Camera* camera = new Camera;
+    camera_handle_ = reinterpret_cast<CEHandle*>(camera);
   }
 
   Api::~Api() {
@@ -36,6 +41,12 @@ namespace chunklands::engine {
     if (GLFW_start_poll_events_) {
       EASY_BLOCK("glfwPollEvents");
       glfwPollEvents();
+    }
+
+    if (g_buffer_pass_handle_ && camera_handle_) {
+      GBufferPass* g_buffer_pass = reinterpret_cast<GBufferPass*>(g_buffer_pass_handle_);
+      Camera* camera = reinterpret_cast<Camera*>(camera_handle_);
+      g_buffer_pass->UpdateView(camera->GetEye(), camera->GetCenter());
     }
 
     if (g_buffer_pass_handle_ && lighting_pass_handle_ && render_quad_handle_) {

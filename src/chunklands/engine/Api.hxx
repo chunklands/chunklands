@@ -45,6 +45,7 @@ namespace chunklands::engine {
     CEHandle* g_buffer_pass_handle_ = nullptr;
     CEHandle* lighting_pass_handle_ = nullptr;
     CEHandle* render_quad_handle_ = nullptr;
+    CEHandle* camera_handle_ = nullptr;
 
     std::set<CEWindowHandle*> windows_;
     std::set<CEHandle*> unbaked_blocks_;

@@ -33,6 +33,8 @@ namespace chunklands::engine {
     GLuint GetColorTexture() const {
       return texture_color_;
     }
+
+    void UpdateView(const glm::vec3& eye, const glm::vec3& center);
   
   private:
     void UpdateProj(int width, int height);
