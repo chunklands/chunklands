@@ -59,6 +59,19 @@ const api = new chunklands.EngineApiBridge(engine);
     engine.terminate();
     engine.stopProfiling(`${__dirname}/../profiles/profile-${Date.now()}.prof`);
   });
+
+  api.windowOn(win, 'click', event => {
+    api.cameraAttachWindow(win);
+  });
+
+  api.windowOn(win, 'key', event => {
+    // ESC release
+    if (event.key === 256 && event.action === 0) {
+      api.cameraDetachWindow(win);
+      return
+    }
+  })
+
 })().catch(e => {
   console.error(e);
   process.exit(1);

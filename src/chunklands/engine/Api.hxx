@@ -23,7 +23,7 @@ namespace chunklands::engine {
     
     boost::future<CEWindowHandle*>      WindowCreate(int width, int height, std::string title);
     boost::future<void>                 WindowLoadGL(CEWindowHandle* handle);
-    boost::signals2::scoped_connection  WindowOn(CEWindowHandle* handle, const std::string& event, std::function<void()> callback);
+    boost::signals2::scoped_connection  WindowOn(CEWindowHandle* handle, const std::string& event, std::function<void(CEWindowEvent)> callback);
     
     boost::future<void>                 RenderPipelineInit(CEWindowHandle* handle, CERenderPipelineInit init);
     
@@ -36,6 +36,9 @@ namespace chunklands::engine {
     boost::future<void>                 SceneAddChunk(CEChunkHandle* handle);
     boost::future<void>                 SceneRemoveChunk(CEChunkHandle* handle);
 
+    boost::future<void>                 CameraAttachWindow(CEWindowHandle* handle);
+    boost::future<void>                 CameraDetachWindow(CEWindowHandle* handle);
+
   private:
     void* executor_;
 
@@ -45,9 +48,9 @@ namespace chunklands::engine {
     CEHandle* g_buffer_pass_handle_ = nullptr;
     CEHandle* lighting_pass_handle_ = nullptr;
     CEHandle* render_quad_handle_ = nullptr;
-    CEHandle* camera_handle_ = nullptr;
+    
+    void* data_ = nullptr;
 
-    std::set<CEWindowHandle*> windows_;
     std::set<CEHandle*> unbaked_blocks_;
     std::set<CEBlockHandle*> blocks_;
     std::set<CEChunkHandle*> chunks_;

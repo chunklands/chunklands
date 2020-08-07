@@ -41,6 +41,26 @@ namespace chunklands::engine {
     CEPassInit lighting;
   };
 
+  struct CEWindowEvent {
+    CEWindowEvent(std::string type) : type(std::move(type)) {}
+    std::string type;
+
+    union {
+      struct {
+        int button;
+        int action;
+        int mods;
+      } click;
+
+      struct {
+        int key;
+        int scancode;
+        int action;
+        int mods;
+      } key;
+    };
+  };
+
 } // namespace chunklands::engine
 
 #endif

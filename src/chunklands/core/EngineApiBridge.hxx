@@ -10,6 +10,8 @@
 
 namespace chunklands::core {
 
+  void api_call_void_resolver(JSEnv env, boost::future<void> result, JSDeferred deferred);
+
   class EngineApiBridge : public JSObjectWrap<EngineApiBridge> {
     JS_DECL_INITCTOR()
 
@@ -36,6 +38,10 @@ namespace chunklands::core {
     // Scene
     JS_DECL_CB      (sceneAddChunk)
     JS_DECL_CB      (sceneRemoveChunk)
+
+    // Camera
+    JS_DECL_CB      (cameraAttachWindow)
+    JS_DECL_CB      (cameraDetachWindow)
 
   public:
     EngineApiBridge(JSCbi info);

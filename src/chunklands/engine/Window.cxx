@@ -28,6 +28,33 @@ namespace chunklands::engine {
         .height = height
       });
     });
+
+    glfwSetCursorPosCallback(glfw_window, [](GLFWwindow* w, double x, double y) {
+      Window* const thiz = detail::Unwrap(w);
+      thiz->on_cursor_move(window_cursor_move_t {
+        .x = x,
+        .y = y
+      });
+    });
+
+    glfwSetMouseButtonCallback(glfw_window, [](GLFWwindow* w, int button, int action, int mods) {
+      Window* const thiz = detail::Unwrap(w);
+      thiz->on_click(window_click_t {
+        .button = button,
+        .action = action,
+        .mods = mods
+      });
+    });
+
+    glfwSetKeyCallback(glfw_window_, [](GLFWwindow* w, int key, int scancode, int action, int mods) {
+      Window* const thiz = detail::Unwrap(w);
+      thiz->on_key(window_key_t {
+        .key = key,
+        .scancode = scancode,
+        .action = action,
+        .mods = mods
+      });
+    });
   }
 
   Window::~Window() {
@@ -51,6 +78,33 @@ namespace chunklands::engine {
     window_size_t size;
     glfwGetWindowSize(glfw_window_, &size.width, &size.height);
     return size;
+  }
+
+  void Window::StartMouseGrab() {
+    glfwSetInputMode(glfw_window_, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    glfwGetCursorPos(glfw_window_, &last_cursor_.x, &last_cursor_.y);
+    
+    // TODO(daaitch): can we add a handler for releasing mouse grab for debugging?
+    // #include <csignal>
+    // std::signal(SIGTRAP, [](int sig) {
+    //   std::cout << "SIG: " << sig << std::endl;
+    // });
+
+    mouse_grab_conn_ = on_cursor_move.connect([this](const window_cursor_move_t& move) {
+      window_mouse_grab_t event {
+        .dx = last_cursor_.x - move.x,
+        .dy = last_cursor_.y - move.y
+      };
+
+      last_cursor_ = std::move(move);
+
+      on_mouse_grab(std::move(event));
+    });
+  }
+
+  void Window::StopMouseGrab() {
+    glfwSetInputMode(glfw_window_, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+    mouse_grab_conn_.disconnect();
   }
 
 } // namespace chunklands::engine

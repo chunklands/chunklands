@@ -8,28 +8,29 @@
 #include "LightingPass.hxx"
 #include "RenderQuad.hxx"
 #include "ChunkMeshDataGenerator.hxx"
-#include "Camera.hxx"
+#include "api/api-shared.hxx"
 
 namespace chunklands::engine {
 
   Api::Api(void* executor)
     : executor_(executor)
   {
-    Camera* camera = new Camera;
-    camera_handle_ = reinterpret_cast<CEHandle*>(camera);
+    data_ = new ApiData();
   }
 
   Api::~Api() {
     std::cout << "~Api" << std::endl;
+    delete reinterpret_cast<ApiData*>(data_);
   }
 
   void Api::Tick() {
     // TODO(daaitch): unnecessary glClear should be removed when render pipeline in place
+    ApiData* api_data = reinterpret_cast<ApiData*>(data_);
+
     {
       EASY_BLOCK("glClear");
-      for (const CEWindowHandle* const handle : windows_) {
-        const Window* const window = reinterpret_cast<const Window*>(handle);
-        assert(window);
+      for (const Window* const window : api_data->windows) {
+        assert(window != nullptr);
 
         if (window->IsGLLoaded()) {
           glClearColor(0, 0, 0, 1.f);
@@ -43,10 +44,21 @@ namespace chunklands::engine {
       glfwPollEvents();
     }
 
-    if (g_buffer_pass_handle_ && camera_handle_) {
+    if (api_data->current_window_input_controller) {
+      constexpr double move_factor = 20.0;
+      const windowinputcontroller_cursor_t cursor_delta = api_data->current_window_input_controller->GetAndResetCursorDelta();
+      api_data->character_controller.Look(glm::vec2(cursor_delta.dx, cursor_delta.dy));
+
+      const windowinputcontroller_move_t move_delta = api_data->current_window_input_controller->GetAndResetMoveDelta();
+      api_data->character_controller.Move(
+        move_factor * (move_delta.forward - move_delta.back),
+        move_factor * (move_delta.right - move_delta.left)
+      );
+    }
+
+    if (g_buffer_pass_handle_) {
       GBufferPass* g_buffer_pass = reinterpret_cast<GBufferPass*>(g_buffer_pass_handle_);
-      Camera* camera = reinterpret_cast<Camera*>(camera_handle_);
-      g_buffer_pass->UpdateView(camera->GetEye(), camera->GetCenter());
+      g_buffer_pass->UpdateView(api_data->camera.GetEye(), api_data->camera.GetCenter());
     }
 
     if (g_buffer_pass_handle_ && lighting_pass_handle_ && render_quad_handle_) {
@@ -99,9 +111,8 @@ namespace chunklands::engine {
 
     {
       EASY_BLOCK("glfwSwapBuffers");
-      for (CEWindowHandle* const handle : windows_) {
-        Window* const window = reinterpret_cast<Window*>(handle);
-        assert(window);
+      for (Window* const window : api_data->windows) {
+        assert(window != nullptr);
 
         if (window->IsGLLoaded()) {
           window->SwapBuffers();

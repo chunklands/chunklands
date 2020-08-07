@@ -7,6 +7,11 @@
 #define CHECK(x) do { if (!(x)) { Napi::Error::Fatal(__FILE__ ":" BOOST_PP_STRINGIZE(__LINE__), #x); } } while(0)
 
 namespace chunklands::core {
+  void api_call_void_resolver(JSEnv env, boost::future<void> result, JSDeferred deferred) {
+    result.get();
+    deferred.Resolve(env.Undefined());
+  }
+
   template<class T>
   T* unsafe_get_handle_ptr(JSValue js_value) {
     CHECK(js_value.Type() == napi_bigint);
@@ -55,6 +60,8 @@ namespace chunklands::core {
     JS_CB(chunkUpdate),
     JS_CB(sceneAddChunk),
     JS_CB(sceneRemoveChunk),
+    JS_CB(cameraAttachWindow),
+    JS_CB(cameraDetachWindow),
   }))
 
   template<class F>
@@ -70,10 +77,7 @@ namespace chunklands::core {
 
   JSValue
   EngineApiBridge::JSCall_GLFWInit(JSCbi info) {
-    return FromNodeThreadRunApiResultInNodeThread(info.Env(), WRAP_API_CALL(api_->GLFWInit()), [](JSEnv env, boost::future<void> result, JSDeferred deferred) {
-      result.get();
-      deferred.Resolve(env.Undefined());
-    });
+    return FromNodeThreadRunApiResultInNodeThread(info.Env(), WRAP_API_CALL(api_->GLFWInit()), api_call_void_resolver);
   }
 
   void
@@ -99,10 +103,7 @@ namespace chunklands::core {
   EngineApiBridge::JSCall_windowLoadGL(JSCbi info) {
     engine::CEWindowHandle *handle = unsafe_get_handle_ptr<engine::CEWindowHandle>(info[0]);
 
-    return FromNodeThreadRunApiResultInNodeThread(info.Env(), WRAP_API_CALL(api_->WindowLoadGL(handle)), [](JSEnv env, boost::future<void> result, JSDeferred deferred) {
-      result.get();
-      deferred.Resolve(env.Undefined());
-    });
+    return FromNodeThreadRunApiResultInNodeThread(info.Env(), WRAP_API_CALL(api_->WindowLoadGL(handle)), api_call_void_resolver);
   }
 
   JSValue
@@ -112,16 +113,38 @@ namespace chunklands::core {
     std::string type = info[1].ToString();
     JSRef2 js_ref = JSRef2::New(info.Env(), info[2]);
     
-    boost::signals2::scoped_connection conn = WRAP_API_CALL(api_->WindowOn(handle, std::move(type), [this, js_ref = std::move(js_ref)]() {
+    boost::signals2::scoped_connection conn = WRAP_API_CALL(api_->WindowOn(handle, std::move(type), [this, js_ref = std::move(js_ref)](engine::CEWindowEvent event) {
       
       struct data_t {
         data_t(JSRef2 ref) : ref(std::move(ref)) {}
         JSRef2 ref;
       };
 
-      RunInNodeThread(std::make_unique<data_t>(std::move(js_ref)), [](JSEnv env, JSFunction, data_t* data_ptr) {
+      RunInNodeThread(std::make_unique<data_t>(std::move(js_ref)), [event = std::move(event)](JSEnv env, JSFunction, data_t* data_ptr) {
         std::unique_ptr<data_t> data(data_ptr);
-        data->ref.Value().As<JSFunction>().Call(env.Null(), {});
+        JSFunction js_callback = data->ref.Value().As<JSFunction>();
+
+        JSObject js_event = JSObject::New(env);
+        js_event["type"] = JSString::New(env, event.type);
+        
+        if (event.type == "shouldclose") {
+          // nothing
+        }
+
+        if (event.type == "click") {
+          js_event["button"]  = JSNumber::New(env, event.click.button);
+          js_event["action"]  = JSNumber::New(env, event.click.action);
+          js_event["mods"]    = JSNumber::New(env, event.click.mods);
+        }
+
+        if (event.type == "key") {
+          js_event["key"]       = JSNumber::New(env, event.key.key);
+          js_event["scancode"]  = JSNumber::New(env, event.key.scancode);
+          js_event["action"]    = JSNumber::New(env, event.key.action);
+          js_event["mods"]      = JSNumber::New(env, event.key.mods);
+        }
+
+        js_callback.Call({js_event});
       });
     }));
 
@@ -145,10 +168,7 @@ namespace chunklands::core {
     init.lighting.vertex_shader = js_lighting.Get("vertexShader").ToString();
     init.lighting.fragment_shader = js_lighting.Get("fragmentShader").ToString();
 
-    return FromNodeThreadRunApiResultInNodeThread(info.Env(), WRAP_API_CALL(api_->RenderPipelineInit(handle, std::move(init))), [](JSEnv env, boost::future<void> result, JSDeferred deferred) {
-      result.get();
-      deferred.Resolve(env.Undefined());
-    });
+    return FromNodeThreadRunApiResultInNodeThread(info.Env(), WRAP_API_CALL(api_->RenderPipelineInit(handle, std::move(init))), api_call_void_resolver);
   }
 
   JSValue
@@ -192,10 +212,7 @@ namespace chunklands::core {
 
   JSValue
   EngineApiBridge::JSCall_blockBake(JSCbi info) {
-    return FromNodeThreadRunApiResultInNodeThread(info.Env(), WRAP_API_CALL(api_->BlockBake()), [](JSEnv env, boost::future<void> result, JSDeferred deferred) {
-      result.get();
-      deferred.Resolve(env.Undefined());
-    });
+    return FromNodeThreadRunApiResultInNodeThread(info.Env(), WRAP_API_CALL(api_->BlockBake()), api_call_void_resolver);
   }
 
   JSValue
@@ -216,7 +233,7 @@ namespace chunklands::core {
 
   JSValue
   EngineApiBridge::JSCall_chunkUpdate(JSCbi info) {
-    engine::CEChunkHandle *handle = unsafe_get_handle_ptr<engine::CEChunkHandle>(info[0]);
+    engine::CEChunkHandle* handle = unsafe_get_handle_ptr<engine::CEChunkHandle>(info[0]);
     CHECK(info[1].IsArrayBuffer());
 
     JSArrayBuffer js_blocks = info[1].As<JSArrayBuffer>();
@@ -232,22 +249,29 @@ namespace chunklands::core {
 
   JSValue
   EngineApiBridge::JSCall_sceneAddChunk(JSCbi info) {
-    engine::CEChunkHandle *handle = unsafe_get_handle_ptr<engine::CEChunkHandle>(info[0]);
+    engine::CEChunkHandle* handle = unsafe_get_handle_ptr<engine::CEChunkHandle>(info[0]);
 
-    return FromNodeThreadRunApiResultInNodeThread(info.Env(), WRAP_API_CALL(api_->SceneAddChunk(handle)), [](JSEnv env, boost::future<void> result, JSDeferred deferred) {
-      result.get();
-      deferred.Resolve(env.Undefined());
-    });
+    return FromNodeThreadRunApiResultInNodeThread(info.Env(), WRAP_API_CALL(api_->SceneAddChunk(handle)), api_call_void_resolver);
   }
 
   JSValue
   EngineApiBridge::JSCall_sceneRemoveChunk(JSCbi info) {
-    engine::CEChunkHandle *handle = unsafe_get_handle_ptr<engine::CEChunkHandle>(info[0]);
+    engine::CEChunkHandle* handle = unsafe_get_handle_ptr<engine::CEChunkHandle>(info[0]);
 
-    return FromNodeThreadRunApiResultInNodeThread(info.Env(), WRAP_API_CALL(api_->SceneRemoveChunk(handle)), [](JSEnv env, boost::future<void> result, JSDeferred deferred) {
-      result.get();
-      deferred.Resolve(env.Undefined());
-    });
+    return FromNodeThreadRunApiResultInNodeThread(info.Env(), WRAP_API_CALL(api_->SceneRemoveChunk(handle)), api_call_void_resolver);
+  }
+
+  JSValue
+  EngineApiBridge::JSCall_cameraAttachWindow(JSCbi info) {
+    engine::CEWindowHandle* handle = unsafe_get_handle_ptr<engine::CEWindowHandle>(info[0]);
+
+    return FromNodeThreadRunApiResultInNodeThread(info.Env(), WRAP_API_CALL(api_->CameraAttachWindow(handle)), api_call_void_resolver);
+  }
+
+  JSValue
+  EngineApiBridge::JSCall_cameraDetachWindow(JSCbi info) {
+    engine::CEWindowHandle* handle = unsafe_get_handle_ptr<engine::CEWindowHandle>(info[0]);
+    return FromNodeThreadRunApiResultInNodeThread(info.Env(), WRAP_API_CALL(api_->CameraDetachWindow(handle)), api_call_void_resolver);
   }
 
 } // namespace chunklands::core

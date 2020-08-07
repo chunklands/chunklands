@@ -4,6 +4,13 @@
 #include "../Api.hxx"
 #include <chunklands/libcxx/easy_profiler.hxx>
 #include "../engine_exception.hxx"
+#include "../Camera.hxx"
+#include "../CharacterController.hxx"
+#include "../Window.hxx"
+#include "../WindowInputController.hxx"
+
+#include <set>
+#include <map>
 
 #define _API_FN_NAME __api_fn_name
 #define API_FN() static const char* _API_FN_NAME = BOOST_CURRENT_FUNCTION;
@@ -12,6 +19,19 @@
 
 
 namespace chunklands::engine {
+
+  struct ApiData {
+    Camera camera;
+    CharacterController character_controller {&camera};
+
+    std::set<Window*> windows;
+    std::map<Window*, WindowInputController*> window_input_controllers;
+    WindowInputController* current_window_input_controller = nullptr;
+  };
+
+  inline ApiData* api_data(void* data) {
+    return reinterpret_cast<ApiData*>(data);
+  }
 
   template<class C, class T>
   inline bool has_handle(const C& container, const T& element) {

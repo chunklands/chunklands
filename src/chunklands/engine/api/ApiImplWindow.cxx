@@ -19,9 +19,13 @@ namespace chunklands::engine {
       CHECK(glfw_window != nullptr);
       
       std::unique_ptr<Window> window = std::make_unique<Window>(glfw_window);
-      CEWindowHandle* const handle = reinterpret_cast<CEWindowHandle*>(window.get());
-      windows_.insert(handle);
+      api_data(data_)->windows.insert(window.get());
 
+      std::unique_ptr<WindowInputController> window_input_controller = std::make_unique<WindowInputController>(window.get());
+      api_data(data_)->window_input_controllers.insert({window.get(), window_input_controller.get()});
+      window_input_controller.release();
+      
+      CEWindowHandle* const handle = reinterpret_cast<CEWindowHandle*>(window.get());
       window.release();
       return handle;
     });
@@ -31,11 +35,11 @@ namespace chunklands::engine {
   Api::WindowLoadGL(CEWindowHandle* handle) {
     EASY_FUNCTION();
     API_FN();
-    CHECK(has_handle(windows_, handle));
+    Window* const window = reinterpret_cast<Window*>(handle);
+    CHECK(has_handle(api_data(data_)->windows, window));
 
-    return EnqueueTask(executor_, [handle]() {
+    return EnqueueTask(executor_, [window]() {
       EASY_FUNCTION();
-      Window* const window = reinterpret_cast<Window*>(handle);
       assert(window);
 
       const bool gl_loaded = window->LoadGL();
@@ -44,16 +48,38 @@ namespace chunklands::engine {
   }
 
   boost::signals2::scoped_connection
-  Api::WindowOn(CEWindowHandle* handle, const std::string& event, std::function<void()> callback) {
+  Api::WindowOn(CEWindowHandle* handle, const std::string& event, std::function<void(CEWindowEvent)> callback) {
     EASY_FUNCTION();
     API_FN();
-    CHECK(has_handle(windows_, handle));
-
     Window* const window = reinterpret_cast<Window*>(handle);
+    CHECK(has_handle(api_data(data_)->windows, window));
     assert(window);
 
     if (event == "shouldclose") {
-      return window->on_close.connect(std::move(callback));
+      return window->on_close.connect([callback = std::move(callback)]() {
+        callback(CEWindowEvent("shouldclose"));
+      });
+    }
+
+    if (event == "click") {
+      return window->on_click.connect([callback = std::move(callback)](const window_click_t& click) {
+        CEWindowEvent event("click");
+        event.click.button = click.button;
+        event.click.action = click.action;
+        event.click.mods = click.mods;
+        callback(std::move(event));
+      });
+    }
+
+    if (event == "key") {
+      return window->on_key.connect([callback = std::move(callback)](const window_key_t& key) {
+        CEWindowEvent event("key");
+        event.key.key = key.key;
+        event.key.scancode = key.scancode;
+        event.key.action = key.action;
+        event.key.mods = key.mods;
+        callback(std::move(event));
+      });
     }
 
     return boost::signals2::scoped_connection();

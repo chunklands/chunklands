@@ -12,15 +12,16 @@ namespace chunklands::engine {
   Api::RenderPipelineInit(CEWindowHandle* handle, CERenderPipelineInit init) {
     EASY_FUNCTION();
     API_FN();
-    CHECK(has_handle(windows_, handle));
+    Window* const window = reinterpret_cast<Window*>(handle);
+    CHECK(has_handle(api_data(data_)->windows, window));
     CHECK(g_buffer_pass_handle_ == nullptr);
 
     return EnqueueTask(executor_, [this,
-      handle,
+      window,
       init = std::move(init)
     ]() {
       EASY_FUNCTION();
-      Window* const window = reinterpret_cast<Window*>(handle);
+      
       assert(window);
 
       {
