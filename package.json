@@ -23,8 +23,7 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "image-size": "^0.8.3",
-    "jimp": "^0.9.3"
+    "image-size": "^0.8.3"
   },
   "devDependencies": {
     "bindings": "^1.5.0",
@@ -32,11 +31,11 @@
     "concurrently": "^4.1.2",
     "cross-env": "^7.0.2",
     "dotenv": "^8.2.0",
-    "execa": "^4.0.2",
+    "execa": "^4.0.3",
     "glob": "^7.1.6",
-    "node-addon-api": "^2.0.0",
-    "nodemon": "^2.0.3",
-    "sinon": "^9.0.2",
-    "tap": "^14.10.7"
+    "node-addon-api": "^3.0.0",
+    "nodemon": "^2.0.4",
+    "sinon": "^9.0.3",
+    "tap": "^14.10.8"
   }
 }

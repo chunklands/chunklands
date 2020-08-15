@@ -57,6 +57,7 @@ namespace chunklands::core {
     JS_CB(blockCreate),
     JS_CB(blockBake),
     JS_CB(chunkCreate),
+    JS_CB(chunkDelete),
     JS_CB(chunkUpdate),
     JS_CB(sceneAddChunk),
     JS_CB(sceneRemoveChunk),
@@ -231,6 +232,12 @@ namespace chunklands::core {
       engine::CEChunkHandle* const handle = result.get();
       deferred.Resolve(get_handle(env, handle));
     });
+  }
+
+  JSValue
+  EngineApiBridge::JSCall_chunkDelete(JSCbi info) {
+    engine::CEChunkHandle* const handle = unsafe_get_handle_ptr<engine::CEChunkHandle>(info[0]);
+    return FromNodeThreadRunApiResultInNodeThread(info.Env(), WRAP_API_CALL(api_->ChunkDelete(handle)), api_call_void_resolver);
   }
 
   JSValue

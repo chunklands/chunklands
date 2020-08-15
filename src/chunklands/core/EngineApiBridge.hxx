@@ -33,6 +33,7 @@ namespace chunklands::core {
 
     // Chunk
     JS_DECL_CB      (chunkCreate)
+    JS_DECL_CB      (chunkDelete)
     JS_DECL_CB      (chunkUpdate)
 
     // Scene

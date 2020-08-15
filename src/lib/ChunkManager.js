@@ -1,24 +1,69 @@
 const assert = require('assert');
 
+const RENDER_DISTANCE = 3;
+const renderChunkOffsets = generatePosOffsets(RENDER_DISTANCE);
+
 module.exports = class ChunkManager {
   constructor(api, blocks) {
     this._api = api;
     this._blocks = blocks;
-    this._currentChunk = {x: 0, y: 0, z: 0};
+    this._chunks = new Map();
+    this._currentChunkPos = {x: NaN, y: NaN, z: NaN};
     this._api.cameraOn('positionchange', event => {
-      const pos = chunkPos(event);
-      if (pos.x !== this._currentChunk.x || pos.y !== this._currentChunk.y || pos.z !== this._currentChunk.z) {
-        this._currentChunk = pos;
-        this._createChunk(pos.x, pos.y, pos.z);
-      }
+      this._handleUpdatePosition(event);
     });
+
+    this._api.cameraGetPosition().then(cameraPos => this._handleUpdatePosition(cameraPos));
   }
 
-  async _createChunk(x, y, z) {
-    const chunk = await this._api.chunkCreate(x, y, z);
-    await this._api.chunkUpdate(chunk, createChunk(this._blocks, {x, y, z}));
-    await this._api.sceneAddChunk(chunk);
+  _handleUpdatePosition(cameraPos) {
+    const pos = chunkPos(cameraPos);
+    if (pos.x !== this._currentChunkPos.x || pos.y !== this._currentChunkPos.y || pos.z !== this._currentChunkPos.z) {
+      this._currentChunkPos = pos;
+      this._handleChunkChange(pos);
+    }
   }
+
+  async _handleChunkChange(chunkPos) {
+    for (const [key, chunk] of this._chunks.entries()) {
+      if (distanceCmp(chunk.pos, chunkPos, RENDER_DISTANCE) === 1) {
+        const deleted = this._chunks.delete(key);
+        assert(deleted);
+
+        this._api.sceneRemoveChunk(chunk.hChunk);
+        this._api.chunkDelete(chunk.hChunk);
+      }
+    }
+
+    for (const renderChunkOffset of renderChunkOffsets) {
+      const cx = renderChunkOffset.x + chunkPos.x;
+      const cy = renderChunkOffset.y + chunkPos.y;
+      const cz = renderChunkOffset.z + chunkPos.z;
+
+      const key = `${cx}:${cy}:${cz}`;
+      if (!this._chunks.has(key)) {
+        const pos = {x: cx, y: cy, z: cz};
+        const hChunk = await this._createChunk(pos);
+        this._chunks.set(key, {
+          pos,
+          hChunk
+        });
+      }
+    }
+  }
+
+  async _createChunk(chunkPos) {
+    const chunk = await this._api.chunkCreate(chunkPos.x, chunkPos.y, chunkPos.z);
+    await this._api.chunkUpdate(chunk, createChunk(this._blocks, chunkPos));
+    await this._api.sceneAddChunk(chunk);
+    return chunk;
+  }
+}
+
+function distanceCmp(a, b, d) {
+  const d2 = d ** 2;
+  const diff2 = (a.x - b.x) ** 2 + (a.y - b.y) ** 2 + (a.z - b.z) ** 2;
+  return diff2 < d2 ? -1 : (diff2 > d2 ? 1 : 0);
 }
 
 function chunkPos(coord) {
@@ -57,4 +102,25 @@ function createChunk(blocks, coord) {
   }
 
   return arrayBuffer;
+}
+
+function generatePosOffsets(distance) {
+  const distance2 = distance ** 2;
+  const posWithSquareDistances = [];
+  for (let z = -distance; z <= distance; z++) {
+    for (let y = -distance; y <= distance; y++) {
+      for (let x = -distance; x <= distance; x++) {
+        const dist2 = x**2 + y**2 + z**2;
+        if (dist2 <= distance2) {
+          posWithSquareDistances.push({dist2, pos: {x, y, z}});
+        }
+      }
+    }
+  }
+
+  posWithSquareDistances.sort((a, b) => {
+    return a.dist2 < b.dist2 ? 1 : (a.dist2 > b.dist2 ? -1 : 0);
+  });
+
+  return posWithSquareDistances.map(x => x.pos);
 }

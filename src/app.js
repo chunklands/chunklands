@@ -1,10 +1,30 @@
-const assert = require('assert');
+const DEBUG_API = true;
+const DEBUG_PATTERN = /^chunk.+/
+
 const chunklands = require('../build/chunklands.node');
 const { loadShader } = require('./lib/shader');
 const ChunkManager = require('./lib/ChunkManager');
 
 const engine = new chunklands.EngineBridge();
-const api = new chunklands.EngineApiBridge(engine);
+let api = new chunklands.EngineApiBridge(engine);
+
+if (DEBUG_API) {
+  const Api = Object.getPrototypeOf(api);
+  const apiMethods = Object.getOwnPropertyNames(Api);
+  const realApi = api;
+  const apiProxy = {};
+  for (const name of apiMethods) {
+    const fn = api[name].bind(api);
+    apiProxy[name] = (...args) => {
+      if (DEBUG_PATTERN.test(name)) {
+        console.log(`${name} [${args.join(', ')}]`);
+      }
+      return realApi[name](...args);
+    };
+  }
+
+  api = apiProxy;
+}
 
 (async () => {
   engine.startProfiling();

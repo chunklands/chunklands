@@ -23,6 +23,26 @@ namespace chunklands::engine {
   }
 
   boost::future<void>
+  Api::ChunkDelete(CEChunkHandle* handle) {
+    EASY_FUNCTION();
+    API_FN();
+
+    return EnqueueTask(executor_, [this, handle]() {
+      EASY_FUNCTION();
+      
+      CHECK(has_handle(chunks_, handle));
+      Chunk* const chunk = reinterpret_cast<Chunk*>(handle);
+      CHECK(has_handle(chunks_by_state_[chunk->state], handle));
+
+      const std::size_t erased = chunks_.erase(handle);
+      assert(erased == 1);
+
+      const std::size_t erased_by_state = chunks_by_state_[chunk->state].erase(handle);
+      assert(erased_by_state == 1);
+    });
+  }
+
+  boost::future<void>
   Api::ChunkUpdateData(CEChunkHandle* handle, CEBlockHandle** blocks) {
     EASY_FUNCTION();
     API_FN();

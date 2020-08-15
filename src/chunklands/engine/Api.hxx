@@ -31,6 +31,7 @@ namespace chunklands::engine {
     boost::future<void>                 BlockBake();
 
     boost::future<CEChunkHandle*>       ChunkCreate(int x, int y, int z);
+    boost::future<void>                 ChunkDelete(CEChunkHandle* handle);
     boost::future<void>                 ChunkUpdateData(CEChunkHandle* handle, CEBlockHandle** blocks);
 
     boost::future<void>                 SceneAddChunk(CEChunkHandle* handle);

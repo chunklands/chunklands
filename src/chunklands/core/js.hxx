@@ -137,6 +137,7 @@ namespace chunklands {
   using JSPromise     = Napi::Promise;
   template<class T>
   using JSBuffer      = Napi::Buffer<T>;
+  using JSBigInt      = Napi::BigInt;
 
   inline uint32_t js_index(int i) {
     return i;
