@@ -21,12 +21,16 @@
 namespace chunklands::engine {
 
   struct ApiData {
-    Camera camera;
-    CharacterController character_controller {&camera};
-
+    
     std::set<Window*> windows;
     std::map<Window*, WindowInputController*> window_input_controllers;
     WindowInputController* current_window_input_controller = nullptr;
+
+    struct {
+      Camera camera;
+    } camera;
+
+    CharacterController character_controller {&camera.camera};
   };
 
   inline ApiData* api_data(void* data) {

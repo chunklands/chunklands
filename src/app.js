@@ -1,6 +1,7 @@
 const assert = require('assert');
 const chunklands = require('../build/chunklands.node');
 const { loadShader } = require('./lib/shader');
+const ChunkManager = require('./lib/ChunkManager');
 
 const engine = new chunklands.EngineBridge();
 const api = new chunklands.EngineApiBridge(engine);
@@ -24,7 +25,6 @@ const api = new chunklands.EngineApiBridge(engine);
   const blocks = {};
   for (const block of await require('./assets/models')()) {
     const elements = Object.keys(block.faces).reduce((elements, face) => elements + block.faces[face].length, 0);
-    console.log({elements});
     const data = new ArrayBuffer(elements * Float32Array.BYTES_PER_ELEMENT);
     const floatData = new Float32Array(data);
     let i = 0;
@@ -41,21 +41,15 @@ const api = new chunklands.EngineApiBridge(engine);
       data,
       texture: block.texture
     });
-    console.log({blockHandle});
+
     blocks[block.id] = blockHandle;
   }
 
   await api.blockBake();
-  
-  console.log({blocks})
 
-  const chunk = await api.chunkCreate(0, 0, 0);
-  await api.chunkUpdate(chunk, createChunk(blocks));
-  await api.sceneAddChunk(chunk);
-  // await api.sceneRemoveChunk(chunk);
+  new ChunkManager(api, blocks);
 
   api.windowOn(win, 'shouldclose', () => {
-    console.log('OK');
     engine.terminate();
     engine.stopProfiling(`${__dirname}/../profiles/profile-${Date.now()}.prof`);
   });
@@ -68,25 +62,11 @@ const api = new chunklands.EngineApiBridge(engine);
     // ESC release
     if (event.key === 256 && event.action === 0) {
       api.cameraDetachWindow(win);
-      return
+      return;
     }
-  })
+  });
 
 })().catch(e => {
   console.error(e);
   process.exit(1);
 });
-
-function createChunk(blocks) {
-  const arrayBuffer = new ArrayBuffer(32 * 32 * 32 * BigUint64Array.BYTES_PER_ELEMENT);
-  const buffer = new BigUint64Array(arrayBuffer);
-
-  const dirtHandle = blocks['block.dirt'];
-  assert(dirtHandle);
-
-  for (let i = 0; i < 32 * 32 * 32; i++) {
-    buffer[i] = dirtHandle;
-  }
-
-  return arrayBuffer;
-}

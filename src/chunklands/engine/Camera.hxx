@@ -3,6 +3,8 @@
 
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
+#include <boost/signals2.hpp>
+#include "api-types.hxx"
 
 namespace chunklands::engine {
 
@@ -27,9 +29,26 @@ namespace chunklands::engine {
     glm::vec3 GetViewDirection() const;
     glm::vec3 GetCenter() const;
 
+    void ProcessEvents() {
+      if (eye_ != last_eye_) {
+        on_position_change({
+          .x = eye_.x,
+          .y = eye_.y,
+          .z = eye_.z
+        });
+        
+        last_eye_ = eye_;
+      }
+    }
+
+  public:
+    boost::signals2::signal<void(CECameraPosition)> on_position_change;
+
   private:
     glm::vec3 eye_{10, 40, -50};
     glm::vec2 look_{0, -0.2f};
+
+    glm::vec3 last_eye_ = eye_;
   };
 
 } // namespace chunklands::engine

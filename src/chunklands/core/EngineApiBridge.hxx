@@ -42,6 +42,8 @@ namespace chunklands::core {
     // Camera
     JS_DECL_CB      (cameraAttachWindow)
     JS_DECL_CB      (cameraDetachWindow)
+    JS_DECL_CB      (cameraGetPosition)
+    JS_DECL_CB      (cameraOn)
 
   public:
     EngineApiBridge(JSCbi info);
@@ -56,6 +58,9 @@ namespace chunklands::core {
 
     template<class T, class F, class R = std::result_of_t<F&&(boost::future<T>, JSDeferred)>>
     inline JSValue RunInNodeThread(JSEnv env, boost::future<T> result, F&& fn);
+
+    template<class Event, class F, class F2>
+    JSValue EventHandler(JSEnv env, JSValue js_type, JSValue js_callback, F&& fn_calls_api, F2&& fn_result);
 
   private:
     inline bool IsNodeThread() const {

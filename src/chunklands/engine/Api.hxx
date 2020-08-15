@@ -38,6 +38,8 @@ namespace chunklands::engine {
 
     boost::future<void>                 CameraAttachWindow(CEWindowHandle* handle);
     boost::future<void>                 CameraDetachWindow(CEWindowHandle* handle);
+    boost::future<CECameraPosition>     CameraGetPosition();
+    boost::signals2::scoped_connection  CameraOn(const std::string& event, std::function<void(CECameraEvent)> callback);
 
   private:
     void* executor_;

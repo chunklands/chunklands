@@ -76,4 +76,32 @@ namespace chunklands::core {
     return promise;
   }
 
+  struct data_t {
+    data_t(JSRef2 ref) : ref(std::move(ref)) {}
+    JSRef2 ref;
+  };
+
+  template<class Event, class F, class F2>
+  JSValue EngineApiBridge::EventHandler(JSEnv env, JSValue js_type, JSValue js_callback, F&& fn_calls_api, F2&& fn_result) {
+    std::string type = js_type.ToString();
+    JSRef2 js_ref = JSRef2::New(env, js_callback);
+    boost::signals2::scoped_connection conn = fn_calls_api(std::move(type), [this, js_ref = std::move(js_ref), fn_result = std::forward<F2>(fn_result)](Event&& event) {
+
+      RunInNodeThread(std::make_unique<data_t>(std::move(js_ref)), [event = std::forward<Event>(event), fn_result = std::move(fn_result)](JSEnv env, JSFunction, data_t* data_ptr) {
+        std::unique_ptr<data_t> data(data_ptr);
+        JSFunction js_callback = data->ref.Value().As<JSFunction>();
+
+        JSObject js_event = JSObject::New(env);
+        js_event["type"] = JSString::New(env, event.type);
+        
+        fn_result(event, js_event);
+        js_callback.Call({js_event});
+      });
+    });
+
+    return JSFunction::New(env, [conn = conn.release()](JSCbi) {
+      conn.disconnect();
+    }, "cleanup", nullptr);
+  }
+
 } // namespace chunklands::core

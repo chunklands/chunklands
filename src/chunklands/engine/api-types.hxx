@@ -41,9 +41,13 @@ namespace chunklands::engine {
     CEPassInit lighting;
   };
 
-  struct CEWindowEvent {
-    CEWindowEvent(std::string type) : type(std::move(type)) {}
+  struct CEEvent {
+    CEEvent(std::string type) : type(std::move(type)) {}
     std::string type;
+  };
+
+  struct CEWindowEvent : public CEEvent {
+    using CEEvent::CEEvent;
 
     union {
       struct {
@@ -58,6 +62,17 @@ namespace chunklands::engine {
         int action;
         int mods;
       } key;
+    };
+  };
+
+  struct CECameraPosition {
+    float x, y, z;
+  };
+
+  struct CECameraEvent : public CEEvent {
+    using CEEvent::CEEvent;
+    union {
+      CECameraPosition positionchange;
     };
   };
 

@@ -62,6 +62,8 @@ namespace chunklands::core {
     JS_CB(sceneRemoveChunk),
     JS_CB(cameraAttachWindow),
     JS_CB(cameraDetachWindow),
+    JS_CB(cameraGetPosition),
+    JS_CB(cameraOn),
   }))
 
   template<class F>
@@ -272,6 +274,32 @@ namespace chunklands::core {
   EngineApiBridge::JSCall_cameraDetachWindow(JSCbi info) {
     engine::CEWindowHandle* handle = unsafe_get_handle_ptr<engine::CEWindowHandle>(info[0]);
     return FromNodeThreadRunApiResultInNodeThread(info.Env(), WRAP_API_CALL(api_->CameraDetachWindow(handle)), api_call_void_resolver);
+  }
+
+  JSValue
+  EngineApiBridge::JSCall_cameraGetPosition(JSCbi info) {
+    return FromNodeThreadRunApiResultInNodeThread(info.Env(), WRAP_API_CALL(api_->CameraGetPosition()), [](JSEnv env, boost::future<engine::CECameraPosition> result, JSDeferred deferred) {
+      engine::CECameraPosition pos = result.get();
+      JSObject js_result = JSObject::New(env);
+      js_result["x"] = JSNumber::New(env, pos.x);
+      js_result["y"] = JSNumber::New(env, pos.y);
+      js_result["z"] = JSNumber::New(env, pos.z);
+
+      deferred.Resolve(js_result);
+    });
+  }
+  
+  JSValue
+  EngineApiBridge::JSCall_cameraOn(JSCbi info) {
+    return EventHandler<engine::CECameraEvent>(info.Env(), info[0], info[1], [this](const std::string& type, auto cb) {
+      return api_->CameraOn(type, std::move(cb));
+    }, [](const engine::CECameraEvent& event, JSObject js_event) {
+      if (event.type == "positionchange") {
+        js_event["x"] = event.positionchange.x;
+        js_event["y"] = event.positionchange.y;
+        js_event["z"] = event.positionchange.z;
+      }
+    });
   }
 
 } // namespace chunklands::core

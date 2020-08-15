@@ -36,4 +36,30 @@ namespace chunklands::engine {
     });
   }
 
+  boost::future<CECameraPosition>
+  Api::CameraGetPosition() {
+    return EnqueueTask(executor_, [this]() {
+      const glm::vec3& eye = api_data(data_)->camera.camera.GetEye();
+
+      return CECameraPosition {
+        .x = eye.x,
+        .y = eye.y,
+        .z = eye.z
+      };
+    });
+  }
+
+  boost::signals2::scoped_connection
+  Api::CameraOn(const std::string& event, std::function<void(CECameraEvent)> callback) {
+    if (event == "positionchange") {
+      return api_data(data_)->camera.camera.on_position_change.connect([callback = std::move(callback)](CECameraPosition pos) {
+        CECameraEvent event("positionchange");
+        event.positionchange = std::move(pos);
+        callback(std::move(event));
+      });
+    }
+
+    return boost::signals2::scoped_connection();
+  }
+
 } // namespace chunklands::engine

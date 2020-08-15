@@ -39,11 +39,6 @@ namespace chunklands::engine {
       }
     }
 
-    if (GLFW_start_poll_events_) {
-      EASY_BLOCK("glfwPollEvents");
-      glfwPollEvents();
-    }
-
     if (api_data->current_window_input_controller) {
       constexpr double move_factor = 20.0;
       const windowinputcontroller_cursor_t cursor_delta = api_data->current_window_input_controller->GetAndResetCursorDelta();
@@ -58,7 +53,7 @@ namespace chunklands::engine {
 
     if (g_buffer_pass_handle_) {
       GBufferPass* g_buffer_pass = reinterpret_cast<GBufferPass*>(g_buffer_pass_handle_);
-      g_buffer_pass->UpdateView(api_data->camera.GetEye(), api_data->camera.GetCenter());
+      g_buffer_pass->UpdateView(api_data->camera.camera.GetEye(), api_data->camera.camera.GetCenter());
     }
 
     if (g_buffer_pass_handle_ && lighting_pass_handle_ && render_quad_handle_) {
@@ -107,6 +102,16 @@ namespace chunklands::engine {
       }
 
       chunks_by_state_[ChunkState::kDataPrepared].clear();
+    }
+
+    if (GLFW_start_poll_events_) {
+      EASY_BLOCK("glfwPollEvents");
+      glfwPollEvents();
+    }
+
+    {
+      EASY_BLOCK("processEvents");
+      api_data->camera.camera.ProcessEvents();
     }
 
     {
