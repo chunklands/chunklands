@@ -29,7 +29,7 @@ namespace chunklands::engine {
     EASY_FUNCTION();
     API_FN();
     CHECK(init.id.length() > 0);
-    std::unique_ptr<Block> block = std::make_unique<Block>(std::move(init.id), init.opaque, std::move(init.data));
+    std::unique_ptr<Block> block = std::make_unique<Block>(std::move(init.id), init.opaque, std::move(init.faces));
 
     static_assert(sizeof(char) == sizeof(stbi_uc), "check char size");
     
@@ -99,14 +99,16 @@ namespace chunklands::engine {
 
     // update uv
     const GLfloat d = dim;
-    for (CEVaoElementChunkBlock& elem : node->b->block->data) {
-      const GLfloat x = node->x;
-      const GLfloat y = node->y;
-      const GLfloat w = node->b->width;
-      const GLfloat h = node->b->height;
+    for (CEBlockFace& face : node->b->block->faces) {
+      for (CEVaoElementChunkBlock& elem : face.data) {
+        const GLfloat x = node->x;
+        const GLfloat y = node->y;
+        const GLfloat w = node->b->width;
+        const GLfloat h = node->b->height;
 
-      elem.uv[0] = (x + (elem.uv[0] * w)) / d;
-      elem.uv[1] = (y + (elem.uv[1] * h)) / d;
+        elem.uv[0] = (x + (elem.uv[0] * w)) / d;
+        elem.uv[1] = (y + (elem.uv[1] * h)) / d;
+      }
     }
 
     // compute other nodes

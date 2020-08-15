@@ -46,10 +46,9 @@ namespace chunklands::engine {
       glEnable(GL_DEPTH_TEST);
 
       // culling
-      glDisable(GL_CULL_FACE);
-      // glEnable(GL_CULL_FACE);
-      // glCullFace(GL_FRONT);
-      // glFrontFace(GL_CCW);
+      glEnable(GL_CULL_FACE);
+      glCullFace(GL_FRONT);
+      glFrontFace(GL_CCW);
     });
   }
 

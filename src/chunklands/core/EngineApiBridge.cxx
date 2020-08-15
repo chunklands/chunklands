@@ -174,16 +174,44 @@ namespace chunklands::core {
     return FromNodeThreadRunApiResultInNodeThread(info.Env(), WRAP_API_CALL(api_->RenderPipelineInit(handle, std::move(init))), api_call_void_resolver);
   }
 
+  engine::FaceType face_type_by_string(const std::string& type) {
+    if (type == "left") {
+      return engine::kLeft;
+    }
+
+    if (type == "right") {
+      return engine::kRight;
+    }
+
+    if (type == "top") {
+      return engine::kTop;
+    }
+
+    if (type == "bottom") {
+      return engine::kBottom;
+    }
+
+    if (type == "front") {
+      return engine::kFront;
+    }
+
+    if (type == "back") {
+      return engine::kBack;
+    }
+
+    return engine::kUnknown;
+  }
+
   JSValue
   EngineApiBridge::JSCall_blockCreate(JSCbi info) {
-    JSObject js_init = info[0].ToObject();
-    std::string id = js_init.Get("id").ToString();
-    bool opaque = js_init.Get("opaque").ToBoolean();
-    JSArrayBuffer js_data = js_init.Get("data").As<JSArrayBuffer>();
-    CHECK(js_data.ByteLength() % sizeof(engine::CEVaoElementChunkBlock) == 0);
-    JSRef2 js_data_ref = JSRef2::New(info.Env(), js_data);  
+    JSObject    js_init     = info[0].ToObject();
+    
+    std::string id          = js_init.Get("id").ToString();
+    bool        opaque      = js_init.Get("opaque").ToBoolean();
+    JSObject    js_faces    = js_init.Get("faces").ToObject();
+    JSValue     js_texture  = js_init.Get("texture");
 
-    JSValue js_texture = js_init.Get("texture");  
+    // texture
     std::vector<unsigned char> texture;
     if (js_texture.IsBuffer()) {
       JSBuffer<unsigned char> js_texture_buffer = js_texture.As<JSBuffer<unsigned char>>();
@@ -191,23 +219,40 @@ namespace chunklands::core {
       std::memcpy(texture.data(), js_texture_buffer.Data() + js_texture_buffer.ByteOffset(), js_texture_buffer.ByteLength());
     }
 
-    std::vector<engine::CEVaoElementChunkBlock> vao_elements;
-    assert(js_data.ByteLength() % sizeof(engine::CEVaoElementChunkBlock) == 0);
-    const std::size_t size = js_data.ByteLength() / sizeof(engine::CEVaoElementChunkBlock);
-    vao_elements.resize(size);
-    std::memcpy(vao_elements.data(), js_data.Data(), js_data.ByteLength());
-    // const engine::CEVaoElementChunkBlock* data = reinterpret_cast<engine::CEVaoElementChunkBlock*>(js_data.Data());
-    // for (int i = 0; i < js_data.ByteLength() / sizeof(engine::CEVaoElementChunkBlock); i++) {
-    //   vao_elements.push_back(data[i]);
-    // }
-    assert(vao_elements.size() == size);
+    // faces
+    std::vector<engine::CEBlockFace> faces;
+
+    const JSArray js_faces_names      = js_faces.GetPropertyNames();
+    const uint32_t face_names_length  = js_faces_names.Length();
+    faces.resize(face_names_length);
+    
+    for (uint32_t i = 0; i < face_names_length; i++) {
+      JSValue           js_face_name  = js_faces_names.Get(i);
+      const std::string face_name     = js_face_name.ToString();
+      JSArrayBuffer     js_data       = js_faces.Get(js_face_name).As<JSArrayBuffer>();
+      
+      const size_t byte_length = js_data.ByteLength();
+      CHECK(byte_length % sizeof(engine::CEVaoElementChunkBlock) == 0);
+      const int items = byte_length / sizeof(engine::CEVaoElementChunkBlock);
+
+      std::vector<engine::CEVaoElementChunkBlock> data;
+      data.resize(items);
+      std::memcpy(data.data(), js_data.Data(), byte_length);
+
+      faces.push_back({
+        .type = face_type_by_string(face_name),
+        .data = std::move(data)
+      });
+    }
+
     engine::CEBlockCreateInit init = {
       .id = std::move(id),
       .opaque = opaque,
-      .data = std::move(vao_elements),
+      .faces = std::move(faces),
       .texture = std::move(texture)
     };
-    return FromNodeThreadRunApiResultInNodeThread(info.Env(), WRAP_API_CALL(api_->BlockCreate(std::move(init))), [js_data_ref = std::move(js_data_ref)](JSEnv env, boost::future<engine::CEBlockHandle*> result, JSDeferred deferred) {
+
+    return FromNodeThreadRunApiResultInNodeThread(info.Env(), WRAP_API_CALL(api_->BlockCreate(std::move(init))), [](JSEnv env, boost::future<engine::CEBlockHandle*> result, JSDeferred deferred) {
       engine::CEBlockHandle* const handle = result.get();
       deferred.Resolve(get_handle(env, handle));
     });

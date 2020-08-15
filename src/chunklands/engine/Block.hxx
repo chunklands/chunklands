@@ -9,14 +9,14 @@
 namespace chunklands::engine {
 
   struct Block {
-    Block(std::string id, bool opaque, std::vector<CEVaoElementChunkBlock> data)
+    Block(std::string id, bool opaque, std::vector<CEBlockFace> faces)
       : id(std::move(id))
-      , data(std::move(data))
+      , faces(std::move(faces))
       , opaque(opaque)
       {}
 
     std::string id;
-    std::vector<CEVaoElementChunkBlock> data;
+    std::vector<CEBlockFace> faces;
     bool opaque;
   };
 

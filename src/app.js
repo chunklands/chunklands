@@ -44,21 +44,21 @@ if (DEBUG_API) {
 
   const blocks = {};
   for (const block of await require('./assets/models')()) {
-    const elements = Object.keys(block.faces).reduce((elements, face) => elements + block.faces[face].length, 0);
-    const data = new ArrayBuffer(elements * Float32Array.BYTES_PER_ELEMENT);
-    const floatData = new Float32Array(data);
-    let i = 0;
-    Object.keys(block.faces).forEach(face => {
-      for (const d of block.faces[face]) {
-        floatData[i] = d;
-        i++;
-      }
-    });
+    // const elements = Object.keys(block.faces).reduce((elements, face) => elements + block.faces[face].length, 0);
+    // const data = new ArrayBuffer(elements * Float32Array.BYTES_PER_ELEMENT);
+    // const floatData = new Float32Array(data);
+    // let i = 0;
+    // Object.keys(block.faces).forEach(face => {
+    //   for (const d of block.faces[face]) {
+    //     floatData[i] = d;
+    //     i++;
+    //   }
+    // });
 
     const blockHandle = await api.blockCreate({
       id: block.id,
       opaque: block.opaque,
-      data,
+      faces: block.faces,
       texture: block.texture
     });
 

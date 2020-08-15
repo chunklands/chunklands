@@ -10,7 +10,7 @@ module.exports = async () => {
   return {
     id: 'block.monkey',
     faces: {
-      all: buf
+      all: new Float32Array(buf).buffer
     },
     opaque: true,
     texture: await readFile(`${__dirname}/gold.png`)

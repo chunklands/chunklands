@@ -18,16 +18,31 @@ namespace chunklands::engine {
   constexpr int CE_CHUNK_BLOCK_COUNT = CE_CHUNK_SIZE * CE_CHUNK_SIZE * CE_CHUNK_SIZE;
   constexpr int CE_CHUNK_STATE_COUNT = 3;
 
+  enum FaceType {
+    kUnknown,
+    kLeft,
+    kRight,
+    kTop,
+    kBottom,
+    kFront,
+    kBack,
+  };
+
   struct __attribute__ ((packed)) CEVaoElementChunkBlock {
     GLfloat position[3];
     GLfloat normal[3];
     GLfloat uv[2];
   };
 
+  struct CEBlockFace {
+    FaceType type;
+    std::vector<CEVaoElementChunkBlock> data;
+  };
+
   struct CEBlockCreateInit {
     std::string id;
     bool opaque = false;
-    std::vector<CEVaoElementChunkBlock> data;
+    std::vector<CEBlockFace> faces;
     std::vector<unsigned char> texture;
   };
 
