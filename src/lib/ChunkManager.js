@@ -1,7 +1,7 @@
 const assert = require('assert');
 const SimpleWorldGen = require('../assets/world/SimpleWorldGen');
 
-const RENDER_DISTANCE = 3;
+const RENDER_DISTANCE = 7;
 const renderChunkOffsets = generatePosOffsets(RENDER_DISTANCE);
 
 module.exports = class ChunkManager {
@@ -75,7 +75,7 @@ module.exports = class ChunkManager {
       this._worldGen.generateChunk(chunkPos.x, chunkPos.y, chunkPos.z, 32, (err, buf) => {
         if (err) {
           reject(err);
-          return
+          return;
         }
 
         resolve(buf);

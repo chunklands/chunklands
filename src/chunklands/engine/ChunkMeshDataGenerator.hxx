@@ -11,8 +11,8 @@ namespace chunklands::engine {
   enum ChunkNeighbor {
     kChunkNeighborLeft,
     kChunkNeighborRight,
-    kChunkNeighborTop,
     kChunkNeighborBottom,
+    kChunkNeighborTop,
     kChunkNeighborFront,
     kChunkNeighborBack,
     kChunkNeighborCount

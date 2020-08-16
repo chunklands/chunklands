@@ -115,10 +115,10 @@ namespace chunklands::engine {
         if (
           !find_and_set_neighbor_chunk(kChunkNeighborLeft,    glm::ivec3(-1,  0,  0)) ||
           !find_and_set_neighbor_chunk(kChunkNeighborRight,   glm::ivec3( 1,  0,  0)) ||
-          !find_and_set_neighbor_chunk(kChunkNeighborTop,     glm::ivec3( 0,  1,  0)) ||
           !find_and_set_neighbor_chunk(kChunkNeighborBottom,  glm::ivec3( 0, -1,  0)) ||
-          !find_and_set_neighbor_chunk(kChunkNeighborFront,   glm::ivec3( 0,  0,  1)) ||
-          !find_and_set_neighbor_chunk(kChunkNeighborBack,    glm::ivec3( 0,  0, -1))
+          !find_and_set_neighbor_chunk(kChunkNeighborTop,     glm::ivec3( 0,  1,  0)) ||
+          !find_and_set_neighbor_chunk(kChunkNeighborFront,   glm::ivec3( 0,  0, -1)) ||
+          !find_and_set_neighbor_chunk(kChunkNeighborBack,    glm::ivec3( 0,  0,  1))
         ) {
           blocked_chunks.insert(chunk_handle); // DMA
           continue;

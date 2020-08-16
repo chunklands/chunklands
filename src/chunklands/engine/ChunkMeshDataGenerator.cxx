@@ -3,6 +3,10 @@
 
 namespace chunklands::engine {
 
+  inline bool is_opaque(const Chunk* chunk, int bx, int by, int bz) {
+    return chunk->blocks[bz][by][bx]->opaque;
+  }
+
   void ChunkMeshDataGenerator::operator()() {
     assert(chunk->state == ChunkState::kDataPrepared);
 
@@ -18,28 +22,34 @@ namespace chunklands::engine {
           assert(block != nullptr);
 
           for (const CEBlockFace& face : block->faces) {
-            if (face.type == kFaceTypeLeft && x >= 1 && chunk->blocks[z][y][x-1]->opaque) {
-              continue;
+            if (face.type == kFaceTypeLeft) {
+              if (x >   0               && is_opaque(chunk,                           x-1,              y,                z               )) continue;
+              if (x ==  0               && is_opaque(neighbors[kChunkNeighborLeft],   CE_CHUNK_SIZE-1,  y,                z               )) continue;
             }
 
-            if (face.type == kFaceTypeRight && x < CE_CHUNK_SIZE - 1 && chunk->blocks[z][y][x+1]->opaque) {
-              continue;
+            if (face.type == kFaceTypeRight) {
+              if (x <   CE_CHUNK_SIZE-1 && is_opaque(chunk,                           x+1,              y,                z               )) continue;
+              if (x ==  CE_CHUNK_SIZE-1 && is_opaque(neighbors[kChunkNeighborRight],  0,                y,                z               )) continue;
             }
             
-            if (face.type == kFaceTypeBottom && y >= 1 && chunk->blocks[z][y-1][x]->opaque) {
-              continue;
+            if (face.type == kFaceTypeBottom) {
+              if (y >   0               && is_opaque(chunk,                           x,                y-1,              z               )) continue;
+              if (y ==  0               && is_opaque(neighbors[kChunkNeighborBottom], x,                CE_CHUNK_SIZE-1,  z               )) continue;
             }
 
-            if (face.type == kFaceTypeTop && y < CE_CHUNK_SIZE - 1 && chunk->blocks[z][y+1][x]->opaque) {
-              continue;
+            if (face.type == kFaceTypeTop) {
+              if (y <   CE_CHUNK_SIZE-1 && is_opaque(chunk,                           x,                y+1,              z               )) continue;
+              if (y ==  CE_CHUNK_SIZE-1 && is_opaque(neighbors[kChunkNeighborTop],    x,                0,                z               )) continue;
             }
 
-            if (face.type == kFaceTypeFront && z >= 1 && chunk->blocks[z-1][y][x]->opaque) {
-              continue;
+            if (face.type == kFaceTypeFront) {
+              if (z >   0               && is_opaque(chunk,                           x,                y,                z-1             )) continue;
+              if (z ==  0               && is_opaque(neighbors[kChunkNeighborFront],  x,                y,                CE_CHUNK_SIZE-1 )) continue;
             }
 
-            if (face.type == kFaceTypeBack && z < CE_CHUNK_SIZE - 1 && chunk->blocks[z+1][y][x]->opaque) {
-              continue;
+            if (face.type == kFaceTypeBack) {
+              if (z <   CE_CHUNK_SIZE-1 && is_opaque(chunk,                           x,                y,                z+1             )) continue;
+              if (z ==  CE_CHUNK_SIZE-1 && is_opaque(neighbors[kChunkNeighborBack],   x,                y,                0               )) continue;
             }
 
             for (CEVaoElementChunkBlock e : face.data) { // copy
