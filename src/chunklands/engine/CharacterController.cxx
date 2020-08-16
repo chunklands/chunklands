@@ -16,12 +16,12 @@ namespace chunklands::engine {
     const float sin_yaw = std::sin(yaw);
     const float cos_yaw = std::cos(yaw);
     const float sin_pitch = std::sin(pitch);
-    // const float cos_pitch = std::cos(pitch);
+    const float cos_pitch = std::cos(pitch);
 
     glm::vec3 move(
-      sin_yaw * forward + -cos_yaw * right,
+      cos_pitch * sin_yaw * forward + -cos_yaw * right,
       sin_pitch * forward,
-      cos_yaw * forward + sin_yaw * right
+      cos_pitch * cos_yaw * forward + sin_yaw * right
     );
 
     camera_->SetEye(camera_->GetEye() + move);
