@@ -87,13 +87,44 @@ namespace chunklands::engine {
     }
 
     {
+      const auto& chunks_by_pos = api_data->chunk.by_pos;
       // chunk updates
+      std::set<CEChunkHandle*> blocked_chunks; // DMA
       for (CEChunkHandle* chunk_handle : chunks_by_state_[ChunkState::kDataPrepared]) {
         assert(chunk_handle);
         Chunk* chunk = reinterpret_cast<Chunk*>(chunk_handle);
         assert(chunk);
         assert(chunk->state == ChunkState::kDataPrepared);
-        ChunkMeshDataGenerator generator(chunk);
+
+        std::array<const Chunk*, kChunkNeighborCount> neighbors;
+
+        const glm::ivec3 chunk_pos = glm::ivec3(chunk->x, chunk->y, chunk->z);
+        auto find_and_set_neighbor_chunk = [&](ChunkNeighbor dir, const glm::ivec3& offset) { // lambda
+          auto it = chunks_by_pos.find(chunk_pos + offset);
+          if (it != chunks_by_pos.end()) {
+            const Chunk* const neighbor = it->second;
+            if (neighbor->state >= kDataPrepared) {
+              neighbors[dir] = it->second;
+              return true;
+            }
+          }
+
+          return false;
+        };
+
+        if (
+          !find_and_set_neighbor_chunk(kChunkNeighborLeft,    glm::ivec3(-1,  0,  0)) ||
+          !find_and_set_neighbor_chunk(kChunkNeighborRight,   glm::ivec3( 1,  0,  0)) ||
+          !find_and_set_neighbor_chunk(kChunkNeighborTop,     glm::ivec3( 0,  1,  0)) ||
+          !find_and_set_neighbor_chunk(kChunkNeighborBottom,  glm::ivec3( 0, -1,  0)) ||
+          !find_and_set_neighbor_chunk(kChunkNeighborFront,   glm::ivec3( 0,  0,  1)) ||
+          !find_and_set_neighbor_chunk(kChunkNeighborBack,    glm::ivec3( 0,  0, -1))
+        ) {
+          blocked_chunks.insert(chunk_handle); // DMA
+          continue;
+        }
+        
+        ChunkMeshDataGenerator generator(chunk, std::move(neighbors));
         generator();
 
         chunk->state = ChunkState::kMeshPrepared;
@@ -101,7 +132,7 @@ namespace chunklands::engine {
         // notice: set is all cleared after the loop
       }
 
-      chunks_by_state_[ChunkState::kDataPrepared].clear();
+      chunks_by_state_[ChunkState::kDataPrepared] = std::move(blocked_chunks);
     }
 
     if (GLFW_start_poll_events_) {

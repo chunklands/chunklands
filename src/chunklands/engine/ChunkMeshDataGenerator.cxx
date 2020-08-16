@@ -18,27 +18,27 @@ namespace chunklands::engine {
           assert(block != nullptr);
 
           for (const CEBlockFace& face : block->faces) {
-            if (face.type == kLeft && x >= 1 && chunk->blocks[z][y][x-1]->opaque) {
+            if (face.type == kFaceTypeLeft && x >= 1 && chunk->blocks[z][y][x-1]->opaque) {
               continue;
             }
 
-            if (face.type == kRight && x < CE_CHUNK_SIZE - 1 && chunk->blocks[z][y][x+1]->opaque) {
+            if (face.type == kFaceTypeRight && x < CE_CHUNK_SIZE - 1 && chunk->blocks[z][y][x+1]->opaque) {
               continue;
             }
             
-            if (face.type == kBottom && y >= 1 && chunk->blocks[z][y-1][x]->opaque) {
+            if (face.type == kFaceTypeBottom && y >= 1 && chunk->blocks[z][y-1][x]->opaque) {
               continue;
             }
 
-            if (face.type == kTop && y < CE_CHUNK_SIZE - 1 && chunk->blocks[z][y+1][x]->opaque) {
+            if (face.type == kFaceTypeTop && y < CE_CHUNK_SIZE - 1 && chunk->blocks[z][y+1][x]->opaque) {
               continue;
             }
 
-            if (face.type == kFront && z >= 1 && chunk->blocks[z-1][y][x]->opaque) {
+            if (face.type == kFaceTypeFront && z >= 1 && chunk->blocks[z-1][y][x]->opaque) {
               continue;
             }
 
-            if (face.type == kBack && z < CE_CHUNK_SIZE - 1 && chunk->blocks[z+1][y][x]->opaque) {
+            if (face.type == kFaceTypeBack && z < CE_CHUNK_SIZE - 1 && chunk->blocks[z+1][y][x]->opaque) {
               continue;
             }
 

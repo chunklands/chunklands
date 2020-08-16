@@ -19,13 +19,13 @@ namespace chunklands::engine {
   constexpr int CE_CHUNK_STATE_COUNT = 3;
 
   enum FaceType {
-    kUnknown,
-    kLeft,
-    kRight,
-    kTop,
-    kBottom,
-    kFront,
-    kBack,
+    kFaceTypeUnknown,
+    kFaceTypeLeft,
+    kFaceTypeRight,
+    kFaceTypeTop,
+    kFaceTypeBottom,
+    kFaceTypeFront,
+    kFaceTypeBack,
   };
 
   struct __attribute__ ((packed)) CEVaoElementChunkBlock {

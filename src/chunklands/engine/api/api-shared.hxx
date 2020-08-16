@@ -8,9 +8,12 @@
 #include "../CharacterController.hxx"
 #include "../Window.hxx"
 #include "../WindowInputController.hxx"
+#include "../Chunk.hxx"
 
+#include <glm/vec3.hpp>
 #include <set>
 #include <map>
+#include <unordered_map>
 
 #define _API_FN_NAME __api_fn_name
 #define API_FN() static const char* _API_FN_NAME = BOOST_CURRENT_FUNCTION;
@@ -19,6 +22,17 @@
 
 
 namespace chunklands::engine {
+
+  struct ivec3_hasher {
+    std::size_t operator()(const glm::ivec3& v) const {
+      std::size_t seed = 0;
+      boost::hash_combine(seed, boost::hash_value(v.x));
+      boost::hash_combine(seed, boost::hash_value(v.y));
+      boost::hash_combine(seed, boost::hash_value(v.z));
+
+      return seed;
+    }
+  };
 
   struct ApiData {
     
@@ -29,6 +43,10 @@ namespace chunklands::engine {
     struct {
       Camera camera;
     } camera;
+
+    struct {
+      std::unordered_map<glm::ivec3, Chunk*, ivec3_hasher> by_pos;
+    } chunk;
 
     CharacterController character_controller {&camera.camera};
   };

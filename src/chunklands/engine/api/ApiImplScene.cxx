@@ -23,12 +23,11 @@ namespace chunklands::engine {
   Api::SceneRemoveChunk(CEChunkHandle* handle) {
     EASY_FUNCTION();
     API_FN();
-    CHECK(has_handle(scene_chunks_, handle));
 
     return EnqueueTask(executor_, [this, handle]() {
       EASY_FUNCTION();
       const std::size_t count = scene_chunks_.erase(handle);
-      assert(count == 1);
+      CHECK(count == 1);
     });
   }
 

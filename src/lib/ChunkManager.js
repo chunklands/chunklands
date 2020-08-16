@@ -30,8 +30,10 @@ module.exports = class ChunkManager {
         const deleted = this._chunks.delete(key);
         assert(deleted);
 
-        this._api.sceneRemoveChunk(chunk.hChunk);
-        this._api.chunkDelete(chunk.hChunk);
+        if (chunk.hChunk) {
+          this._api.sceneRemoveChunk(chunk.hChunk);
+          this._api.chunkDelete(chunk.hChunk);
+        }
       }
     }
 
@@ -43,20 +45,31 @@ module.exports = class ChunkManager {
       const key = `${cx}:${cy}:${cz}`;
       if (!this._chunks.has(key)) {
         const pos = {x: cx, y: cy, z: cz};
-        const hChunk = await this._createChunk(pos);
+
+        // reserve
         this._chunks.set(key, {
           pos,
-          hChunk
+          hChunk: undefined
         });
+
+        const hChunk = await this._createChunk(pos);
+
+        // check chunkInfo still active
+        const chunkInfo = this._chunks.get(key);
+        if (chunkInfo) {
+          chunkInfo.hChunk = hChunk;
+          this._api.sceneAddChunk(hChunk);
+        } else {
+          this._api.chunkDelete(hChunk);
+        }
       }
     }
   }
 
   async _createChunk(chunkPos) {
-    const chunk = await this._api.chunkCreate(chunkPos.x, chunkPos.y, chunkPos.z);
-    await this._api.chunkUpdate(chunk, createChunk(this._blocks, chunkPos));
-    await this._api.sceneAddChunk(chunk);
-    return chunk;
+    const handle = await this._api.chunkCreate(chunkPos.x, chunkPos.y, chunkPos.z);
+    await this._api.chunkUpdate(handle, createChunk(this._blocks, chunkPos));
+    return handle;
   }
 }
 
@@ -118,7 +131,7 @@ function generatePosOffsets(distance) {
     }
   }
 
-  posWithSquareDistances.sort((a, b) => {
+  posWithSquareDistances.sort((b, a) => {
     return a.dist2 < b.dist2 ? 1 : (a.dist2 > b.dist2 ? -1 : 0);
   });
 

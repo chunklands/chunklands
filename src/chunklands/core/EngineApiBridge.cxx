@@ -176,30 +176,30 @@ namespace chunklands::core {
 
   engine::FaceType face_type_by_string(const std::string& type) {
     if (type == "left") {
-      return engine::kLeft;
+      return engine::kFaceTypeLeft;
     }
 
     if (type == "right") {
-      return engine::kRight;
+      return engine::kFaceTypeRight;
     }
 
     if (type == "top") {
-      return engine::kTop;
+      return engine::kFaceTypeTop;
     }
 
     if (type == "bottom") {
-      return engine::kBottom;
+      return engine::kFaceTypeBottom;
     }
 
     if (type == "front") {
-      return engine::kFront;
+      return engine::kFaceTypeFront;
     }
 
     if (type == "back") {
-      return engine::kBack;
+      return engine::kFaceTypeBack;
     }
 
-    return engine::kUnknown;
+    return engine::kFaceTypeUnknown;
   }
 
   JSValue
