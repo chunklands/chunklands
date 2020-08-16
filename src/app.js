@@ -4,6 +4,7 @@ const DEBUG_PATTERN = /^chunk.+/
 const chunklands = require('../build/chunklands.node');
 const { loadShader } = require('./lib/shader');
 const ChunkManager = require('./lib/ChunkManager');
+const blockLoader = require('./lib/blockLoader');
 
 const engine = new chunklands.EngineBridge();
 let api = new chunklands.EngineApiBridge(engine);
@@ -42,30 +43,7 @@ if (DEBUG_API) {
     lighting
   });
 
-  const blocks = {};
-  for (const block of await require('./assets/models')()) {
-    // const elements = Object.keys(block.faces).reduce((elements, face) => elements + block.faces[face].length, 0);
-    // const data = new ArrayBuffer(elements * Float32Array.BYTES_PER_ELEMENT);
-    // const floatData = new Float32Array(data);
-    // let i = 0;
-    // Object.keys(block.faces).forEach(face => {
-    //   for (const d of block.faces[face]) {
-    //     floatData[i] = d;
-    //     i++;
-    //   }
-    // });
-
-    const blockHandle = await api.blockCreate({
-      id: block.id,
-      opaque: block.opaque,
-      faces: block.faces,
-      texture: block.texture
-    });
-
-    blocks[block.id] = blockHandle;
-  }
-
-  await api.blockBake();
+  const blocks = await blockLoader(api);
 
   new ChunkManager(api, blocks);
 
