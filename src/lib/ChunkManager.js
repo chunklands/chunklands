@@ -1,4 +1,5 @@
 const assert = require('assert');
+const SimpleWorldGen = require('../assets/world/SimpleWorldGen');
 
 const RENDER_DISTANCE = 3;
 const renderChunkOffsets = generatePosOffsets(RENDER_DISTANCE);
@@ -7,6 +8,7 @@ module.exports = class ChunkManager {
   constructor(api, blocks) {
     this._api = api;
     this._blocks = blocks;
+    this._worldGen = new SimpleWorldGen(blocks);
     this._chunks = new Map();
     this._currentChunkPos = {x: NaN, y: NaN, z: NaN};
     this._api.cameraOn('positionchange', event => {
@@ -68,7 +70,19 @@ module.exports = class ChunkManager {
 
   async _createChunk(chunkPos) {
     const handle = await this._api.chunkCreate(chunkPos.x, chunkPos.y, chunkPos.z);
-    await this._api.chunkUpdate(handle, createChunk(this._blocks, chunkPos));
+
+    const buf = await new Promise((resolve, reject) => {
+      this._worldGen.generateChunk(chunkPos.x, chunkPos.y, chunkPos.z, 32, (err, buf) => {
+        if (err) {
+          reject(err);
+          return
+        }
+
+        resolve(buf);
+      })
+    });
+    
+    await this._api.chunkUpdate(handle, buf);
     return handle;
   }
 }
