@@ -17,7 +17,7 @@ namespace chunklands::engine {
       assert(chunk->state == ChunkState::kEmpty);
       chunks_.insert(handle);
       chunks_by_state_[ChunkState::kEmpty].insert(handle);
-      auto result_by_pos_insert = api_data(data_)->chunk.by_pos.insert({glm::ivec3(chunk->x, chunk->y, chunk->z), chunk.get()});
+      auto result_by_pos_insert = data_->chunk.by_pos.insert({glm::ivec3(chunk->x, chunk->y, chunk->z), chunk.get()});
       CHECK(result_by_pos_insert.second);
 
       chunk.release();
@@ -43,7 +43,7 @@ namespace chunklands::engine {
       const std::size_t erased_by_state = chunks_by_state_[chunk->state].erase(handle);
       assert(erased_by_state == 1);
 
-      const std::size_t erased_by_pos = api_data(data_)->chunk.by_pos.erase(glm::ivec3(chunk->x, chunk->y, chunk->z));
+      const std::size_t erased_by_pos = data_->chunk.by_pos.erase(glm::ivec3(chunk->x, chunk->y, chunk->z));
       assert(erased_by_pos == 1);
 
       // unique_ptr deletes chunk
@@ -54,10 +54,11 @@ namespace chunklands::engine {
   Api::ChunkUpdateData(CEChunkHandle* handle, CEBlockHandle** blocks) {
     EASY_FUNCTION();
     API_FN();
-    CHECK(has_handle(chunks_, handle));
 
-    return EnqueueTask(executor_, [this, handle, blocks = std::move(blocks)]() {
+    return EnqueueTask(executor_, [this, handle, blocks]() {
       EASY_FUNCTION();
+      CHECK(has_handle(chunks_, handle));
+
       Chunk* chunk = reinterpret_cast<Chunk*>(handle);
       assert(chunk);
 

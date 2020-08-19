@@ -86,7 +86,7 @@ namespace chunklands::engine {
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, renderbuffer_);
     GL_CHECK_DEBUG();
 
-    if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
       gl::throw_gl_exception("glFramebufferRenderbuffer", "framebuffer status not complete");
     }
 
@@ -127,7 +127,6 @@ namespace chunklands::engine {
   }
 
   void GBufferPass::UpdateProj(int width, int height) {
-    std::cout << "width: " << width << ", height: " << height << std::endl;
     glViewport(0, 0, width, height);
     proj_ = glm::perspective(glm::radians(75.f), float(width) / float(height), 0.1f, 1000.0f);
   }

@@ -2,7 +2,7 @@
 #include "EngineApiBridge.hxx"
 #include <chunklands/engine/api-types.hxx>
 
-#define WRAP_API_CALL(CALL) WrapApiCall([&]() { return CALL; })
+#define WRAP_API_CALL(CALL) [&]() { return CALL; }
 
 #define CHECK(x) do { if (!(x)) { Napi::Error::Fatal(__FILE__ ":" BOOST_PP_STRINGIZE(__LINE__), #x); } } while(0)
 
@@ -48,6 +48,8 @@ namespace chunklands::core {
   }
 
   JS_DEF_INITCTOR(EngineApiBridge, ONE_ARG({
+    JS_CB(isTerminated),
+    JS_CB(on),
     JS_CB(GLFWInit),
     JS_CB(GLFWStartPollEvents),
     JS_CB(windowCreate),
@@ -76,6 +78,22 @@ namespace chunklands::core {
     } catch (const engine::gl::gl_exception& e) {
       FatalAbort(e);
     }
+  }
+
+  JSValue
+  EngineApiBridge::JSCall_isTerminated(JSCbi info) {
+    return JSBoolean::New(info.Env(), api_->IsTerminated());
+  }
+
+  JSValue
+  EngineApiBridge::JSCall_on(JSCbi info) {
+    return EventHandler<engine::CEApiEvent>(info.Env(), info[0], info[1], [this](const std::string& type, auto cb) {
+      return api_->On(type, std::move(cb));
+    }, [](const engine::CEApiEvent& event, JSEnv, JSObject js_event) {
+      if (event.type == "terminate") {
+        (void) js_event;
+      }
+    });
   }
 
   JSValue
@@ -112,48 +130,27 @@ namespace chunklands::core {
   JSValue
   EngineApiBridge::JSCall_windowOn(JSCbi info) {
     engine::CEWindowHandle *handle = unsafe_get_handle_ptr<engine::CEWindowHandle>(info[0]);
-    
-    std::string type = info[1].ToString();
-    JSRef2 js_ref = JSRef2::New(info.Env(), info[2]);
-    
-    boost::signals2::scoped_connection conn = WRAP_API_CALL(api_->WindowOn(handle, std::move(type), [this, js_ref = std::move(js_ref)](engine::CEWindowEvent event) {
-      
-      struct data_t {
-        data_t(JSRef2 ref) : ref(std::move(ref)) {}
-        JSRef2 ref;
-      };
 
-      RunInNodeThread(std::make_unique<data_t>(std::move(js_ref)), [event = std::move(event)](JSEnv env, JSFunction, data_t* data_ptr) {
-        std::unique_ptr<data_t> data(data_ptr);
-        JSFunction js_callback = data->ref.Value().As<JSFunction>();
+    return EventHandler<engine::CEWindowEvent>(info.Env(), info[1], info[2], [this, handle](const std::string& type, auto cb) {
+      return api_->WindowOn(handle, type, std::move(cb));
+    }, [](const engine::CEWindowEvent& event, JSEnv env, JSObject js_event) {
+      if (event.type == "shouldclose") {
+        // nothing
+      }
 
-        JSObject js_event = JSObject::New(env);
-        js_event["type"] = JSString::New(env, event.type);
-        
-        if (event.type == "shouldclose") {
-          // nothing
-        }
+      if (event.type == "click") {
+        js_event["button"]  = JSNumber::New(env, event.click.button);
+        js_event["action"]  = JSNumber::New(env, event.click.action);
+        js_event["mods"]    = JSNumber::New(env, event.click.mods);
+      }
 
-        if (event.type == "click") {
-          js_event["button"]  = JSNumber::New(env, event.click.button);
-          js_event["action"]  = JSNumber::New(env, event.click.action);
-          js_event["mods"]    = JSNumber::New(env, event.click.mods);
-        }
-
-        if (event.type == "key") {
-          js_event["key"]       = JSNumber::New(env, event.key.key);
-          js_event["scancode"]  = JSNumber::New(env, event.key.scancode);
-          js_event["action"]    = JSNumber::New(env, event.key.action);
-          js_event["mods"]      = JSNumber::New(env, event.key.mods);
-        }
-
-        js_callback.Call({js_event});
-      });
-    }));
-
-    return JSFunction::New(info.Env(), [conn = conn.release()](JSCbi) {
-      conn.disconnect();
-    }, "cleanup", nullptr);
+      if (event.type == "key") {
+        js_event["key"]       = JSNumber::New(env, event.key.key);
+        js_event["scancode"]  = JSNumber::New(env, event.key.scancode);
+        js_event["action"]    = JSNumber::New(env, event.key.action);
+        js_event["mods"]      = JSNumber::New(env, event.key.mods);
+      }
+    });
   }
 
   JSValue
@@ -345,7 +342,7 @@ namespace chunklands::core {
   EngineApiBridge::JSCall_cameraOn(JSCbi info) {
     return EventHandler<engine::CECameraEvent>(info.Env(), info[0], info[1], [this](const std::string& type, auto cb) {
       return api_->CameraOn(type, std::move(cb));
-    }, [](const engine::CECameraEvent& event, JSObject js_event) {
+    }, [](const engine::CECameraEvent& event, JSEnv, JSObject js_event) {
       if (event.type == "positionchange") {
         js_event["x"] = event.positionchange.x;
         js_event["y"] = event.positionchange.y;

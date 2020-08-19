@@ -15,6 +15,9 @@ namespace chunklands::core {
   class EngineApiBridge : public JSObjectWrap<EngineApiBridge> {
     JS_DECL_INITCTOR()
 
+    JS_DECL_CB      (isTerminated)
+    JS_DECL_CB      (on)
+
     // GLFW
     JS_DECL_CB      (GLFWInit)
     JS_DECL_CB_VOID (GLFWStartPollEvents)
@@ -54,8 +57,8 @@ namespace chunklands::core {
     template<class T, class F>
     inline void RunInNodeThread(std::unique_ptr<T> data, F&& fn);
 
-    template<class T, class F>
-    JSPromise FromNodeThreadRunApiResultInNodeThread(JSEnv env, boost::future<T> result, F fn);
+    template<class F1, class F, class T = typename std::result_of_t<F1&&()>::value_type>
+    JSPromise FromNodeThreadRunApiResultInNodeThread(JSEnv env, F1&& api_call, F fn);
 
     template<class T, class F, class R = std::result_of_t<F&&(boost::future<T>, JSDeferred)>>
     inline JSValue RunInNodeThread(JSEnv env, boost::future<T> result, F&& fn);

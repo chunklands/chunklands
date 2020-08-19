@@ -46,4 +46,7 @@ module.exports = class SimpleWorldGen {
     }
   }
 
+  terminate() {
+    this._worker.terminate();
+  }
 }

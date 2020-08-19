@@ -19,10 +19,10 @@ namespace chunklands::engine {
       CHECK(glfw_window != nullptr);
       
       std::unique_ptr<Window> window = std::make_unique<Window>(glfw_window);
-      api_data(data_)->windows.insert(window.get());
+      data_->windows.insert(window.get());
 
       std::unique_ptr<WindowInputController> window_input_controller = std::make_unique<WindowInputController>(window.get());
-      api_data(data_)->window_input_controllers.insert({window.get(), window_input_controller.get()});
+      data_->window_input_controllers.insert({window.get(), window_input_controller.get()});
       window_input_controller.release();
       
       CEWindowHandle* const handle = reinterpret_cast<CEWindowHandle*>(window.get());
@@ -36,7 +36,7 @@ namespace chunklands::engine {
     EASY_FUNCTION();
     API_FN();
     Window* const window = reinterpret_cast<Window*>(handle);
-    CHECK(has_handle(api_data(data_)->windows, window));
+    CHECK(has_handle(data_->windows, window));
 
     return EnqueueTask(executor_, [window]() {
       EASY_FUNCTION();
@@ -52,7 +52,7 @@ namespace chunklands::engine {
     EASY_FUNCTION();
     API_FN();
     Window* const window = reinterpret_cast<Window*>(handle);
-    CHECK(has_handle(api_data(data_)->windows, window));
+    CHECK(has_handle(data_->windows, window));
     assert(window);
 
     if (event == "shouldclose") {

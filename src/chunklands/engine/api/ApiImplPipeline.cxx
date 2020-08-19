@@ -13,7 +13,7 @@ namespace chunklands::engine {
     EASY_FUNCTION();
     API_FN();
     Window* const window = reinterpret_cast<Window*>(handle);
-    CHECK(has_handle(api_data(data_)->windows, window));
+    CHECK(has_handle(data_->windows, window));
     CHECK(g_buffer_pass_handle_ == nullptr);
 
     return EnqueueTask(executor_, [this,

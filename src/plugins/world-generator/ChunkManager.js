@@ -1,5 +1,5 @@
 const assert = require('assert');
-const SimpleWorldGen = require('../assets/world/SimpleWorldGen');
+const SimpleWorldGen = require('../../assets/world/SimpleWorldGen');
 
 const RENDER_DISTANCE = 7;
 const renderChunkOffsets = generatePosOffsets(RENDER_DISTANCE);
@@ -11,14 +11,13 @@ module.exports = class ChunkManager {
     this._worldGen = new SimpleWorldGen(blocks);
     this._chunks = new Map();
     this._currentChunkPos = {x: NaN, y: NaN, z: NaN};
-    this._api.cameraOn('positionchange', event => {
-      this._handleUpdatePosition(event);
-    });
-
-    this._api.cameraGetPosition().then(cameraPos => this._handleUpdatePosition(cameraPos));
   }
 
-  _handleUpdatePosition(cameraPos) {
+  terminate() {
+    this._worldGen.terminate();
+  }
+
+  updatePosition(cameraPos) {
     const pos = chunkPos(cameraPos);
     if (pos.x !== this._currentChunkPos.x || pos.y !== this._currentChunkPos.y || pos.z !== this._currentChunkPos.z) {
       this._currentChunkPos = pos;
@@ -28,14 +27,11 @@ module.exports = class ChunkManager {
 
   async _handleChunkChange(chunkPos) {
     for (const [key, chunk] of this._chunks.entries()) {
-      if (distanceCmp(chunk.pos, chunkPos, RENDER_DISTANCE) === 1) {
+      if (chunk.hChunk && distanceCmp(chunk.pos, chunkPos, RENDER_DISTANCE) === 1) {
         const deleted = this._chunks.delete(key);
         assert(deleted);
-
-        if (chunk.hChunk) {
-          this._api.sceneRemoveChunk(chunk.hChunk);
-          this._api.chunkDelete(chunk.hChunk);
-        }
+        this._api.sceneRemoveChunk(chunk.hChunk);
+        this._api.chunkDelete(chunk.hChunk);
       }
     }
 
@@ -53,7 +49,7 @@ module.exports = class ChunkManager {
           pos,
           hChunk: undefined
         });
-
+        
         const hChunk = await this._createChunk(pos);
 
         // check chunkInfo still active

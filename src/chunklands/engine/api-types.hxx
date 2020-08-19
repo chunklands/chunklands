@@ -61,6 +61,10 @@ namespace chunklands::engine {
     std::string type;
   };
 
+  struct CEApiEvent : public CEEvent {
+    using CEEvent::CEEvent;
+  };
+
   struct CEWindowEvent : public CEEvent {
     using CEEvent::CEEvent;
 

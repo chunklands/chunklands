@@ -5,17 +5,18 @@
 
 namespace chunklands::engine {
 
-  Engine::Engine() : loop_(), serial_(loop_) {
+  Engine::Engine() : loop_() /*, serial_(loop_)*/ {
     api_ = new Api(&loop_);
+
     thread_ = std::thread([this]() {
       EASY_THREAD("EngineThread");
-      std::unique_ptr<Api> api(api_);
+
       while (!stop_) {
         EASY_BLOCK("GameLoop");
 
         {
           EASY_BLOCK("API Tick");
-          api->Tick();
+          api_->Tick();
         }
 
         {
@@ -23,8 +24,10 @@ namespace chunklands::engine {
           loop_.run_queued_closures();
         }
       }
-
+      // serial_.close();
       loop_.close();
+      delete api_;
+      api_ = nullptr;
     });
   }
 
@@ -35,8 +38,12 @@ namespace chunklands::engine {
 
   void Engine::Terminate() {
     if (!stop_) {
+      assert(api_ != nullptr);
+      api_->Terminate();
+
       stop_ = true;
       thread_.join();
+      assert(api_ == nullptr);
     }
   }
 

@@ -7,15 +7,12 @@ namespace chunklands::engine {
   Api::SceneAddChunk(CEChunkHandle* handle) {
     EASY_FUNCTION();
     API_FN();
-    CHECK(has_handle(chunks_, handle));
-    CHECK(!has_handle(scene_chunks_, handle));
 
     return EnqueueTask(executor_, [this, handle]() {
       EASY_FUNCTION();
-      scene_chunks_.insert(handle);
-
-      // CEGBufferMeshHandle* const mesh_handle = reinterpret_cast<CEGBufferMeshHandle*>(mesh.get());
-      // g_buffer_meshes_.insert(mesh_handle);
+      CHECK(has_handle(chunks_, handle));
+      auto insert_result = scene_chunks_.insert(handle);
+      CHECK(insert_result.second);
     });
   }
 
