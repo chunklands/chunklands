@@ -64,7 +64,7 @@ namespace chunklands::engine {
 
   bool Window::LoadGL() {
     glfwMakeContextCurrent(glfw_window_);
-    glfwSwapInterval(0);
+    glfwSwapInterval(1);
     const int result = gladLoadGL((GLADloadfunc)glfwGetProcAddress);
     is_gl_loaded_ = result != 0;
     return is_gl_loaded_;

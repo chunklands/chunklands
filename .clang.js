@@ -20,12 +20,17 @@ const DEV = process.env.NODE_ENV !== 'production';
   })
   .addMakefileTarget('deps/backward-cpp/libbackward.a', {
     cmd: `@cd deps/backward-cpp && cmake -DBACKWARD_HAS_BFD=1 -DCMAKE_BUILD_TYPE=${DEV ? 'Debug' : 'Release'} --build .`
-    + ' && make'
+      + ' && make'
   })
   .addMakefileTarget('deps/googletest/lib/libgtestd.a', {
     cmd: `@cd deps/googletest && cmake -DCMAKE_BUILD_TYPE=${DEV ? 'Debug' : 'Release'} -DCMAKE_CXX_STANDARD=17 -Dgtest_force_shared_crt=ON -DCMAKE_POSITION_INDEPENDENT_CODE=ON .`
       + ' && make'
-  });
+  })
+  // .addMakefileTarget('deps/easyloggingpp/build/libeasyloggingpp.a', {
+  //   cmd: `@cd deps/easyloggingpp && mkdir -p build && cd build && cmake -Dbuild_static_lib=true -DCMAKE_CXX_FLAGS="-DELPP_THREAD_SAFE" -DCMAKE_BUILD_TYPE=${DEV ? 'Debug' : 'Release'} --build ..`
+  //     + ' && make'
+  // })
+  ;
 
   // libeasy_profiler
   // cmake .. -DBUILD_SHARED_LIBS=OFF -DCMAKE_POSITION_INDEPENDENT_CODE=ON
@@ -39,6 +44,7 @@ const DEV = process.env.NODE_ENV !== 'production';
     'deps/backward-cpp',
     'deps/boost',
     'deps/easy_profiler/easy_profiler_core/include',
+    'deps/easyloggingpp/src',
     'deps/glfw/include',
     'deps/glfw/deps',
     'deps/glm',
@@ -51,7 +57,7 @@ const DEV = process.env.NODE_ENV !== 'production';
     .addSystemInclude(...systemInclude)
     .addInclude('src')
     .addSource(
-      'src/chunklands/**/*.cxx',
+      'src/chunklands/**/*.cxx'
     )
     .addToBuildSet();
 
@@ -68,6 +74,7 @@ const DEV = process.env.NODE_ENV !== 'production';
       'deps/backward-cpp/libbackward.a',
       'deps/boost/stage/lib/*.a',
       'deps/easy_profiler/build/bin/libeasy_profiler.a',
+      // 'deps/easyloggingpp/build/libeasyloggingpp.a',
     )
     .addLink(...os.platform() === 'linux' ? ['X11', 'dl', 'bfd'] : [])
     .addMacOSFramework('CoreVideo', 'OpenGL', 'IOKit', 'Cocoa', 'Carbon')

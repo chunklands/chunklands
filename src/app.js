@@ -5,26 +5,26 @@ const createPluginRegistry = require('./plugins/plugin');
 (async () => {
   const registry = createPluginRegistry();
   registry
-    .register('engine', require('./plugins/engine'), {
+    .load('engine', require('./plugins/engine'), {
       chunklands
     })
-    .register('api', require('./plugins/api'), {
+    .load('api', require('./plugins/api'), {
       chunklands
     })
-    .register('profiler', require('./plugins/profiler'), {
+    .load('profiler', require('./plugins/profiler'), {
       enable: true,
       profilesDir: `${__dirname}/../profiles`
     })
-    .register('window', require('./plugins/window'))
-    .register('render_pipeline', require('./plugins/render-pipeline'), {
+    .load('window', require('./plugins/window'))
+    .load('render_pipeline', require('./plugins/render-pipeline'), {
       assetsDir: `${__dirname}/assets`
     })
-    .register('world_generator', require('./plugins/world-generator'))
-    .register('blocks', require('./plugins/blocks'), {
+    .load('world_generator', require('./plugins/world-generator'))
+    .load('blocks', require('./plugins/blocks'), {
       modelLoader: require('./assets/models')
     })
-    .register('camera_control', require('./plugins/camera-control'))
-    .register('shutdown', require('./plugins/shutdown'), {
+    .load('camera_control', require('./plugins/camera-control'))
+    .load('shutdown', require('./plugins/shutdown'), {
       async notifyTerminate() {
         await registry.invokeHook('onTerminate');
       }

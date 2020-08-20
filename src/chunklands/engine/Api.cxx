@@ -10,6 +10,8 @@
 #include "ChunkMeshDataGenerator.hxx"
 #include "api/api-shared.hxx"
 
+#include <chunklands/libcxx/easylogging++.hxx>
+
 namespace chunklands::engine {
 
   Api::Api(void* executor)
@@ -19,9 +21,12 @@ namespace chunklands::engine {
   }
 
   Api::~Api() {
-    std::cout << "~Api start" << std::endl;
-    delete reinterpret_cast<ApiData*>(data_);
-    std::cout << "~Api end" << std::endl;
+    LOG_DESTRUCT(Api);
+
+    {
+      LOG_PROCESS("delete api data");
+      delete reinterpret_cast<ApiData*>(data_);
+    }
   }
 
   void Api::Tick() {

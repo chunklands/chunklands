@@ -1,5 +1,5 @@
 const { EventEmitter } = require('events');
-const debug = require('debug')('plugin');
+const debug = require('debug');
 
 class PluginRegistry {
   constructor() {
@@ -10,12 +10,24 @@ class PluginRegistry {
     this._ee.on('error', event => {
       console.error(`PLUGIN ERROR ${event.name}`, event.error);
     });
+
+    this.name = 'root';
+    this.debug = debug('plugin:root');
+  }
+
+  _fork(name) {
+    const registry = Object.create(this);
+    registry.name = name;
+    registry.debug = debug(`plugin:${name}`);
+
+    return registry;
   }
 
   get(pluginName) {
-    debug('get  %s', pluginName);
+    this.debug('request "%s"', pluginName);
     if (this._plugins.has(pluginName)) {
-      return Promise.resolve(this._plugins.get(pluginName));
+      const { plugin } = this._plugins.get(pluginName);
+      return Promise.resolve(plugin);
     }
 
     return new Promise(resolve => {
@@ -30,7 +42,7 @@ class PluginRegistry {
     });
   }
 
-  register(name, fn, opts) {
+  load(name, fn, opts) {
     if (typeof name !== 'string' || !name) {
       throw new Error('name must be a string and not empty');
     }
@@ -41,18 +53,19 @@ class PluginRegistry {
 
     opts = opts || {};
 
-    debug('load %s', name);
+    this.debug('load "%s"', name);
 
     (async () => {
       let plugin;
       try {
-        plugin = await fn(this, opts);
-        debug('load %s DONE', name);
+        const registry = this._fork(name);
+        plugin = await fn(registry, opts);
+        this.debug('loaded "%s" successfully', name);
 
-        this._plugins.set(name, plugin);
+        this._plugins.set(name, {plugin, registry});
         this._ee.emit('pluginloaded', { name, plugin });
       } catch (e) {
-        debug('load %s ERR', name);
+        this.debug('loaded "%s" with error: %j', name, e);
         this._ee.emit('error', { name, error: e });
       }
     })();
@@ -62,10 +75,10 @@ class PluginRegistry {
 
   async invokeHook(hookName, ...args) {
     const hookResults = []
-    for (const [name, plugin] of this._plugins.entries()) {
+    for (const [name, {plugin, registry}] of this._plugins.entries()) {
       const hook = plugin?.[hookName];
       if (hook instanceof Function) {
-        debug('invoke hook %s on %s', hookName, name);
+        registry.debug('invoke hook "%s"', hookName);
         const hookResult = Promise
           .resolve(hook.apply(plugin, args))
           .then(result => ({name, result}));

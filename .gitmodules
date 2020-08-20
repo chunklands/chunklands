@@ -142,3 +142,6 @@
 [submodule "deps/easy_profiler"]
 	path = deps/easy_profiler
 	url = https://github.com/yse/easy_profiler.git
+[submodule "deps/easyloggingpp"]
+	path = deps/easyloggingpp
+	url = https://github.com/amrayn/easyloggingpp.git
