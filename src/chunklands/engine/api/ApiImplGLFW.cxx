@@ -13,6 +13,14 @@ namespace chunklands::engine {
       const int result = glfwInit();
       GLFW_initialized = result == GLFW_TRUE;
       CHECK(GLFW_initialized);
+
+      GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+      CHECK(monitor != nullptr);
+
+      const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+      CHECK(mode != nullptr);
+
+      data_->gameloop.render_refresh_rate = mode->refreshRate;
     });
   }
 

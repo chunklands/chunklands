@@ -48,6 +48,10 @@ namespace chunklands::engine {
     } chunk;
 
     CharacterController character_controller {&camera.camera};
+
+    struct {
+      int render_refresh_rate = -1;
+    } gameloop;
   };
 
   template<class C, class T>
