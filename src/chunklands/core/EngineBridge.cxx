@@ -16,7 +16,6 @@ namespace chunklands::core {
   }))
 
   void EngineBridge::JSCall_terminate(JSCbi) {
-    std::cout << "EngineBridge::JSCall_terminate" << std::endl;
     engine_.Terminate();
     fn_.Release();
   }

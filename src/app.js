@@ -1,5 +1,4 @@
 process.env.DEBUG = '*'
-const debug = require('debug')('app');
 const chunklands = require('../build/chunklands.node');
 const createPluginRegistry = require('./plugins/plugin');
 
@@ -30,13 +29,6 @@ const createPluginRegistry = require('./plugins/plugin');
         await registry.invokeHook('onTerminate');
       }
     })
-
-  const [ api, window, engine ] = await Promise.all([
-    registry.get('api'),
-    registry.get('window'),
-    registry.get('engine')
-  ]);
-
 })().catch(e => {
   console.error(e);
   process.exit(1);
