@@ -26,6 +26,9 @@ const DEV = process.env.NODE_ENV !== 'production';
     cmd: `@cd deps/googletest && cmake -DCMAKE_BUILD_TYPE=${DEV ? 'Debug' : 'Release'} -DCMAKE_CXX_STANDARD=17 -Dgtest_force_shared_crt=ON -DCMAKE_POSITION_INDEPENDENT_CODE=ON .`
       + ' && make'
   })
+  // .addMakefileTarget('deps/boost/stage/lib', {
+  //   cmd: `@cd deps/boost && ./b2 link=static variant=${DEV ? 'debug' : 'release'} cxxflags="-fPIC" linkflags="-fPIC"`
+  // })
   // .addMakefileTarget('deps/easyloggingpp/build/libeasyloggingpp.a', {
   //   cmd: `@cd deps/easyloggingpp && mkdir -p build && cd build && cmake -Dbuild_static_lib=true -DCMAKE_CXX_FLAGS="-DELPP_THREAD_SAFE" -DCMAKE_BUILD_TYPE=${DEV ? 'Debug' : 'Release'} --build ..`
   //     + ' && make'

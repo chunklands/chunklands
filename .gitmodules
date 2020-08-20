@@ -4,6 +4,9 @@
 [submodule "deps/glfw"]
 	path = deps/glfw
 	url = https://github.com/glfw/glfw.git
+[submodule "deps/stb"]
+	path = deps/stb
+	url = https://github.com/nothings/stb.git
 [submodule "deps/node"]
 	path = deps/node
 	url = https://github.com/nodejs/node.git
@@ -19,6 +22,3 @@
 [submodule "deps/easyloggingpp"]
 	path = deps/easyloggingpp
 	url = https://github.com/amrayn/easyloggingpp.git
-[submodule "deps/boost"]
-	path = deps/boost
-	url = https://github.com/boostorg/boost

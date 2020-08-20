@@ -22,12 +22,8 @@
     "boost"
   ],
   "license": "MIT",
-  "dependencies": {
-    "image-size": "^0.8.3"
-  },
+  "dependencies": {},
   "devDependencies": {
-    "bindings": "^1.5.0",
-    "cmake-js": "^6.1.0",
     "concurrently": "^5.3.0",
     "cross-env": "^7.0.2",
     "debug": "^4.1.1",

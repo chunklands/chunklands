@@ -18,10 +18,13 @@ clean:
 
 all: clean prog
 
-setup: setup-git npm-ci
+setup: setup-git setup-boost npm-ci
 
 setup-git:
 	git submodule update --init --recursive
+
+setup-boost:
+	./bootstrap-boost.sh
 
 npm-ci:	
 	npm ci
