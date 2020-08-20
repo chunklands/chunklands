@@ -1,6 +1,7 @@
 
 #include "EngineBridge.hxx"
 #include <chunklands/libcxx/easy_profiler.hxx>
+#include <chunklands/libcxx/easylogging++.hxx>
 #include <iostream>
 
 namespace chunklands::core {
@@ -16,6 +17,7 @@ namespace chunklands::core {
   }))
 
   void EngineBridge::JSCall_terminate(JSCbi) {
+    LOG_PROCESS("EngineBridge terminate");
     engine_.Terminate();
     fn_.Release();
   }

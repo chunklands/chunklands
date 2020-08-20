@@ -14,6 +14,7 @@ module.exports = class ChunkManager {
   }
 
   async terminate() {
+    this._terminate = true;
     await this._worldGen.terminate();
   }
 
@@ -26,6 +27,10 @@ module.exports = class ChunkManager {
   }
 
   async _handleChunkChange(chunkPos) {
+    if (this._terminate) {
+      return;
+    }
+
     for (const [key, chunk] of this._chunks.entries()) {
       if (chunk.hChunk && distanceCmp(chunk.pos, chunkPos, RENDER_DISTANCE) === 1) {
         const deleted = this._chunks.delete(key);
@@ -51,6 +56,9 @@ module.exports = class ChunkManager {
         });
         
         const hChunk = await this._createChunk(pos);
+        if (this._terminate) {
+          return;
+        }
 
         // check chunkInfo still active
         const chunkInfo = this._chunks.get(key);
@@ -65,7 +73,15 @@ module.exports = class ChunkManager {
   }
 
   async _createChunk(chunkPos) {
+    if (this._terminate) {
+      return;
+    }
+
     const handle = await this._api.chunkCreate(chunkPos.x, chunkPos.y, chunkPos.z);
+
+    if (this._terminate) {
+      return;
+    }
 
     const buf = await new Promise((resolve, reject) => {
       this._worldGen.generateChunk(chunkPos.x, chunkPos.y, chunkPos.z, 32, (err, buf) => {
@@ -77,8 +93,16 @@ module.exports = class ChunkManager {
         resolve(buf);
       })
     });
+
+    if (this._terminate) {
+      return;
+    }
     
     await this._api.chunkUpdate(handle, buf);
+    if (this._terminate) {
+      return;
+    }
+
     return handle;
   }
 }

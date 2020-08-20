@@ -70,16 +70,18 @@ namespace chunklands::engine {
   }
 
   void Engine::Terminate() {
-    LOG(DEBUG) << "terminate engine";
 
     if (!stop_) {
       assert(api_ != nullptr);
 
+      LOG(DEBUG) << "set Engine stop = true";
       stop_ = true;
+
       {
         LOG_PROCESS("wait for thread join");
         thread_.join();
       }
+
       assert(api_ == nullptr);
     }
   }
