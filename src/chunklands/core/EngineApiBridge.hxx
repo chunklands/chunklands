@@ -15,9 +15,6 @@ namespace chunklands::core {
   class EngineApiBridge : public JSObjectWrap<EngineApiBridge> {
     JS_DECL_INITCTOR()
 
-    JS_DECL_CB      (isTerminated)
-    JS_DECL_CB      (on)
-
     // GLFW
     JS_DECL_CB      (GLFWInit)
     JS_DECL_CB_VOID (GLFWStartPollEvents)

@@ -5,7 +5,7 @@
 
 namespace chunklands::engine {
 
-  Engine::Engine() : loop_() /*, serial_(loop_)*/ {
+  Engine::Engine() : loop_() {
     api_ = new Api(&loop_);
 
     thread_ = std::thread([this]() {
@@ -24,7 +24,7 @@ namespace chunklands::engine {
           loop_.run_queued_closures();
         }
       }
-      // serial_.close();
+
       loop_.close();
       delete api_;
       api_ = nullptr;
@@ -33,13 +33,11 @@ namespace chunklands::engine {
 
   Engine::~Engine() {
     std::cout << "~Engine" << std::endl;
-    Terminate();
   }
 
   void Engine::Terminate() {
     if (!stop_) {
       assert(api_ != nullptr);
-      api_->Terminate();
 
       stop_ = true;
       thread_.join();

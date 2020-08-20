@@ -1,7 +1,7 @@
 const assert = require('assert');
 const SimpleWorldGen = require('../../assets/world/SimpleWorldGen');
 
-const RENDER_DISTANCE = 7;
+const RENDER_DISTANCE = 10;
 const renderChunkOffsets = generatePosOffsets(RENDER_DISTANCE);
 
 module.exports = class ChunkManager {
@@ -13,8 +13,8 @@ module.exports = class ChunkManager {
     this._currentChunkPos = {x: NaN, y: NaN, z: NaN};
   }
 
-  terminate() {
-    this._worldGen.terminate();
+  async terminate() {
+    await this._worldGen.terminate();
   }
 
   updatePosition(cameraPos) {

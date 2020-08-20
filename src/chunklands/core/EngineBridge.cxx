@@ -1,6 +1,7 @@
 
 #include "EngineBridge.hxx"
 #include <chunklands/libcxx/easy_profiler.hxx>
+#include <iostream>
 
 namespace chunklands::core {
 
@@ -15,6 +16,7 @@ namespace chunklands::core {
   }))
 
   void EngineBridge::JSCall_terminate(JSCbi) {
+    std::cout << "EngineBridge::JSCall_terminate" << std::endl;
     engine_.Terminate();
     fn_.Release();
   }

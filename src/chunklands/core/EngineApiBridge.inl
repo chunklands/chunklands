@@ -36,13 +36,6 @@ namespace chunklands::core {
   JSPromise EngineApiBridge::FromNodeThreadRunApiResultInNodeThread(JSEnv env, F1&& api_call, F fn) {
     assert(IsNodeThread());
 
-    if (api_->IsTerminated()) {
-      JSDeferred deferred = JSDeferred::New(env);
-      JSError error = JSError::New(env, "api terminated");
-      deferred.Reject(error.Value());
-      return deferred.Promise();
-    }
-
     auto result = WrapApiCall(std::forward<F1>(api_call));
 
     JSDeferred deferred = JSDeferred::New(env);
@@ -118,7 +111,15 @@ namespace chunklands::core {
             fn_result(event, env, js_event);
 
             JSFunction js_callback = data->ref.Value().As<JSFunction>();
-            js_callback.Call({js_event});
+            try {
+              js_callback.Call({js_event});
+            } catch (const JSError& e) {
+              std::string stack = e.Get("stack").ToString();
+              std::cerr << e.Message() << "\n" << stack << std::endl;
+
+              // TODO(daaitch): js unhandled rejections handler
+              throw e;
+            }
           }
         );
       }

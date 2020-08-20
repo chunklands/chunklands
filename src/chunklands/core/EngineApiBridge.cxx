@@ -48,8 +48,6 @@ namespace chunklands::core {
   }
 
   JS_DEF_INITCTOR(EngineApiBridge, ONE_ARG({
-    JS_CB(isTerminated),
-    JS_CB(on),
     JS_CB(GLFWInit),
     JS_CB(GLFWStartPollEvents),
     JS_CB(windowCreate),
@@ -78,22 +76,6 @@ namespace chunklands::core {
     } catch (const engine::gl::gl_exception& e) {
       FatalAbort(e);
     }
-  }
-
-  JSValue
-  EngineApiBridge::JSCall_isTerminated(JSCbi info) {
-    return JSBoolean::New(info.Env(), api_->IsTerminated());
-  }
-
-  JSValue
-  EngineApiBridge::JSCall_on(JSCbi info) {
-    return EventHandler<engine::CEApiEvent>(info.Env(), info[0], info[1], [this](const std::string& type, auto cb) {
-      return api_->On(type, std::move(cb));
-    }, [](const engine::CEApiEvent& event, JSEnv, JSObject js_event) {
-      if (event.type == "terminate") {
-        (void) js_event;
-      }
-    });
   }
 
   JSValue

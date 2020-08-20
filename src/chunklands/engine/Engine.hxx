@@ -24,7 +24,6 @@ namespace chunklands::engine {
     bool stop_ = false;
     std::thread thread_;
     boost::loop_executor loop_;
-    // boost::serial_executor serial_;
     Api* api_ = nullptr;
   };
 

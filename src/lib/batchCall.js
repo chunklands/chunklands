@@ -5,11 +5,8 @@ module.exports = function createBatchCall() {
       fns.push(fn);
       return batchCall;
     },
-    call(...args) {
-      for (let i = 0; i < fns.length; i++) {
-        fns[i](...args);
-      }
-
+    async call(...args) {
+      await Promise.all(fns.map(fn => fn(...args)));
       fns = [];
     }
   };

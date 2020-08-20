@@ -8,11 +8,9 @@
 
 namespace chunklands::engine {
 
-  class Engine;
   struct ApiData;
 
   class Api {
-    friend Engine;
   public:
     Api(void* executor);
     ~Api();
@@ -21,9 +19,6 @@ namespace chunklands::engine {
     void Tick();
 
   public:
-    bool                                IsTerminated() const;
-    boost::signals2::scoped_connection  On(const std::string& event, std::function<void(CEApiEvent)> callback);
-
     boost::future<void>                 GLFWInit();
     void                                GLFWStartPollEvents(bool poll);
     bool                                GLFWStartPollEvents() const { return GLFW_start_poll_events_; }
@@ -48,9 +43,6 @@ namespace chunklands::engine {
     boost::future<void>                 CameraDetachWindow(CEWindowHandle* handle);
     boost::future<CECameraPosition>     CameraGetPosition();
     boost::signals2::scoped_connection  CameraOn(const std::string& event, std::function<void(CECameraEvent)> callback);
-
-  private:
-    void Terminate();
 
   private:
     void* executor_;

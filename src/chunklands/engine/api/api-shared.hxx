@@ -35,9 +35,6 @@ namespace chunklands::engine {
   };
 
   struct ApiData {
-    bool terminate = false;
-    boost::signals2::signal<void(CEApiEvent)> on_terminate;
-
     std::set<Window*> windows;
     std::map<Window*, WindowInputController*> window_input_controllers;
     WindowInputController* current_window_input_controller = nullptr;

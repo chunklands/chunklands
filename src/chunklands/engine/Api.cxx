@@ -158,22 +158,4 @@ namespace chunklands::engine {
     }
   }
 
-  bool Api::IsTerminated() const {
-    return data_->terminate;
-  }
-
-  boost::signals2::scoped_connection
-  Api::On(const std::string& event, std::function<void(CEApiEvent)> callback) {
-    if (event == "terminate") {
-      return data_->on_terminate.connect(std::move(callback));
-    }
-
-    return boost::signals2::scoped_connection();
-  }
-
-  void Api::Terminate() {
-    data_->terminate = true;
-    data_->on_terminate(CEApiEvent("terminate"));
-  }
-
 } // namespace chunklands::engine

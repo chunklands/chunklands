@@ -13,6 +13,8 @@ module.exports = class SimpleWorldGen {
       }
     });
 
+    this._openMessagePorts = new Set();
+
     this._worker.on('error', err => {
       console.error(err);
       process.exit(1);
@@ -31,22 +33,32 @@ module.exports = class SimpleWorldGen {
    */
   generateChunk(x, y, z, chunkDim, callback) {
     const { port1: sendPort, port2: recvPort } = new MessageChannel();
-    this._worker.postMessage({x, y, z, chunkDim, sendPort}, [sendPort])
-    recvPort.once('message', handleMessage);
+    this._openMessagePorts.add(sendPort).add(recvPort);
+
+    this._worker.postMessage({x, y, z, chunkDim, sendPort}, [sendPort]);
 
     /**
      * @param {ArrayBuffer} buffer 
      */
-    function handleMessage(buffer) {
+    const handleMessage = buffer => {
       if (buffer.byteLength === 0) {
         throw new Error(`no buffer for: ${x} ${y} ${z}`);
       }
       callback(null, buffer);
       recvPort.close();
+      sendPort.close();
+      this._openMessagePorts.delete(recvPort);
+      this._openMessagePorts.delete(sendPort);
     }
+
+    recvPort.once('message', handleMessage);
   }
 
-  terminate() {
-    this._worker.terminate();
+  async terminate() {
+    await this._worker.terminate();
+    this._openMessagePorts.forEach(port => {
+      port.close();
+    });
+    this._openMessagePorts.clear();
   }
 }

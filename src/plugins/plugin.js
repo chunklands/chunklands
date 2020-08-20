@@ -59,6 +59,22 @@ class PluginRegistry {
 
     return this;
   }
+
+  async invokeHook(hookName, ...args) {
+    const hookResults = []
+    for (const [name, plugin] of this._plugins.entries()) {
+      const hook = plugin?.[hookName];
+      if (hook instanceof Function) {
+        debug('invoke hook %s on %s', hookName, name);
+        const hookResult = Promise
+          .resolve(hook.apply(plugin, args))
+          .then(result => ({name, result}));
+        hookResults.push(hookResult);
+      }
+    }
+
+    return Promise.all(hookResults)
+  }
 }
 
 module.exports = function createPluginRegistry() {
