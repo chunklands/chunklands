@@ -16,7 +16,10 @@ namespace chunklands::engine {
     ~Api();
 
   public:
-    void Tick();
+    void Render();
+    void RenderSwap();
+    void Update();
+    int GetRenderRefreshRate() const;
 
   public:
     boost::future<void>                 GLFWInit();

@@ -29,13 +29,12 @@ namespace chunklands::engine {
     }
   }
 
-  void Api::Tick() {
+  void Api::Render() {
     // TODO(daaitch): unnecessary glClear should be removed when render pipeline in place
-    ApiData* api_data = reinterpret_cast<ApiData*>(data_);
 
     {
       EASY_BLOCK("glClear");
-      for (const Window* const window : api_data->windows) {
+      for (const Window* const window : data_->windows) {
         assert(window != nullptr);
 
         if (window->IsGLLoaded()) {
@@ -45,13 +44,13 @@ namespace chunklands::engine {
       }
     }
 
-    if (api_data->current_window_input_controller) {
+    if (data_->current_window_input_controller) {
       constexpr double move_factor = 20.0;
-      const windowinputcontroller_cursor_t cursor_delta = api_data->current_window_input_controller->GetAndResetCursorDelta();
-      api_data->character_controller.Look(glm::vec2(cursor_delta.dx, cursor_delta.dy));
+      const windowinputcontroller_cursor_t cursor_delta = data_->current_window_input_controller->GetAndResetCursorDelta();
+      data_->character_controller.Look(glm::vec2(cursor_delta.dx, cursor_delta.dy));
 
-      const windowinputcontroller_move_t move_delta = api_data->current_window_input_controller->GetAndResetMoveDelta();
-      api_data->character_controller.Move(
+      const windowinputcontroller_move_t move_delta = data_->current_window_input_controller->GetAndResetMoveDelta();
+      data_->character_controller.Move(
         move_factor * (move_delta.forward - move_delta.back),
         move_factor * (move_delta.right - move_delta.left)
       );
@@ -59,7 +58,7 @@ namespace chunklands::engine {
 
     if (g_buffer_pass_handle_) {
       GBufferPass* g_buffer_pass = reinterpret_cast<GBufferPass*>(g_buffer_pass_handle_);
-      g_buffer_pass->UpdateView(api_data->camera.camera.GetEye(), api_data->camera.camera.GetCenter());
+      g_buffer_pass->UpdateView(data_->camera.camera.GetEye(), data_->camera.camera.GetCenter());
     }
 
     if (g_buffer_pass_handle_ && lighting_pass_handle_ && render_quad_handle_) {
@@ -92,8 +91,34 @@ namespace chunklands::engine {
       }
     }
 
+    if (GLFW_start_poll_events_) {
+      EASY_BLOCK("glfwPollEvents");
+      glfwPollEvents();
+    }
+
     {
-      const auto& chunks_by_pos = api_data->chunk.by_pos;
+      EASY_BLOCK("processEvents");
+      data_->camera.camera.ProcessEvents();
+    }
+  }
+
+  void Api::RenderSwap() {
+    {
+      EASY_BLOCK("glfwSwapBuffers");
+      for (Window* const window : data_->windows) {
+        assert(window != nullptr);
+
+        if (window->IsGLLoaded()) {
+          window->SwapBuffers();
+        }
+      }
+    }
+  }
+
+  void Api::Update() {
+
+    {
+      const auto& chunks_by_pos = data_->chunk.by_pos;
       // chunk updates
       std::set<CEChunkHandle*> blocked_chunks; // DMA
       for (CEChunkHandle* chunk_handle : chunks_by_state_[ChunkState::kDataPrepared]) {
@@ -140,27 +165,10 @@ namespace chunklands::engine {
 
       chunks_by_state_[ChunkState::kDataPrepared] = std::move(blocked_chunks);
     }
+  }
 
-    if (GLFW_start_poll_events_) {
-      EASY_BLOCK("glfwPollEvents");
-      glfwPollEvents();
-    }
-
-    {
-      EASY_BLOCK("processEvents");
-      api_data->camera.camera.ProcessEvents();
-    }
-
-    {
-      EASY_BLOCK("glfwSwapBuffers");
-      for (Window* const window : api_data->windows) {
-        assert(window != nullptr);
-
-        if (window->IsGLLoaded()) {
-          window->SwapBuffers();
-        }
-      }
-    }
+  int Api::GetRenderRefreshRate() const {
+    return data_->gameloop.render_refresh_rate;
   }
 
 } // namespace chunklands::engine
