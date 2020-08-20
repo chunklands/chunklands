@@ -4,6 +4,15 @@
 
 If you want to read more of the project, goals, etc. please have a look at [chunklands.de](https://chunklands.de).
 
+## Notice: Breaking change
+
+Former Chunklands architecture (single-threaded) had performance issues.
+POC of `executor-architecture` was merged into master to see daily process on master.
+
+Still the set of features is not fully implemented, but we decided to merge it now.
+
+It will take some time to support all old features.
+Please also consider the documentation to be out-dated.
 
 ## Technologies
 
