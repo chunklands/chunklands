@@ -3,8 +3,7 @@ const { promisify } = require('util');
 const fs = require('fs');
 const readFile = promisify(fs.readFile);
 
-module.exports = async function plugin(registry, opts) {
-  const { assetsDir } = opts;
+module.exports = async function plugin(registry, { assetsDir }) {
   if (!assetsDir) {
     throw new Error('needs assets dir');
   }

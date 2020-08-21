@@ -1,5 +1,4 @@
-module.exports = async function plugin(registry, opts) {
-  const { enable, profilesDir } = opts;
+module.exports = async function plugin(registry, { enable, profilesDir }) {
   const engine = await registry.get('engine');
 
   if (enable) {
