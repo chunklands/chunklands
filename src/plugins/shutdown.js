@@ -1,8 +1,10 @@
-const process = require('process');
 const createBatchCall = require('../lib/batchCall');
 
-module.exports = async function plugin(registry, opts) {
-  const { notifyTerminate } = opts;
+/**
+ * @param {*} registry 
+ * @param {{notifyTerminate}} param1 
+ */
+module.exports = async function plugin(registry, { notifyTerminate }) {
   if (!(notifyTerminate instanceof Function)) {
     throw new Error('needs notifyTerminate');
   }

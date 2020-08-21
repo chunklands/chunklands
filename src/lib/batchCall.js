@@ -1,13 +1,13 @@
 module.exports = function createBatchCall() {
-  let fns = [];
+  let asyncCallbacks = [];
   const batchCall = {
-    add(fn) {
-      fns.push(fn);
+    add(asyncCallback) {
+      asyncCallbacks.push(asyncCallback);
       return batchCall;
     },
     async call(...args) {
-      await Promise.all(fns.map(fn => fn(...args)));
-      fns = [];
+      await Promise.all(asyncCallbacks.map(asyncCallback => asyncCallback(...args)));
+      asyncCallbacks = [];
     }
   };
 

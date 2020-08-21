@@ -1,10 +1,11 @@
 const { MessageChannel, Worker } = require('worker_threads');
+const Abort = require('../../lib/Abort');
 
 module.exports = class SimpleWorldGen {
   /**
-   * @param {{[blockId: string]: bigint}} blocks 
+   * @param {{abort: Abort, blocks: {[blockId: string]: bigint}}} param0
    */
-  constructor(blocks) {
+  constructor({abort, blocks}) {
 
     this._worker = new Worker(`${__dirname}/chunk_worker/index.js`, {
       workerData: {
@@ -13,8 +14,6 @@ module.exports = class SimpleWorldGen {
       }
     });
 
-    this._openMessagePorts = new Set();
-
     this._worker.on('error', err => {
       console.error(err);
       process.exit(1);
@@ -22,43 +21,62 @@ module.exports = class SimpleWorldGen {
 
     this._worker.on('message', msg => {
       console.log(msg);
-    })
+    });
+
+    abort.onceAbort(async () => {
+      await this._worker.terminate();      
+    });
   }
 
   /**
-   * @param {number} x 
-   * @param {number} y 
-   * @param {number} z 
-   * @param {(err: Error, buf: ArrayBuffer) => void} callback
+   * 
+   * @param {import('../../lib/Abort')} abort 
+   * @param {{x: number, y: number, z: number}} param1 
+   * @param {number} chunkDim
    */
-  generateChunk(x, y, z, chunkDim, callback) {
+  async generateChunk(abort, {x, y, z}, chunkDim) {
+    abort.check();
+
     const { port1: sendPort, port2: recvPort } = new MessageChannel();
-    this._openMessagePorts.add(sendPort).add(recvPort);
 
-    this._worker.postMessage({x, y, z, chunkDim, sendPort}, [sendPort]);
-
-    /**
-     * @param {ArrayBuffer} buffer 
-     */
-    const handleMessage = buffer => {
-      if (buffer.byteLength === 0) {
-        throw new Error(`no buffer for: ${x} ${y} ${z}`);
-      }
-      callback(null, buffer);
+    try {
+      this._worker.postMessage({x, y, z, chunkDim, sendPort}, [sendPort]);
+      return await receiveBuffer(abort, recvPort);
+    } finally {
+      sendPort.close(); // is transmitted :-/
       recvPort.close();
-      sendPort.close();
-      this._openMessagePorts.delete(recvPort);
-      this._openMessagePorts.delete(sendPort);
     }
-
-    recvPort.once('message', handleMessage);
   }
+}
 
-  async terminate() {
-    await this._worker.terminate();
-    this._openMessagePorts.forEach(port => {
-      port.close();
+/**
+ * 
+ * @param {import('../../lib/Abort')} abort 
+ * @param {import('worker_threads').MessagePort} port 
+ */
+async function receiveBuffer(abort, port) {
+  return await new Promise((resolve, reject) => {
+    
+    const messageCleanup = () => {
+      port.off('message', handleMessage);
+    }
+    
+    const abortCleanup = abort.onceAbort(() => {
+      messageCleanup();
+      reject(Abort.ABORT_ERROR);
     });
-    this._openMessagePorts.clear();
-  }
+
+    port.once('message', handleMessage);
+
+    function handleMessage(buffer) {
+      abortCleanup();
+
+      if (buffer.byteLength === 0) {
+        reject(new Error(`no buffer for: ${x} ${y} ${z}`));
+        return;
+      }
+
+      resolve(buffer);
+    }
+  });
 }

@@ -1,6 +1,7 @@
 const debug = require('debug')('world_generator');
 const ChunkManager = require('./ChunkManager');
 const createBatchCall = require('../../lib/batchCall');
+const Abort = require('../../lib/Abort');
 
 module.exports = async function worldGenerator(registry, opts) {
   const [ api, blocks ] = await Promise.all([
@@ -8,14 +9,16 @@ module.exports = async function worldGenerator(registry, opts) {
     registry.get('blocks')
   ]);
 
-  const chunkManager = new ChunkManager(api, blocks);
-  api.cameraGetPosition().then(cameraPos => chunkManager.updatePosition(cameraPos));
+  const abort = new Abort();
+
+  const chunkManager = new ChunkManager({abort, api, blocks});
+  api.cameraGetPosition().then(cameraPos => chunkManager.updatePosition(abort, cameraPos));
 
   const cleanup = createBatchCall()
     .add(api.cameraOn('positionchange', event => {
-      chunkManager.updatePosition(event);
+      chunkManager.updatePosition(abort, event);
     }))
-    .add(() => chunkManager.terminate())
+    .add(() => abort.abort())
     .call;
 
   return {

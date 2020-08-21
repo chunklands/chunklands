@@ -1,35 +1,34 @@
 const assert = require('assert');
+const Abort = require('../../lib/Abort');
 const SimpleWorldGen = require('../../assets/world/SimpleWorldGen');
 
 const RENDER_DISTANCE = 10;
 const renderChunkOffsets = generatePosOffsets(RENDER_DISTANCE);
 
 module.exports = class ChunkManager {
-  constructor(api, blocks) {
+  /**
+   * 
+   * @param {{abort: Abort}} param0 
+   */
+  constructor({abort, api, blocks}) {
     this._api = api;
     this._blocks = blocks;
-    this._worldGen = new SimpleWorldGen(blocks);
+
+    this._worldGen = new SimpleWorldGen({abort, blocks});
     this._chunks = new Map();
     this._currentChunkPos = {x: NaN, y: NaN, z: NaN};
   }
 
-  async terminate() {
-    this._terminate = true;
-    await this._worldGen.terminate();
-  }
-
-  updatePosition(cameraPos) {
+  updatePosition(abort, cameraPos) {
     const pos = chunkPos(cameraPos);
     if (pos.x !== this._currentChunkPos.x || pos.y !== this._currentChunkPos.y || pos.z !== this._currentChunkPos.z) {
       this._currentChunkPos = pos;
-      this._handleChunkChange(pos);
+      this._handleChunkChange(abort, pos).catch(Abort.catchResolver);
     }
   }
 
-  async _handleChunkChange(chunkPos) {
-    if (this._terminate) {
-      return;
-    }
+  async _handleChunkChange(abort, chunkPos) {
+    abort.check();
 
     for (const [key, chunk] of this._chunks.entries()) {
       if (chunk.hChunk && distanceCmp(chunk.pos, chunkPos, RENDER_DISTANCE) === 1) {
@@ -55,10 +54,7 @@ module.exports = class ChunkManager {
           hChunk: undefined
         });
         
-        const hChunk = await this._createChunk(pos);
-        if (this._terminate) {
-          return;
-        }
+        const hChunk = await this._createChunk(abort, pos);
 
         // check chunkInfo still active
         const chunkInfo = this._chunks.get(key);
@@ -72,36 +68,13 @@ module.exports = class ChunkManager {
     }
   }
 
-  async _createChunk(chunkPos) {
-    if (this._terminate) {
-      return;
-    }
+  async _createChunk(abort, chunkPos) {
 
-    const handle = await this._api.chunkCreate(chunkPos.x, chunkPos.y, chunkPos.z);
+    const handle = await abort.race(() => this._api.chunkCreate(chunkPos.x, chunkPos.y, chunkPos.z));
 
-    if (this._terminate) {
-      return;
-    }
-
-    const buf = await new Promise((resolve, reject) => {
-      this._worldGen.generateChunk(chunkPos.x, chunkPos.y, chunkPos.z, 32, (err, buf) => {
-        if (err) {
-          reject(err);
-          return;
-        }
-
-        resolve(buf);
-      })
-    });
-
-    if (this._terminate) {
-      return;
-    }
+    const buf = await abort.race(() => this._worldGen.generateChunk(abort, chunkPos, 32));
     
-    await this._api.chunkUpdate(handle, buf);
-    if (this._terminate) {
-      return;
-    }
+    await abort.race(() => this._api.chunkUpdate(handle, buf));
 
     return handle;
   }

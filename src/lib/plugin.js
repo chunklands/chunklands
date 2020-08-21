@@ -1,5 +1,6 @@
 const { EventEmitter } = require('events');
 const debug = require('debug');
+const fs = require('fs');
 
 class PluginRegistry {
   constructor() {
@@ -90,33 +91,9 @@ class PluginRegistry {
   }
 }
 
-module.exports = function createPluginRegistry() {
-  return new PluginRegistry();
+module.exports = {
+  PluginRegistry,
+  createPluginRegistry() {
+    return new PluginRegistry();
+  },
 };
-
-// const api = 'API';
-// const engine = 'ENGINE';
-
-// const game = pluginRegistry({api, engine});
-// game
-//   .register('plugin1', plugin1, { options: true }) // OK: visitor pattern
-//   .register('plugin2', plugin2)
-//   .get('plugin1').then(plugin1 => plugin1.a())
-
-// async function plugin1(registry, opts) {
-//   const plugin2 = await registry.get('plugin2');
-
-//   return {
-//     a() {
-//       plugin2.b();
-//     }
-//   };
-// }
-
-// function plugin2(registry, opts) {
-//   return {
-//     b() {
-//       console.log('B');
-//     }
-//   };
-// }

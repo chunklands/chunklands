@@ -8,7 +8,6 @@ namespace chunklands::engine {
   class RenderQuad {
   public:
     RenderQuad();
-    ~RenderQuad();
 
     void Render() const {
       vao_.Render();
