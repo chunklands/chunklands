@@ -17,6 +17,6 @@ module.exports = async function plugin(registry, opts) {
     }));
   
   return {
-    onTerminate: cleanup.call
+    onTerminate: cleanup
   };
 }

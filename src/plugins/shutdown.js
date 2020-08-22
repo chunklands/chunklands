@@ -25,6 +25,12 @@ module.exports = async function plugin(registry, { notifyTerminate }) {
       })
     }));
 
+  
+  // registry
+  //   .on('terminate', async () => {
+      
+  //   })
+
   return {
     onTerminate: cleanup
   };

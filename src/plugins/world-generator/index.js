@@ -18,8 +18,7 @@ module.exports = async function worldGenerator(registry, opts) {
     .add(api.cameraOn('positionchange', event => {
       chunkManager.updatePosition(abort, event);
     }))
-    .add(() => abort.abort())
-    .call;
+    .add(() => abort.abort());
 
   return {
     onTerminate: cleanup
