@@ -1,8 +1,9 @@
 
-#include "EngineApiBridge.hxx"
+#include "EngineBridge.hxx"
 
 #include <chunklands/engine/engine_exception.hxx>
 #include <chunklands/engine/gl/gl_exception.hxx>
+#include <boost/signals2.hpp>
 
 namespace chunklands::core {
 
@@ -17,7 +18,7 @@ namespace chunklands::core {
   }
 
   template<class T, class F>
-  void EngineApiBridge::RunInNodeThread(std::unique_ptr<T> data, F&& fn) {
+  void EngineBridge::RunInNodeThread(std::unique_ptr<T> data, F&& fn) {
 
     const napi_status status = fn_.NonBlockingCall(data.get(), std::forward<F>(fn));
     if (status == napi_ok) {
@@ -33,10 +34,10 @@ namespace chunklands::core {
   };
 
   template<class F1, class F, class T>
-  JSPromise EngineApiBridge::FromNodeThreadRunApiResultInNodeThread(JSEnv env, F1&& api_call, F fn) {
+  JSPromise EngineBridge::MakeEngineCall(JSEnv env, F1&& engine_call, F fn) {
     assert(IsNodeThread());
 
-    auto result = WrapApiCall(std::forward<F1>(api_call));
+    auto result = WrapEngineCall(std::forward<F1>(engine_call));
 
     JSDeferred deferred = JSDeferred::New(env);
     JSPromise promise = deferred.Promise();
@@ -67,7 +68,7 @@ namespace chunklands::core {
   }
 
   template<class T, class F, class R>
-  inline JSValue EngineApiBridge::RunInNodeThread(JSEnv env, boost::future<T> result, F&& fn) {
+  inline JSValue EngineBridge::RunInNodeThread(JSEnv env, boost::future<T> result, F&& fn) {
     JSDeferred deferred = JSDeferred::New(env);
     const JSPromise promise = deferred.Promise();
     RunInNodeThread(std::move(result), [deferred = std::move(deferred), fn = std::forward<F>(fn)](boost::future<T> result) {
@@ -83,13 +84,13 @@ namespace chunklands::core {
   };
 
   template<class Event, class F, class F2>
-  JSValue EngineApiBridge::EventHandler(JSEnv env, JSValue js_type, JSValue js_callback, F&& fn_calls_api, F2&& fn_result) {
+  JSValue EngineBridge::EventHandler(JSEnv env, JSValue js_type, JSValue js_callback, F&& fn_calls_engine, F2&& fn_result) {
     std::string type = js_type.ToString();
     
     JSRef2 js_this_ref      = JSRef2::New(env, Value());
     JSRef2 js_callback_ref  = JSRef2::New(env, js_callback);
 
-    boost::signals2::scoped_connection conn = fn_calls_api(
+    boost::signals2::scoped_connection conn = fn_calls_engine(
       std::move(type),
       [
         this,

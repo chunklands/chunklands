@@ -1,28 +1,29 @@
 
-#include "api-shared.hxx"
-#include "../Window.hxx"
+#include <chunklands/engine/engine/Engine.hxx>
+#include <chunklands/engine/engine/shared.hxx>
+#include <chunklands/engine/Window.hxx>
 
 namespace chunklands::engine {
 
   boost::future<CEWindowHandle*>
-  Api::WindowCreate(int width, int height, std::string title) {
+  Engine::WindowCreate(int width, int height, std::string title) {
     EASY_FUNCTION();
-    API_FN();
-    CHECK(GLFW_initialized);
+    ENGINE_FN();
+    CHECK_OR_FATAL(data_->glfw.initialized);
 
-    return EnqueueTask(executor_, [this, width, height, title = std::move(title)]() {
+    return EnqueueTask(data_->executors.opengl, [this, width, height, title = std::move(title)]() {
       EASY_FUNCTION();
 
       glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
       glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
       GLFWwindow* const glfw_window = glfwCreateWindow(width, height, title.data(), nullptr, nullptr);
-      CHECK(glfw_window != nullptr);
+      CHECK_OR_FATAL(glfw_window != nullptr);
       
       std::unique_ptr<Window> window = std::make_unique<Window>(glfw_window);
-      data_->windows.insert(window.get());
+      data_->window.windows.insert(window.get());
 
       std::unique_ptr<WindowInputController> window_input_controller = std::make_unique<WindowInputController>(window.get());
-      data_->window_input_controllers.insert({window.get(), window_input_controller.get()});
+      data_->window.window_input_controllers.insert({window.get(), window_input_controller.get()});
       window_input_controller.release();
       
       CEWindowHandle* const handle = reinterpret_cast<CEWindowHandle*>(window.get());
@@ -32,27 +33,27 @@ namespace chunklands::engine {
   }
 
   boost::future<void>
-  Api::WindowLoadGL(CEWindowHandle* handle) {
+  Engine::WindowLoadGL(CEWindowHandle* handle) {
     EASY_FUNCTION();
-    API_FN();
+    ENGINE_FN();
     Window* const window = reinterpret_cast<Window*>(handle);
-    CHECK(has_handle(data_->windows, window));
+    CHECK_OR_FATAL(has_handle(data_->window.windows, window));
 
-    return EnqueueTask(executor_, [window]() {
+    return EnqueueTask(data_->executors.opengl, [window]() {
       EASY_FUNCTION();
       assert(window);
 
       const bool gl_loaded = window->LoadGL();
-      CHECK(gl_loaded);
+      CHECK_OR_FATAL(gl_loaded);
     });
   }
 
   boost::signals2::scoped_connection
-  Api::WindowOn(CEWindowHandle* handle, const std::string& event, std::function<void(CEWindowEvent)> callback) {
+  Engine::WindowOn(CEWindowHandle* handle, const std::string& event, std::function<void(CEWindowEvent)> callback) {
     EASY_FUNCTION();
-    API_FN();
+    ENGINE_FN();
     Window* const window = reinterpret_cast<Window*>(handle);
-    CHECK(has_handle(data_->windows, window));
+    CHECK_OR_FATAL(has_handle(data_->window.windows, window));
     assert(window);
 
     if (event == "shouldclose") {

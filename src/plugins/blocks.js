@@ -5,8 +5,8 @@ module.exports = async function plugin(registry, opts) {
     throw new Error('modelLoader needed');
   }
 
-  const [ api ] = await Promise.all([
-    registry.get('api'),
+  const [ engine ] = await Promise.all([
+    registry.get('engine'),
     registry.get('render_pipeline'), // TODO(daaitch): improper - needed for gbuffer to set texture id
   ]);
 
@@ -23,7 +23,7 @@ module.exports = async function plugin(registry, opts) {
     }
     
     const createdBlocksPromises = loadedBlocks.map(loadedBlock => {
-      return api.blockCreate(loadedBlock)
+      return engine.blockCreate(loadedBlock)
         .then(handle => ({handle, id: loadedBlock.id}))
     })
     const createdBlocks = await Promise.all(createdBlocksPromises)
@@ -33,7 +33,7 @@ module.exports = async function plugin(registry, opts) {
       blocks[createdBlock.id] = createdBlock.handle;
     }
   
-    await api.blockBake();
+    await engine.blockBake();
     return blocks;
   }
 }

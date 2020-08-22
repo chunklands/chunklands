@@ -1,7 +1,7 @@
 
 #include "RenderQuad.hxx"
 
-namespace chunklands::engine {
+namespace chunklands::engine::gl {
 
   const gl::VaoElementRenderQuad quad_vertices[] = {
     {{-1.0f, -1.0f, 0.0f},   {0.0f, 0.0f}},
@@ -14,4 +14,4 @@ namespace chunklands::engine {
     vao_.Initialize(quad_vertices, 4);
   }
 
-} // namespace chunklands::engine
+} // namespace chunklands::engine::gl

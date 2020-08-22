@@ -1,5 +1,5 @@
-#ifndef __CHUNKLANDS_ENGINE_API_TYPES_HXX__
-#define __CHUNKLANDS_ENGINE_API_TYPES_HXX__
+#ifndef __CHUNKLANDS_ENGINE_ENGINETYPES_HXX__
+#define __CHUNKLANDS_ENGINE_ENGINETYPES_HXX__
 
 #include <chunklands/libcxx/glfw.hxx>
 #include <string>
@@ -7,7 +7,6 @@
 
 namespace chunklands::engine {
 
-  struct CEHandle;
   struct CEWindowHandle;
   struct CEChunkHandle;
   struct CEGBufferMeshHandle;
@@ -16,34 +15,33 @@ namespace chunklands::engine {
 
   constexpr int CE_CHUNK_SIZE = 32;
   constexpr int CE_CHUNK_BLOCK_COUNT = CE_CHUNK_SIZE * CE_CHUNK_SIZE * CE_CHUNK_SIZE;
-  constexpr int CE_CHUNK_STATE_COUNT = 3;
 
-  enum FaceType {
-    kFaceTypeUnknown,
-    kFaceTypeLeft,
-    kFaceTypeRight,
-    kFaceTypeTop,
-    kFaceTypeBottom,
-    kFaceTypeFront,
-    kFaceTypeBack,
+  enum class FaceType {
+    Unknown,
+    Left,
+    Right,
+    Bottom,
+    Top,
+    Front,
+    Back,
   };
 
   struct __attribute__ ((packed)) CEVaoElementChunkBlock {
     GLfloat position[3];
-    GLfloat normal[3];
-    GLfloat uv[2];
+    GLfloat normal  [3];
+    GLfloat uv      [2];
   };
 
   struct CEBlockFace {
-    FaceType type;
+    FaceType                            type;
     std::vector<CEVaoElementChunkBlock> data;
   };
 
   struct CEBlockCreateInit {
-    std::string id;
-    bool opaque = false;
-    std::vector<CEBlockFace> faces;
-    std::vector<unsigned char> texture;
+    std::string                 id;
+    bool                        opaque = false;
+    std::vector<CEBlockFace>    faces;
+    std::vector<unsigned char>  texture;
   };
 
   struct CEPassInit {
@@ -59,10 +57,6 @@ namespace chunklands::engine {
   struct CEEvent {
     CEEvent(std::string type) : type(std::move(type)) {}
     std::string type;
-  };
-
-  struct CEApiEvent : public CEEvent {
-    using CEEvent::CEEvent;
   };
 
   struct CEWindowEvent : public CEEvent {

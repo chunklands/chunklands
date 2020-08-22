@@ -10,8 +10,8 @@ module.exports = class ChunkManager {
    * 
    * @param {{abort: Abort}} param0 
    */
-  constructor({abort, api, blocks}) {
-    this._api = api;
+  constructor({abort, engine, blocks}) {
+    this._engine = engine;
     this._blocks = blocks;
 
     this._worldGen = new SimpleWorldGen({abort, blocks});
@@ -34,8 +34,8 @@ module.exports = class ChunkManager {
       if (chunk.hChunk && distanceCmp(chunk.pos, chunkPos, RENDER_DISTANCE) === 1) {
         const deleted = this._chunks.delete(key);
         assert(deleted);
-        this._api.sceneRemoveChunk(chunk.hChunk);
-        this._api.chunkDelete(chunk.hChunk);
+        this._engine.sceneRemoveChunk(chunk.hChunk);
+        this._engine.chunkDelete(chunk.hChunk);
       }
     }
 
@@ -60,21 +60,21 @@ module.exports = class ChunkManager {
         const chunkInfo = this._chunks.get(key);
         if (chunkInfo) {
           chunkInfo.hChunk = hChunk;
-          this._api.sceneAddChunk(hChunk);
+          this._engine.sceneAddChunk(hChunk);
         } else {
-          this._api.chunkDelete(hChunk);
+          this._engine.chunkDelete(hChunk);
         }
       }
     }
   }
 
   async _createChunk(abort, chunkPos) {
-
-    const handle = await abort.race(() => this._api.chunkCreate(chunkPos.x, chunkPos.y, chunkPos.z));
-
-    const buf = await abort.race(() => this._worldGen.generateChunk(abort, chunkPos, 32));
+    const [ handle, buf ] = await Promise.all([
+      abort.race(this._engine.chunkCreate(chunkPos.x, chunkPos.y, chunkPos.z)),
+      abort.race(this._worldGen.generateChunk(abort, chunkPos, 32))
+    ]);
     
-    await abort.race(() => this._api.chunkUpdate(handle, buf));
+    await abort.race(this._engine.chunkUpdate(handle, buf));
 
     return handle;
   }

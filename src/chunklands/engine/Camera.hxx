@@ -4,7 +4,7 @@
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
 #include <boost/signals2.hpp>
-#include "api-types.hxx"
+#include "engine_types.hxx"
 
 namespace chunklands::engine {
 

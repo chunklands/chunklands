@@ -1,13 +1,13 @@
 const debug = require('debug')('plugin:window');
 
 module.exports = async function plugin(registry) {
-  const api = await registry.get('api');
+  const engine = await registry.get('engine');
 
-  await api.GLFWInit();
+  await engine.GLFWInit();
 
-  api.GLFWStartPollEvents(true);
-  const handle = await api.windowCreate(1024, 768, 'chunklands');
-  await api.windowLoadGL(handle);
+  engine.GLFWStartPollEvents(true);
+  const handle = await engine.windowCreate(1024, 768, 'chunklands');
+  await engine.windowLoadGL(handle);
 
   return {
     handle

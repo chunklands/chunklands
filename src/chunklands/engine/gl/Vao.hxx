@@ -1,10 +1,10 @@
 #ifndef __CHUNKLANDS_ENGINE_GL_VAO_HXX__
 #define __CHUNKLANDS_ENGINE_GL_VAO_HXX__
 
-#include <chunklands/libcxx/glfw.hxx>
 #include <boost/move/core.hpp>
-#include "../api-types.hxx"
-#include "gl_check.hxx"
+#include <chunklands/libcxx/glfw.hxx>
+#include <chunklands/engine/engine_types.hxx>
+#include <chunklands/engine/gl/gl_check.hxx>
 
 namespace chunklands::engine::gl {
 

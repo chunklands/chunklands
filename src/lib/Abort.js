@@ -23,14 +23,14 @@ class Abort {
     }
   }
 
-  async race(uncancelablePromiseProducer) {
+  async race(uncancelablePromise) {
     this.check();
 
     let cleanup;
 
     try {
       return await Promise.race([
-        uncancelablePromiseProducer(),
+        uncancelablePromise,
         new Promise((resolve, reject) => {
           const abortCleanup = this.onceAbort(() => {
             reject(Abort.ABORT_ERROR);

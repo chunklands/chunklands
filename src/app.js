@@ -8,9 +8,6 @@ registry
   .load('engine', require('./plugins/engine'), {
     chunklands
   })
-  .load('api', require('./plugins/api'), {
-    chunklands
-  })
   .load('profiler', require('./plugins/profiler'), {
     enable: true,
     profilesDir: `${__dirname}/../profiles`

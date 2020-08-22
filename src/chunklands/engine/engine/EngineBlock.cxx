@@ -1,7 +1,8 @@
 
-#include "api-shared.hxx"
-#include "../Block.hxx"
-#include "../GBufferPass.hxx"
+#include "shared.hxx"
+#include <chunklands/engine/Block.hxx>
+#include <chunklands/engine/engine/Engine.hxx>
+#include <chunklands/engine/GBufferPass.hxx>
 #include <chunklands/libcxx/stb.hxx>
 
 namespace chunklands::engine {
@@ -13,6 +14,7 @@ namespace chunklands::engine {
       }
     }
   };
+
   using unique_ptr_stb_image = std::unique_ptr<stbi_uc, stb_image_delete>;
 
   struct unbaked_block {
@@ -25,10 +27,10 @@ namespace chunklands::engine {
   constexpr int COLOR_COMPONENTS = 4;
 
   boost::future<CEBlockHandle*>
-  Api::BlockCreate(CEBlockCreateInit init) {
+  Engine::BlockCreate(CEBlockCreateInit init) {
     EASY_FUNCTION();
-    API_FN();
-    CHECK(init.id.length() > 0);
+    ENGINE_FN();
+    CHECK_OR_FATAL(init.id.length() > 0);
     std::unique_ptr<Block> block = std::make_unique<Block>(std::move(init.id), init.opaque, std::move(init.faces));
 
     static_assert(sizeof(char) == sizeof(stbi_uc), "check char size");
@@ -38,19 +40,14 @@ namespace chunklands::engine {
     if (init.texture.size() > 0) {
       stbi_uc* d = stbi_load_from_memory(init.texture.data(), init.texture.size(), &b->width, &b->height, nullptr, COLOR_COMPONENTS);
       b->image.reset(d);
-      CHECK(b->image);
+      CHECK_OR_FATAL(b->image);
     }
 
-    return EnqueueTask(executor_, [this, block = std::move(block), b = std::move(b)]() mutable {
-      CEBlockHandle* handle = reinterpret_cast<CEBlockHandle*>(block.get());
-      blocks_.insert(handle);
-      block.release();
+    return EnqueueTask(data_->executors.opengl, [this, block = std::move(block), b = std::move(b)]() mutable {
+      data_->block.unbaked.insert(b.release());
 
-      CEHandle* unbacked_block_handle = reinterpret_cast<CEHandle*>(b.get());
-      this->unbaked_blocks_.insert(unbacked_block_handle);
-      b.release();
-
-      return handle;
+      data_->block.blocks.insert(block.get());
+      return reinterpret_cast<CEBlockHandle*>(block.release());
     });
   }
 
@@ -122,18 +119,19 @@ namespace chunklands::engine {
   }
 
   boost::future<void>
-  Api::BlockBake() {
+  Engine::BlockBake() {
     EASY_FUNCTION();
-    API_FN();
-    CHECK(g_buffer_pass_handle_ != nullptr);
+    ENGINE_FN();
+    
+    return EnqueueTask(data_->executors.opengl, [this]() {
+      CHECK_OR_FATAL(data_->render_pipeline.gbuffer != nullptr);
 
-    return EnqueueTask(executor_, [this]() {
       std::unique_ptr<block_bake_node> root = std::make_unique<block_bake_node>();
       int max_dim = 0;
 
-      for (CEHandle *handle : this->unbaked_blocks_) {
-        assert(handle);
-        unbaked_block* b = reinterpret_cast<unbaked_block*>(handle);
+      for (void *unbaked : data_->block.unbaked) {
+        assert(unbaked);
+        unbaked_block* b = reinterpret_cast<unbaked_block*>(unbaked);
         assert(b);
 
         if (!b->image) {
@@ -226,12 +224,10 @@ namespace chunklands::engine {
       std::memset(data.get(), 0, size);
       generate(data.get(), dim, root.get());
 
-      CHECK(g_buffer_pass_handle_ != nullptr);
-      GBufferPass* g_buffer_pass = reinterpret_cast<GBufferPass*>(g_buffer_pass_handle_);
-      assert(g_buffer_pass != nullptr);
+      CHECK_OR_FATAL(data_->render_pipeline.gbuffer != nullptr);
       // const int result = stbi_write_png("out.png", dim, dim, 4, data.get(), 0);
       // assert(result == 1);
-      g_buffer_pass->LoadTexture(dim, dim, GL_RGBA, GL_UNSIGNED_BYTE, data.get());
+      data_->render_pipeline.gbuffer->LoadTexture(dim, dim, GL_RGBA, GL_UNSIGNED_BYTE, data.get());
     });
   }
 

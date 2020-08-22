@@ -1,10 +1,10 @@
 #ifndef __CHUNKLANDS_ENGINE_SCENE_CHUNK_HXX__
 #define __CHUNKLANDS_ENGINE_SCENE_CHUNK_HXX__
 
+#include <chunklands/engine/Block.hxx>
+#include <chunklands/engine/engine_types.hxx>
+#include <chunklands/engine/GBufferMesh.hxx>
 #include <cstring>
-#include "api-types.hxx"
-#include "GBufferMesh.hxx"
-#include "Block.hxx"
 
 namespace chunklands::engine {
 
@@ -14,8 +14,6 @@ namespace chunklands::engine {
     kMeshPrepared,
     kCount,
   };
-
-  static_assert(CE_CHUNK_STATE_COUNT == ChunkState::kCount, "check");
 
   struct Chunk {
     Chunk(int x, int y, int z) : x(x), y(y), z(z) {
