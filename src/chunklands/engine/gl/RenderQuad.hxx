@@ -5,17 +5,18 @@
 
 namespace chunklands::engine::gl {
 
-  class RenderQuad {
-  public:
+class RenderQuad {
+public:
     RenderQuad();
 
-    void Render() const {
-      vao_.Render();
+    void Render() const
+    {
+        vao_.Render();
     }
 
-  private:
+private:
     Vao<GL_TRIANGLE_STRIP, VaoElementRenderQuad> vao_;
-  };
+};
 
 } // namespace chunklands::engine::gl
 

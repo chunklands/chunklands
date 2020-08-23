@@ -4,11 +4,12 @@
 
 namespace chunklands::engine {
 
-  constexpr float LOOK_RADIANS = M_PI * 0.9;
-  constexpr float MIN_PITCH = -LOOK_RADIANS / 2.0;
-  constexpr float MAX_PITCH = +LOOK_RADIANS / 2.0;
+constexpr float LOOK_RADIANS = M_PI * 0.9;
+constexpr float MIN_PITCH = -LOOK_RADIANS / 2.0;
+constexpr float MAX_PITCH = +LOOK_RADIANS / 2.0;
 
-  void CharacterController::Move(const float forward, const float right) {
+void CharacterController::Move(const float forward, const float right)
+{
     // TODO(daaitch): collision here
     const glm::vec2& look = camera_->GetLook();
     const float yaw = look.x;
@@ -19,15 +20,15 @@ namespace chunklands::engine {
     const float cos_pitch = std::cos(pitch);
 
     glm::vec3 move(
-      cos_pitch * sin_yaw * forward + -cos_yaw * right,
-      sin_pitch * forward,
-      cos_pitch * cos_yaw * forward + sin_yaw * right
-    );
+        cos_pitch * sin_yaw * forward + -cos_yaw * right,
+        sin_pitch * forward,
+        cos_pitch * cos_yaw * forward + sin_yaw * right);
 
     camera_->SetEye(camera_->GetEye() + move);
-  }
-  
-  void CharacterController::Look(const glm::vec2& delta) {
+}
+
+void CharacterController::Look(const glm::vec2& delta)
+{
     glm::vec2 look = camera_->GetLook() + delta;
 
     // yaw modulo
@@ -38,6 +39,6 @@ namespace chunklands::engine {
     look.y = std::min(MAX_PITCH, look.y);
 
     camera_->SetLook(look);
-  }
+}
 
 } // namespace chunklands::engine

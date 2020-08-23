@@ -10,76 +10,91 @@
 
 namespace chunklands::engine {
 
-  template<class T>
-  struct OkResultX {
+template <class T>
+struct OkResultX {
     T value;
-  };
+};
 
-  struct OkEmptyResultX {
-  };
+struct OkEmptyResultX {
+};
 
-  template<class E>
-  struct ErrResultX {
+template <class E>
+struct ErrResultX {
     E value;
-  };
+};
 
-  template<class E, class T>
-  class ResultX {
-  public:
-    ResultX(OkResultX<T>&& ok) : result_(std::move(ok.value)) {
+template <class E, class T>
+class ResultX {
+public:
+    ResultX(OkResultX<T>&& ok)
+        : result_(std::move(ok.value))
+    {
     }
 
-    ResultX(OkEmptyResultX&&) : result_(T()) {
+    ResultX(OkEmptyResultX&&)
+        : result_(T())
+    {
     }
 
-    ResultX(ErrResultX<E>&& err) : result_(std::move(err.value)) {
+    ResultX(ErrResultX<E>&& err)
+        : result_(std::move(err.value))
+    {
     }
 
-    bool IsError() const {
-      return std::holds_alternative<E>(result_);
+    bool IsError() const
+    {
+        return std::holds_alternative<E>(result_);
     }
 
-    bool IsOk() const {
-      return std::holds_alternative<T>(result_);
+    bool IsOk() const
+    {
+        return std::holds_alternative<T>(result_);
     }
 
-    const T& Value() const {
-      return std::get<T>(result_);
+    const T& Value() const
+    {
+        return std::get<T>(result_);
     }
 
-    T& Value() {
-      return std::get<T>(result_);
+    T& Value()
+    {
+        return std::get<T>(result_);
     }
 
-    const E& Error() const {
-      return std::get<E>(result_);
+    const E& Error() const
+    {
+        return std::get<E>(result_);
     }
 
-    E& Error() {
-      return std::get<E>(result_);
+    E& Error()
+    {
+        return std::get<E>(result_);
     }
 
-  private:
+private:
     std::variant<E, T> result_;
-  };
+};
 
-  template<class E>
-  static inline ErrResultX<E> Err(E&& e) {
-    return ErrResultX<E> {std::forward<E>(e)};
-  }
+template <class E>
+static inline ErrResultX<E> Err(E&& e)
+{
+    return ErrResultX<E> { std::forward<E>(e) };
+}
 
-  template<class T>
-  static inline OkResultX<T> Ok(T&& value) {
-    return OkResultX<T> {std::forward<T>(value)};
-  };
+template <class T>
+static inline OkResultX<T> Ok(T&& value)
+{
+    return OkResultX<T> { std::forward<T>(value) };
+};
 
-  static inline OkEmptyResultX Ok() {
+static inline OkEmptyResultX Ok()
+{
     return OkEmptyResultX();
-  };
+};
 
-  template<class E, class T>
-  class AsyncResultX {
-  public:
+template <class E, class T>
+class AsyncResultX {
+public:
     // using AsyncResult2<E, T>;
     // using AsyncResult2<E, T>::AsyncResult2;
 
@@ -87,63 +102,69 @@ namespace chunklands::engine {
     //   (*this) = std::move(future);
     // }
 
-    AsyncResultX(ErrResultX<E>&& value) {
-      boost::promise<ResultX<E, T>> p;
-      p.set_value(std::move(value));
-      (*this) = p.get_future();
+    AsyncResultX(ErrResultX<E>&& value)
+    {
+        boost::promise<ResultX<E, T>> p;
+        p.set_value(std::move(value));
+        (*this) = p.get_future();
     }
 
-    AsyncResultX(OkResultX<T>&& value) {
-      boost::promise<ResultX<E, T>> p;
-      p.set_value(std::move(value));
-      (*this) = p.get_future();
+    AsyncResultX(OkResultX<T>&& value)
+    {
+        boost::promise<ResultX<E, T>> p;
+        p.set_value(std::move(value));
+        (*this) = p.get_future();
     }
 
-    AsyncResultX(boost::future<ResultX<E, T>> future) : future_(std::move(future)) {
+    AsyncResultX(boost::future<ResultX<E, T>> future)
+        : future_(std::move(future))
+    {
     }
 
-    boost::future<ResultX<E, T>>& Future() {
-      return future_;
+    boost::future<ResultX<E, T>>& Future()
+    {
+        return future_;
     }
 
-    const boost::future<ResultX<E, T>>& Future() const {
-      return future_;
+    const boost::future<ResultX<E, T>>& Future() const
+    {
+        return future_;
     }
 
     // AsyncResult3(const AsyncResult3<E, T>&) = default;
     // AsyncResult3(AsyncResult3<E, T>&&) = default;
     // AsyncResult3<E, T>& operator=(const AsyncResult3<E, T>&) = default;
     // AsyncResult3<E, T>& operator=(AsyncResult3<E, T>&&) = default;
-  private:
+private:
     boost::future<ResultX<E, T>> future_;
-  };
+};
 
-  template<class T>
-  using EngineResultX = ResultX<engine_exception, T>;
+template <class T>
+using EngineResultX = ResultX<engine_exception, T>;
 
-  template<class T>
-  using AsyncEngineResult = AsyncResultX<engine_exception, T>;
+template <class T>
+using AsyncEngineResult = AsyncResultX<engine_exception, T>;
 
-  template<class T>
-  using Result = std::variant<engine_exception, T>;
+template <class T>
+using Result = std::variant<engine_exception, T>;
 
-  template<class T>
-  using AsyncResult = boost::future<Result<T>>;
+template <class T>
+using AsyncResult = boost::future<Result<T>>;
 
-  using CENone = std::monostate;
+using CENone = std::monostate;
 
-  using EventConnection = boost::signals2::scoped_connection;
+using EventConnection = boost::signals2::scoped_connection;
 
-  struct CEWindowHandle;
-  struct CEChunkHandle;
-  struct CEGBufferMeshHandle;
-  struct CEBlockRegistrar;
-  struct CEBlockHandle;
+struct CEWindowHandle;
+struct CEChunkHandle;
+struct CEGBufferMeshHandle;
+struct CEBlockRegistrar;
+struct CEBlockHandle;
 
-  constexpr int CE_CHUNK_SIZE = 32;
-  constexpr int CE_CHUNK_BLOCK_COUNT = CE_CHUNK_SIZE * CE_CHUNK_SIZE * CE_CHUNK_SIZE;
+constexpr int CE_CHUNK_SIZE = 32;
+constexpr int CE_CHUNK_BLOCK_COUNT = CE_CHUNK_SIZE * CE_CHUNK_SIZE * CE_CHUNK_SIZE;
 
-  enum class FaceType {
+enum class FaceType {
     Unknown,
     Left,
     Right,
@@ -151,70 +172,73 @@ namespace chunklands::engine {
     Top,
     Front,
     Back,
-  };
+};
 
-  struct __attribute__ ((packed)) CEVaoElementChunkBlock {
+struct __attribute__((packed)) CEVaoElementChunkBlock {
     GLfloat position[3];
-    GLfloat normal  [3];
-    GLfloat uv      [2];
-  };
+    GLfloat normal[3];
+    GLfloat uv[2];
+};
 
-  struct CEBlockFace {
-    FaceType                            type;
+struct CEBlockFace {
+    FaceType type;
     std::vector<CEVaoElementChunkBlock> data;
-  };
+};
 
-  struct CEBlockCreateInit {
-    std::string                 id;
-    bool                        opaque = false;
-    std::vector<CEBlockFace>    faces;
-    std::vector<unsigned char>  texture;
-  };
+struct CEBlockCreateInit {
+    std::string id;
+    bool opaque = false;
+    std::vector<CEBlockFace> faces;
+    std::vector<unsigned char> texture;
+};
 
-  struct CEPassInit {
+struct CEPassInit {
     std::string vertex_shader;
     std::string fragment_shader;
-  };
+};
 
-  struct CERenderPipelineInit {
+struct CERenderPipelineInit {
     CEPassInit gbuffer;
     CEPassInit lighting;
-  };
+};
 
-  struct CEEvent {
-    CEEvent(std::string type) : type(std::move(type)) {}
+struct CEEvent {
+    CEEvent(std::string type)
+        : type(std::move(type))
+    {
+    }
     std::string type;
-  };
+};
 
-  struct CEWindowEvent : public CEEvent {
+struct CEWindowEvent : public CEEvent {
     using CEEvent::CEEvent;
 
     union {
-      struct {
-        int button;
-        int action;
-        int mods;
-      } click;
+        struct {
+            int button;
+            int action;
+            int mods;
+        } click;
 
-      struct {
-        int key;
-        int scancode;
-        int action;
-        int mods;
-      } key;
+        struct {
+            int key;
+            int scancode;
+            int action;
+            int mods;
+        } key;
     };
-  };
+};
 
-  struct CECameraPosition {
+struct CECameraPosition {
     float x, y, z;
-  };
+};
 
-  struct CECameraEvent : public CEEvent {
+struct CECameraEvent : public CEEvent {
     using CEEvent::CEEvent;
     union {
-      CECameraPosition positionchange;
+        CECameraPosition positionchange;
     };
-  };
+};
 
 } // namespace chunklands::engine
 

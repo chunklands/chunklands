@@ -8,17 +8,18 @@
 
 namespace chunklands::engine {
 
-  struct Block {
+struct Block {
     Block(std::string id, bool opaque, std::vector<CEBlockFace> faces)
-      : id(std::move(id))
-      , faces(std::move(faces))
-      , opaque(opaque)
-      {}
+        : id(std::move(id))
+        , faces(std::move(faces))
+        , opaque(opaque)
+    {
+    }
 
     std::string id;
     std::vector<CEBlockFace> faces;
     bool opaque;
-  };
+};
 
 } // namespace chunklands::engine
 

@@ -5,7 +5,7 @@
 
 namespace chunklands {
 
-  JSObject Init(JSEnv env, JSObject exports);
+JSObject Init(JSEnv env, JSObject exports);
 
 } // namespace chunklands
 

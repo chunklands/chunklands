@@ -1,24 +1,24 @@
 
 #include "GBufferPass.hxx"
-#include "gl/gl_exception.hxx"
 #include "gl/gl_check.hxx"
+#include "gl/gl_exception.hxx"
 
 namespace chunklands::engine {
 
-  GBufferPass::GBufferPass(Window* window, std::unique_ptr<gl::Program> program)
+GBufferPass::GBufferPass(Window* window, std::unique_ptr<gl::Program> program)
     : program_(std::move(program))
     , u_proj_(*program_, "u_proj")
     , u_view_(*program_, "u_view")
     , u_texture_(*program_, "u_texture")
-  {
+{
     assert(window);
     const window_size_t size = window->GetSize();
     UpdateBuffers(size.width, size.height);
     UpdateProj(size.width, size.height);
 
     window_resize_conn_ = window->on_resize.connect([this](const window_size_t& size) {
-      UpdateBuffers(size.width, size.height);
-      UpdateProj(size.width, size.height);
+        UpdateBuffers(size.width, size.height);
+        UpdateProj(size.width, size.height);
     });
 
     view_ = glm::lookAt(glm::vec3(12, -4, 50), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
@@ -26,18 +26,20 @@ namespace chunklands::engine {
     program_->Use();
     u_texture_.Update(0);
     program_->Unuse();
-  }
+}
 
-  GBufferPass::~GBufferPass() {
+GBufferPass::~GBufferPass()
+{
     std::cout << "~GBufferPass" << std::endl;
     DeleteBuffers();
 
     if (texture_ != 0) {
-      glDeleteTextures(1, &texture_);
+        glDeleteTextures(1, &texture_);
     }
-  }
+}
 
-  void GBufferPass::UpdateBuffers(int width, int height) {
+void GBufferPass::UpdateBuffers(int width, int height)
+{
     GL_CHECK_DEBUG();
 
     DeleteBuffers();
@@ -72,9 +74,9 @@ namespace chunklands::engine {
     GL_CHECK_DEBUG();
 
     const GLuint attachments[3] = {
-      GL_COLOR_ATTACHMENT0,
-      GL_COLOR_ATTACHMENT1,
-      GL_COLOR_ATTACHMENT2
+        GL_COLOR_ATTACHMENT0,
+        GL_COLOR_ATTACHMENT1,
+        GL_COLOR_ATTACHMENT2
     };
 
     glDrawBuffers(3, attachments);
@@ -87,14 +89,15 @@ namespace chunklands::engine {
     GL_CHECK_DEBUG();
 
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-      gl::throw_gl_exception("glFramebufferRenderbuffer", "framebuffer status not complete");
+        gl::throw_gl_exception("glFramebufferRenderbuffer", "framebuffer status not complete");
     }
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     GL_CHECK_DEBUG();
-  }
+}
 
-  void GBufferPass::DeleteBuffers() {
+void GBufferPass::DeleteBuffers()
+{
     GL_CHECK_DEBUG();
 
     glDeleteTextures(1, &texture_position_);
@@ -104,35 +107,39 @@ namespace chunklands::engine {
     glDeleteFramebuffers(1, &framebuffer_);
 
     GL_CHECK_DEBUG();
-  }
+}
 
-  void GBufferPass::BeginPass() {
+void GBufferPass::BeginPass()
+{
     glBindFramebuffer(GL_FRAMEBUFFER, framebuffer_);
     glClearColor(1.f, 1.f, 1.f, 1.f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     if (texture_ != 0) {
-      glActiveTexture(GL_TEXTURE0);
-      glBindTexture(GL_TEXTURE_2D, texture_);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, texture_);
     }
 
     program_->Use();
     u_proj_.Update(proj_);
     u_view_.Update(view_);
-  }
+}
 
-  void GBufferPass::EndPass() {
+void GBufferPass::EndPass()
+{
     program_->Unuse();
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-  }
+}
 
-  void GBufferPass::UpdateProj(int width, int height) {
+void GBufferPass::UpdateProj(int width, int height)
+{
     glViewport(0, 0, width, height);
     proj_ = glm::perspective(glm::radians(75.f), float(width) / float(height), 0.1f, 1000.0f);
-  }
+}
 
-  void GBufferPass::LoadTexture(GLsizei width, GLsizei height, GLenum format, GLenum type, const void* pixels) {
-  // void GBufferPass::LoadTexture(GLsizei, GLsizei, GLenum, GLenum, const void*) {
+void GBufferPass::LoadTexture(GLsizei width, GLsizei height, GLenum format, GLenum type, const void* pixels)
+{
+    // void GBufferPass::LoadTexture(GLsizei, GLsizei, GLenum, GLenum, const void*) {
     GL_CHECK_DEBUG();
 
     glGenTextures(1, &texture_);
@@ -148,10 +155,11 @@ namespace chunklands::engine {
     // glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, &p);
     glBindTexture(GL_TEXTURE_2D, 0);
     GL_CHECK_DEBUG();
-  }
+}
 
-  void GBufferPass::UpdateView(const glm::vec3& eye, const glm::vec3& center) {
+void GBufferPass::UpdateView(const glm::vec3& eye, const glm::vec3& center)
+{
     view_ = glm::lookAt(eye, center, glm::vec3(0, 1, 0));
-  }
+}
 
 } // namespace chunklands::engine

@@ -8,20 +8,21 @@
 
 namespace chunklands::engine {
 
-  struct EngineData;
+struct EngineData;
 
-  class Engine {
-  public:
+class Engine {
+public:
     Engine();
     ~Engine();
 
-  public:
+public:
     void Render();
     void RenderSwap();
     void Update();
     void Terminate();
 
-  public:
+public:
+    // clang-format off
     AsyncEngineResult<CENone>           GLFWInit();
     void                                GLFWStartPollEvents(bool poll);
     bool                                GLFWStartPollEvents() const;
@@ -46,10 +47,10 @@ namespace chunklands::engine {
     AsyncEngineResult<CENone>           CameraDetachWindow(CEWindowHandle* handle);
     AsyncEngineResult<CECameraPosition> CameraGetPosition();
     EventConnection                     CameraOn(const std::string& event, std::function<void(CECameraEvent)> callback);
-
-  private:
+    // clang-format on
+private:
     EngineData* data_ = nullptr;
-  };
+};
 
 } // namespace chunklands::engine
 

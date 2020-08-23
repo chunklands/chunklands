@@ -1,14 +1,14 @@
 #ifndef __CHUNKLANDS_ENGINE_CHUNKMESHDATAGENERATOR_HXX__
 #define __CHUNKLANDS_ENGINE_CHUNKMESHDATAGENERATOR_HXX__
 
-#include <cassert>
-#include <boost/move/core.hpp>
 #include "Chunk.hxx"
 #include "gl/Vao.hxx"
+#include <boost/move/core.hpp>
+#include <cassert>
 
 namespace chunklands::engine {
 
-  enum ChunkNeighbor {
+enum ChunkNeighbor {
     kChunkNeighborLeft,
     kChunkNeighborRight,
     kChunkNeighborBottom,
@@ -16,25 +16,28 @@ namespace chunklands::engine {
     kChunkNeighborFront,
     kChunkNeighborBack,
     kChunkNeighborCount
-  };
+};
 
-  struct ChunkMeshDataGenerator {
+struct ChunkMeshDataGenerator {
     BOOST_MOVABLE_BUT_NOT_COPYABLE(ChunkMeshDataGenerator)
-  public:
-    ChunkMeshDataGenerator(Chunk* chunk, std::array<const Chunk*, kChunkNeighborCount> neighbors) : chunk(chunk), neighbors(std::move(neighbors)) {
-      assert(chunk != nullptr);
+public:
+    ChunkMeshDataGenerator(Chunk* chunk, std::array<const Chunk*, kChunkNeighborCount> neighbors)
+        : chunk(chunk)
+        , neighbors(std::move(neighbors))
+    {
+        assert(chunk != nullptr);
 
-      for (const Chunk* neighbor : this->neighbors) {
-        assert(neighbor->state >= kDataPrepared);
-      }
+        for (const Chunk* neighbor : this->neighbors) {
+            assert(neighbor->state >= kDataPrepared);
+        }
     }
 
     void operator()();
 
-  public:
+public:
     Chunk* const chunk;
     std::array<const Chunk*, kChunkNeighborCount> neighbors;
-  };
+};
 
 } // namespace chunklands::engine
 

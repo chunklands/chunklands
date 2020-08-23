@@ -1,12 +1,13 @@
 
 #include "Program.hxx"
-#include <vector>
-#include "gl_exception.hxx"
 #include "gl_check.hxx"
+#include "gl_exception.hxx"
+#include <vector>
 
 namespace chunklands::engine::gl {
 
-  GLuint compile(const GLuint shader, const GLchar* const source) {
+GLuint compile(const GLuint shader, const GLchar* const source)
+{
     GL_CHECK_DEBUG();
 
     glShaderSource(shader, 1, &source, nullptr);
@@ -16,19 +17,20 @@ namespace chunklands::engine::gl {
     GL_CHECK_DEBUG();
 
     if (result != GL_TRUE) {
-      GLint length = 0;
-      glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &length);
-      std::vector<GLchar> message(length + 1);
-      glGetShaderInfoLog(shader, length, nullptr, message.data());
-      glDeleteShader(shader);
+        GLint length = 0;
+        glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &length);
+        std::vector<GLchar> message(length + 1);
+        glGetShaderInfoLog(shader, length, nullptr, message.data());
+        glDeleteShader(shader);
 
-      throw_gl_exception("glCompileShader", message.data());
+        throw_gl_exception("glCompileShader", message.data());
     }
 
     return shader;
-  }
+}
 
-  Program::Program(const char* const vsh_source, const char* const fsh_source) {
+Program::Program(const char* const vsh_source, const char* const fsh_source)
+{
     GL_CHECK_DEBUG();
 
     const GLuint vertex_shader = glCreateShader(GL_VERTEX_SHADER);
@@ -46,29 +48,31 @@ namespace chunklands::engine::gl {
     GLint result = GL_FALSE;
     glGetProgramiv(program_, GL_LINK_STATUS, &result);
     if (result != GL_TRUE) {
-      GLint length = 0;
-      glGetProgramiv(program_, GL_INFO_LOG_LENGTH, &length);
-      std::vector<GLchar> message(length + 1);
-      glGetProgramInfoLog(program_, length, nullptr, message.data());
-      throw_gl_exception("glLinkProgram", message.data());
+        GLint length = 0;
+        glGetProgramiv(program_, GL_INFO_LOG_LENGTH, &length);
+        std::vector<GLchar> message(length + 1);
+        glGetProgramInfoLog(program_, length, nullptr, message.data());
+        throw_gl_exception("glLinkProgram", message.data());
     }
 
     glDeleteShader(vertex_shader);
     glDeleteShader(fragment_shader);
-  }
+}
 
-  GLint Program::GetUniformLocation(const std::string& name) const {
+GLint Program::GetUniformLocation(const std::string& name) const
+{
     const GLint location = glGetUniformLocation(program_, name.data());
     if (location == -1) {
-      std::string message = "illegal uniform location: " + name;
-      throw_gl_exception("glGetUniformLocation", std::move(message));
+        std::string message = "illegal uniform location: " + name;
+        throw_gl_exception("glGetUniformLocation", std::move(message));
     }
 
     return location;
-  }
+}
 
-  GLint Program::GetUniformLocation(const std::string& name, const int index) const {
+GLint Program::GetUniformLocation(const std::string& name, const int index) const
+{
     return GetUniformLocation(name + "[" + std::to_string(index) + "]");
-  }
+}
 
 } // namespace chunklands::gl

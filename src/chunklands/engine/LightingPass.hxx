@@ -1,25 +1,25 @@
 #ifndef __CHUNKLANDS_ENGINE_LIGHTING_PASS_HXX__
 #define __CHUNKLANDS_ENGINE_LIGHTING_PASS_HXX__
 
-#include <chunklands/libcxx/glfw.hxx>
+#include "Window.hxx"
+#include "gl/Program.hxx"
 #include "gl/Uniform.hxx"
+#include <boost/move/core.hpp>
+#include <chunklands/libcxx/glfw.hxx>
 #include <glm/vec3.hpp>
 #include <memory>
-#include "gl/Program.hxx"
-#include "Window.hxx"
-#include <boost/move/core.hpp>
 
 namespace chunklands::engine {
 
-  class LightingPass {
-  public:
+class LightingPass {
+public:
     LightingPass(std::unique_ptr<gl::Program> program);
     ~LightingPass();
 
     void BeginPass(GLuint position_texture, GLuint normal_texture, GLuint color_texture);
     void EndPass();
 
-  private:
+private:
     std::unique_ptr<gl::Program> program_;
 
     // gl::Uniform<GLfloat> u_render_distance_;
@@ -32,7 +32,7 @@ namespace chunklands::engine {
     boost::signals2::scoped_connection window_resize_conn_;
 
     BOOST_MOVABLE_BUT_NOT_COPYABLE(LightingPass)
-  };
+};
 
 } // namespace chunklands::engine
 

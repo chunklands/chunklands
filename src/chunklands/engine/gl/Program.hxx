@@ -6,24 +6,26 @@
 
 namespace chunklands::engine::gl {
 
-  class Program {
-  public:
+class Program {
+public:
     Program(const char* vsh_source, const char* fsh_source);
 
-    void Use() const {
-      glUseProgram(program_);
+    void Use() const
+    {
+        glUseProgram(program_);
     }
 
-    void Unuse() const {
-      glUseProgram(0);
+    void Unuse() const
+    {
+        glUseProgram(0);
     }
 
     GLint GetUniformLocation(const std::string& name) const;
     GLint GetUniformLocation(const std::string& name, const int index) const;
 
-  private:
+private:
     GLuint program_ = 0;
-  };
+};
 
 } // namespace chunklands::gl
 

@@ -12,17 +12,20 @@
 
 namespace chunklands::libcxx::easyloggingpp {
 
-  struct log_process {
-    log_process(const char* str) : str(str) {
-      LOG(DEBUG) << str << ": pending...";
+struct log_process {
+    log_process(const char* str)
+        : str(str)
+    {
+        LOG(DEBUG) << str << ": pending...";
     }
 
-    ~log_process() {
-      LOG(DEBUG) << str << ": done";
+    ~log_process()
+    {
+        LOG(DEBUG) << str << ": done";
     }
 
     const char* str;
-  };
+};
 
 } // namespace chunklands::libcxx::easyloggingpp
 

@@ -7,20 +7,22 @@
 
 namespace chunklands::engine {
 
-  class CharacterController {
-  public:
-    CharacterController(Camera* camera) : camera_(camera) {
-      assert(camera_);
+class CharacterController {
+public:
+    CharacterController(Camera* camera)
+        : camera_(camera)
+    {
+        assert(camera_);
     }
 
     // void Jump();
     void Move(float forward, float right);
     void Look(const glm::vec2& delta);
-  
-  private:
+
+private:
     Camera* camera_ = nullptr;
     // bool is_grounded = false;
-  };
+};
 
 } // namespace chunklands::engine
 

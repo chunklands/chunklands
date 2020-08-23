@@ -5,9 +5,9 @@
 
 namespace chunklands::engine {
 
-  struct GBufferMesh {
+struct GBufferMesh {
     gl::Vao<GL_TRIANGLES, CEVaoElementChunkBlock> vao;
-  };
+};
 
 } // namespace chunklands::engine
 
