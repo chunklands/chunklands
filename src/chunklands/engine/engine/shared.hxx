@@ -7,6 +7,7 @@
 #include <chunklands/engine/CharacterController.hxx>
 #include <chunklands/engine/Chunk.hxx>
 #include <chunklands/engine/engine_exception.hxx>
+#include <chunklands/engine/engine/Engine.hxx>
 #include <chunklands/engine/GBufferPass.hxx>
 #include <chunklands/engine/gl/RenderQuad.hxx>
 #include <chunklands/engine/LightingPass.hxx>
@@ -23,6 +24,9 @@
 
 #define CHECK_OR_FATAL(x) do { if (!(x)) { BOOST_THROW_EXCEPTION(create_engine_exception(_ENGINE_FN_NAME, #x)); } } while(0)
 
+#define ENGINE_CHECK(x) do { if (!(x)) { return engine::create_engine_exception(_ENGINE_FN_NAME, #x); } } while(0)
+#define ENGINE_CHECKX(x) ENGINE_CHECKX_MSG((x), #x)
+#define ENGINE_CHECKX_MSG(x, MSG) do { if (!(x)) { return Err(create_engine_exception(_ENGINE_FN_NAME, MSG)); } } while(0)
 
 namespace chunklands::engine {
 
@@ -101,6 +105,16 @@ namespace chunklands::engine {
 
     return result;
   }
+
+  // template<class F, class R = typename std::result_of_t<F&&()>>
+  // inline boost::future<R> EnqueueTask2(boost::loop_executor& executor, F&& fn) {
+
+  //   boost::packaged_task<R()> task(std::forward<F>(fn));
+  //   boost::future<R> result = task.get_future();
+  //   executor.submit(std::move(task));
+
+  //   return result;
+  // }
 
 } // namespace chunklands::engine
 

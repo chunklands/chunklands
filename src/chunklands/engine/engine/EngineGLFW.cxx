@@ -4,24 +4,25 @@
 
 namespace chunklands::engine {
 
-  boost::future<void>
+  AsyncEngineResult<CENone>
   Engine::GLFWInit() {
     EASY_FUNCTION();
     ENGINE_FN();
 
-    return EnqueueTask(data_->executors.opengl, [this]() {
+    return EnqueueTask(data_->executors.opengl, [this]() -> EngineResultX<CENone> {
       EASY_FUNCTION();
       const int result = glfwInit();
       data_->glfw.initialized = result == GLFW_TRUE;
-      CHECK_OR_FATAL(data_->glfw.initialized);
+      ENGINE_CHECKX(data_->glfw.initialized);
 
       GLFWmonitor* monitor = glfwGetPrimaryMonitor();
-      CHECK_OR_FATAL(monitor != nullptr);
+      ENGINE_CHECKX(monitor != nullptr);
 
       const GLFWvidmode* mode = glfwGetVideoMode(monitor);
-      CHECK_OR_FATAL(mode != nullptr);
+      ENGINE_CHECKX(mode != nullptr);
 
       data_->gameloop.render_refresh_rate = mode->refreshRate;
+      return Ok();
     });
   }
 

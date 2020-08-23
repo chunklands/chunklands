@@ -5,19 +5,20 @@
 
 namespace chunklands::engine {
 
-  boost::future<CEWindowHandle*>
+  AsyncEngineResult<CEWindowHandle*>
   Engine::WindowCreate(int width, int height, std::string title) {
     EASY_FUNCTION();
     ENGINE_FN();
-    CHECK_OR_FATAL(data_->glfw.initialized);
-
-    return EnqueueTask(data_->executors.opengl, [this, width, height, title = std::move(title)]() {
+    
+    return EnqueueTask(data_->executors.opengl, [this, width, height, title = std::move(title)]() -> EngineResultX<CEWindowHandle*> {
       EASY_FUNCTION();
+
+      ENGINE_CHECKX(data_->glfw.initialized);
 
       glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
       glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
       GLFWwindow* const glfw_window = glfwCreateWindow(width, height, title.data(), nullptr, nullptr);
-      CHECK_OR_FATAL(glfw_window != nullptr);
+      ENGINE_CHECKX(glfw_window != nullptr);
       
       std::unique_ptr<Window> window = std::make_unique<Window>(glfw_window);
       data_->window.windows.insert(window.get());
@@ -26,29 +27,31 @@ namespace chunklands::engine {
       data_->window.window_input_controllers.insert({window.get(), window_input_controller.get()});
       window_input_controller.release();
       
-      CEWindowHandle* const handle = reinterpret_cast<CEWindowHandle*>(window.get());
+      CEWindowHandle* handle = reinterpret_cast<CEWindowHandle*>(window.get());
       window.release();
-      return handle;
+      return Ok(std::move(handle));
     });
   }
 
-  boost::future<void>
+  AsyncEngineResult<CENone>
   Engine::WindowLoadGL(CEWindowHandle* handle) {
     EASY_FUNCTION();
     ENGINE_FN();
-    Window* const window = reinterpret_cast<Window*>(handle);
-    CHECK_OR_FATAL(has_handle(data_->window.windows, window));
-
-    return EnqueueTask(data_->executors.opengl, [window]() {
+    
+    return EnqueueTask(data_->executors.opengl, [this, handle]() -> EngineResultX<CENone> {
       EASY_FUNCTION();
-      assert(window);
+
+      ENGINE_CHECKX(has_handle(data_->window.windows, handle));
+      Window* const window = reinterpret_cast<Window*>(handle);
 
       const bool gl_loaded = window->LoadGL();
-      CHECK_OR_FATAL(gl_loaded);
+      ENGINE_CHECKX(gl_loaded);
+
+      return Ok();
     });
   }
 
-  boost::signals2::scoped_connection
+  EventConnection
   Engine::WindowOn(CEWindowHandle* handle, const std::string& event, std::function<void(CEWindowEvent)> callback) {
     EASY_FUNCTION();
     ENGINE_FN();

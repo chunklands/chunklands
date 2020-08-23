@@ -9,21 +9,21 @@
 
 namespace chunklands::engine {
 
-  boost::future<void>
+  AsyncEngineResult<CENone>
   Engine::RenderPipelineInit(CEWindowHandle* handle, CERenderPipelineInit init) {
     EASY_FUNCTION();
     ENGINE_FN();
-    Window* const window = reinterpret_cast<Window*>(handle);
-    CHECK_OR_FATAL(has_handle(data_->window.windows, window));
-    CHECK_OR_FATAL(data_->render_pipeline.gbuffer == nullptr);
+
+    ENGINE_CHECKX(data_->render_pipeline.gbuffer == nullptr);
 
     return EnqueueTask(data_->executors.opengl, [this,
-      window,
+      handle,
       init = std::move(init)
-    ]() {
+    ]() -> EngineResultX<CENone> {
       EASY_FUNCTION();
-      
-      assert(window);
+
+      CHECK_OR_FATAL(has_handle(data_->window.windows, handle));
+      Window* const window = reinterpret_cast<Window*>(handle);
 
       {
         std::unique_ptr<gl::Program> program = std::make_unique<gl::Program>(init.gbuffer.vertex_shader.data(),
@@ -38,6 +38,7 @@ namespace chunklands::engine {
         std::unique_ptr<LightingPass> lighting_pass = std::make_unique<LightingPass>(std::move(program));
         data_->render_pipeline.lighting = lighting_pass.release();
       }
+
       {
         std::unique_ptr<gl::RenderQuad> render_quad = std::make_unique<gl::RenderQuad>();
         data_->render_pipeline.render_quad = render_quad.release();
@@ -50,6 +51,12 @@ namespace chunklands::engine {
       glEnable(GL_CULL_FACE);
       glCullFace(GL_FRONT);
       glFrontFace(GL_CCW);
+
+      assert(data_->render_pipeline.gbuffer     != nullptr);
+      assert(data_->render_pipeline.lighting    != nullptr);
+      assert(data_->render_pipeline.render_quad != nullptr);
+
+      return Ok();
     });
   }
 

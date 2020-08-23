@@ -26,11 +26,11 @@ namespace chunklands::engine {
 
   constexpr int COLOR_COMPONENTS = 4;
 
-  boost::future<CEBlockHandle*>
+  AsyncEngineResult<CEBlockHandle*>
   Engine::BlockCreate(CEBlockCreateInit init) {
     EASY_FUNCTION();
     ENGINE_FN();
-    CHECK_OR_FATAL(init.id.length() > 0);
+    ENGINE_CHECKX(init.id.length() > 0);
     std::unique_ptr<Block> block = std::make_unique<Block>(std::move(init.id), init.opaque, std::move(init.faces));
 
     static_assert(sizeof(char) == sizeof(stbi_uc), "check char size");
@@ -40,14 +40,13 @@ namespace chunklands::engine {
     if (init.texture.size() > 0) {
       stbi_uc* d = stbi_load_from_memory(init.texture.data(), init.texture.size(), &b->width, &b->height, nullptr, COLOR_COMPONENTS);
       b->image.reset(d);
-      CHECK_OR_FATAL(b->image);
+      ENGINE_CHECKX(b->image);
     }
 
-    return EnqueueTask(data_->executors.opengl, [this, block = std::move(block), b = std::move(b)]() mutable {
+    return EnqueueTask(data_->executors.opengl, [this, block = std::move(block), b = std::move(b)]() mutable -> EngineResultX<CEBlockHandle*> {
       data_->block.unbaked.insert(b.release());
-
       data_->block.blocks.insert(block.get());
-      return reinterpret_cast<CEBlockHandle*>(block.release());
+      return Ok(reinterpret_cast<CEBlockHandle*>(block.release()));
     });
   }
 
@@ -118,13 +117,12 @@ namespace chunklands::engine {
     }
   }
 
-  boost::future<void>
+  AsyncEngineResult<CENone>
   Engine::BlockBake() {
     EASY_FUNCTION();
     ENGINE_FN();
     
-    return EnqueueTask(data_->executors.opengl, [this]() {
-      CHECK_OR_FATAL(data_->render_pipeline.gbuffer != nullptr);
+    return EnqueueTask(data_->executors.opengl, [this]() -> EngineResultX<CENone> {
 
       std::unique_ptr<block_bake_node> root = std::make_unique<block_bake_node>();
       int max_dim = 0;
@@ -224,10 +222,15 @@ namespace chunklands::engine {
       std::memset(data.get(), 0, size);
       generate(data.get(), dim, root.get());
 
-      CHECK_OR_FATAL(data_->render_pipeline.gbuffer != nullptr);
-      // const int result = stbi_write_png("out.png", dim, dim, 4, data.get(), 0);
-      // assert(result == 1);
+      ENGINE_CHECKX(data_->render_pipeline.gbuffer != nullptr);
+
+#ifdef CHUNKLANDS_ENGINE_ENGINE_DEBUG_TEXTURE
+      const int result = stbi_write_png("out.png", dim, dim, 4, data.get(), 0);
+      assert(result == 1);
+#endif
+
       data_->render_pipeline.gbuffer->LoadTexture(dim, dim, GL_RGBA, GL_UNSIGNED_BYTE, data.get());
+      return Ok();
     });
   }
 

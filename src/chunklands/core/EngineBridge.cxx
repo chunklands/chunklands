@@ -2,15 +2,39 @@
 #include "EngineBridge.hxx"
 #include <chunklands/libcxx/easy_profiler.hxx>
 #include <chunklands/libcxx/easylogging++.hxx>
+#include <tuple>
 
 #define WRAP_ENGINE_CALL(CALL) [&]() { return CALL; }
 
 #define CHECK_OR_FATAL(x) do { if (!(x)) { Napi::Error::Fatal(__FILE__ ":" BOOST_PP_STRINGIZE(__LINE__), #x); } } while(0)
 
 namespace chunklands::core {
-  void engine_call_void_resolver(JSEnv env, boost::future<void> result, JSDeferred deferred) {
-    result.get();
-    deferred.Resolve(env.Undefined());
+
+  template<class T, class F, class ...R>
+  auto create_resolver(std::tuple<R...> refs, F&& fn) {
+    return [refs = std::move(refs), fn = std::move(fn)](JSEnv env, engine::EngineResultX<T> result, JSDeferred deferred) {
+      if (result.IsError()) {
+        JSError err = JSError::New(env, engine::get_engine_exception_message(result.Error()));
+        deferred.Reject(err.Value());
+        return;
+      }
+
+      deferred.Resolve(fn(env, result.Value()));
+    };
+  }
+
+  template<class T, class F>
+  auto create_resolver(F&& fn) {
+    return create_resolver<T>(std::make_tuple(), std::forward<F>(fn));
+  }
+
+  JSValue none_resolver(JSEnv env, const engine::CENone&) {
+    return env.Undefined();
+  }
+
+  template<class T>
+  auto create_resolver() {
+    return create_resolver<T>(none_resolver);
   }
 
   template<class T>
@@ -33,6 +57,11 @@ namespace chunklands::core {
     NAPI_THROW_IF_FAILED(env, status, JSNumber::New(env, 0));
     
     return JSValue(env, result);
+  }
+
+  template<class T>
+  JSValue handle_resolver(JSEnv env, const T& handle) {
+    return get_handle(env, handle);
   }
 
   EngineBridge::EngineBridge(JSCbi info) : JSObjectWrap<EngineBridge>(info) {
@@ -104,7 +133,9 @@ namespace chunklands::core {
 
   JSValue
   EngineBridge::JSCall_GLFWInit(JSCbi info) {
-    return MakeEngineCall(info.Env(), WRAP_ENGINE_CALL(engine_->GLFWInit()), engine_call_void_resolver);
+    return MakeAsyncEngineCall2(info.Env(),
+                                engine_->GLFWInit(),
+                                create_resolver<engine::CENone>());
   }
 
   void
@@ -118,19 +149,17 @@ namespace chunklands::core {
     const int height = info[1].ToNumber();
     std::string title = info[2].ToString();
 
-    return MakeEngineCall(info.Env(), WRAP_ENGINE_CALL(engine_->WindowCreate(width, height, std::move(title))), [](JSEnv env, boost::future<engine::CEWindowHandle*> result, JSDeferred deferred) {
-      engine::CEWindowHandle* const window_handle = result.get();
-
-      assert(window_handle);
-      deferred.Resolve(get_handle(env, window_handle));
-    });
+    return MakeAsyncEngineCall2(info.Env(),
+                                engine_->WindowCreate(width, height, std::move(title)),
+                                create_resolver<engine::CEWindowHandle*>(handle_resolver<engine::CEWindowHandle*>));
   }
 
   JSValue
   EngineBridge::JSCall_windowLoadGL(JSCbi info) {
-    engine::CEWindowHandle *handle = unsafe_get_handle_ptr<engine::CEWindowHandle>(info[0]);
-
-    return MakeEngineCall(info.Env(), WRAP_ENGINE_CALL(engine_->WindowLoadGL(handle)), engine_call_void_resolver);
+    engine::CEWindowHandle* const handle = unsafe_get_handle_ptr<engine::CEWindowHandle>(info[0]);
+    return MakeAsyncEngineCall2(info.Env(),
+                                engine_->WindowLoadGL(handle),
+                                create_resolver<engine::CENone>());
   }
 
   JSValue
@@ -142,15 +171,11 @@ namespace chunklands::core {
     }, [](const engine::CEWindowEvent& event, JSEnv env, JSObject js_event) {
       if (event.type == "shouldclose") {
         // nothing
-      }
-
-      if (event.type == "click") {
+      } else if (event.type == "click") {
         js_event["button"]  = JSNumber::New(env, event.click.button);
         js_event["action"]  = JSNumber::New(env, event.click.action);
         js_event["mods"]    = JSNumber::New(env, event.click.mods);
-      }
-
-      if (event.type == "key") {
+      } else if (event.type == "key") {
         js_event["key"]       = JSNumber::New(env, event.key.key);
         js_event["scancode"]  = JSNumber::New(env, event.key.scancode);
         js_event["action"]    = JSNumber::New(env, event.key.action);
@@ -174,7 +199,9 @@ namespace chunklands::core {
     init.lighting.vertex_shader = js_lighting.Get("vertexShader").ToString();
     init.lighting.fragment_shader = js_lighting.Get("fragmentShader").ToString();
 
-    return MakeEngineCall(info.Env(), WRAP_ENGINE_CALL(engine_->RenderPipelineInit(handle, std::move(init))), engine_call_void_resolver);
+    return MakeAsyncEngineCall2(info.Env(),
+                                engine_->RenderPipelineInit(handle, std::move(init)),
+                                create_resolver<engine::CENone>());
   }
 
   engine::FaceType face_type_by_string(const std::string& type) {
@@ -255,19 +282,21 @@ namespace chunklands::core {
       .texture = std::move(texture)
     };
 
-    return MakeEngineCall(info.Env(), WRAP_ENGINE_CALL(engine_->BlockCreate(std::move(init))), [](JSEnv env, boost::future<engine::CEBlockHandle*> result, JSDeferred deferred) {
-      engine::CEBlockHandle* const handle = result.get();
-      deferred.Resolve(get_handle(env, handle));
-    });
+    return MakeAsyncEngineCall2(info.Env(),
+                                engine_->BlockCreate(std::move(init)),
+                                create_resolver<engine::CEBlockHandle*>(handle_resolver<engine::CEBlockHandle*>));
   }
 
   JSValue
   EngineBridge::JSCall_blockBake(JSCbi info) {
-    return MakeEngineCall(info.Env(), WRAP_ENGINE_CALL(engine_->BlockBake()), engine_call_void_resolver);
+    return MakeAsyncEngineCall2(info.Env(),
+                                engine_->BlockBake(),
+                                create_resolver<engine::CENone>());
   }
 
   JSValue
   EngineBridge::JSCall_chunkCreate(JSCbi info) {
+    // TODO(daaitch): do not fatal, return rejected promise
     CHECK_OR_FATAL(info[0].IsNumber());
     CHECK_OR_FATAL(info[1].IsNumber());
     CHECK_OR_FATAL(info[2].IsNumber());
@@ -276,72 +305,84 @@ namespace chunklands::core {
     const int y = info[1].ToNumber();
     const int z = info[2].ToNumber();
 
-    return MakeEngineCall(info.Env(), WRAP_ENGINE_CALL(engine_->ChunkCreate(x, y, z)), [](JSEnv env, boost::future<engine::CEChunkHandle*> result, JSDeferred deferred) {
-      engine::CEChunkHandle* const handle = result.get();
-      deferred.Resolve(get_handle(env, handle));
-    });
+    return MakeAsyncEngineCall2(info.Env(),
+                                engine_->ChunkCreate(x, y, z),
+                                create_resolver<engine::CEChunkHandle*>(handle_resolver<engine::CEChunkHandle*>));
   }
 
   JSValue
   EngineBridge::JSCall_chunkDelete(JSCbi info) {
     engine::CEChunkHandle* const handle = unsafe_get_handle_ptr<engine::CEChunkHandle>(info[0]);
-    return MakeEngineCall(info.Env(), WRAP_ENGINE_CALL(engine_->ChunkDelete(handle)), engine_call_void_resolver);
+    return MakeAsyncEngineCall2(info.Env(),
+                                engine_->ChunkDelete(handle),
+                                create_resolver<engine::CENone>());
   }
 
   JSValue
   EngineBridge::JSCall_chunkUpdate(JSCbi info) {
     engine::CEChunkHandle* handle = unsafe_get_handle_ptr<engine::CEChunkHandle>(info[0]);
-    CHECK_OR_FATAL(info[1].IsArrayBuffer());
+    CHECK_OR_FATAL(info[1].IsArrayBuffer()); // TODO(daaitch): reject promise
 
     JSArrayBuffer js_blocks = info[1].As<JSArrayBuffer>();
     CHECK_OR_FATAL(js_blocks.ByteLength() == engine::CE_CHUNK_BLOCK_COUNT * sizeof(engine::CEBlockHandle*));
     engine::CEBlockHandle** blocks = reinterpret_cast<engine::CEBlockHandle**>(js_blocks.Data());
 
     JSRef2 js_blocks_ref = JSRef2::New(info.Env(), js_blocks);
-    return MakeEngineCall(info.Env(), WRAP_ENGINE_CALL(engine_->ChunkUpdateData(handle, blocks)), [js_blocks_ref = std::move(js_blocks_ref)](JSEnv env, boost::future<void> result, JSDeferred deferred) {
-      result.get();
-      deferred.Resolve(env.Undefined());
-    });
+    return MakeAsyncEngineCall2(info.Env(),
+                                engine_->ChunkUpdateData(handle, blocks),
+                                create_resolver<engine::CENone>(std::make_tuple(std::move(js_blocks_ref)),
+                                                                none_resolver));
   }
 
   JSValue
   EngineBridge::JSCall_sceneAddChunk(JSCbi info) {
     engine::CEChunkHandle* handle = unsafe_get_handle_ptr<engine::CEChunkHandle>(info[0]);
 
-    return MakeEngineCall(info.Env(), WRAP_ENGINE_CALL(engine_->SceneAddChunk(handle)), engine_call_void_resolver);
+    return MakeAsyncEngineCall2(info.Env(),
+                                engine_->SceneAddChunk(handle),
+                                create_resolver<engine::CENone>());
   }
 
   JSValue
   EngineBridge::JSCall_sceneRemoveChunk(JSCbi info) {
     engine::CEChunkHandle* handle = unsafe_get_handle_ptr<engine::CEChunkHandle>(info[0]);
 
-    return MakeEngineCall(info.Env(), WRAP_ENGINE_CALL(engine_->SceneRemoveChunk(handle)), engine_call_void_resolver);
+    return MakeAsyncEngineCall2(info.Env(),
+                                engine_->SceneRemoveChunk(handle),
+                                create_resolver<engine::CENone>());
   }
 
   JSValue
   EngineBridge::JSCall_cameraAttachWindow(JSCbi info) {
     engine::CEWindowHandle* handle = unsafe_get_handle_ptr<engine::CEWindowHandle>(info[0]);
 
-    return MakeEngineCall(info.Env(), WRAP_ENGINE_CALL(engine_->CameraAttachWindow(handle)), engine_call_void_resolver);
+    return MakeAsyncEngineCall2(info.Env(),
+                                engine_->CameraAttachWindow(handle),
+                                create_resolver<engine::CENone>());
   }
 
   JSValue
   EngineBridge::JSCall_cameraDetachWindow(JSCbi info) {
     engine::CEWindowHandle* handle = unsafe_get_handle_ptr<engine::CEWindowHandle>(info[0]);
-    return MakeEngineCall(info.Env(), WRAP_ENGINE_CALL(engine_->CameraDetachWindow(handle)), engine_call_void_resolver);
+
+    return MakeAsyncEngineCall2(info.Env(),
+                                engine_->CameraDetachWindow(handle),
+                                create_resolver<engine::CENone>());
   }
 
   JSValue
   EngineBridge::JSCall_cameraGetPosition(JSCbi info) {
-    return MakeEngineCall(info.Env(), WRAP_ENGINE_CALL(engine_->CameraGetPosition()), [](JSEnv env, boost::future<engine::CECameraPosition> result, JSDeferred deferred) {
-      engine::CECameraPosition pos = result.get();
-      JSObject js_result = JSObject::New(env);
-      js_result["x"] = JSNumber::New(env, pos.x);
-      js_result["y"] = JSNumber::New(env, pos.y);
-      js_result["z"] = JSNumber::New(env, pos.z);
+    return MakeAsyncEngineCall2(info.Env(),
+                                engine_->CameraGetPosition(),
+                                create_resolver<engine::CECameraPosition>([](JSEnv env, const engine::CECameraPosition& pos) {
+                                  JSObject js_result = JSObject::New(env);
+                                  js_result["x"] = JSNumber::New(env, pos.x);
+                                  js_result["y"] = JSNumber::New(env, pos.y);
+                                  js_result["z"] = JSNumber::New(env, pos.z);
 
-      deferred.Resolve(js_result);
-    });
+                                  return js_result;
+                                })
+    );
   }
   
   JSValue

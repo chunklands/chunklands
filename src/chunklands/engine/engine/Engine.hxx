@@ -4,6 +4,7 @@
 #include <boost/signals2.hpp>
 #include <chunklands/engine/engine_types.hxx>
 #include <chunklands/libcxx/boost_thread.hxx>
+#include <variant>
 
 namespace chunklands::engine {
 
@@ -21,30 +22,30 @@ namespace chunklands::engine {
     void Terminate();
 
   public:
-    boost::future<void>                 GLFWInit();
+    AsyncEngineResult<CENone>           GLFWInit();
     void                                GLFWStartPollEvents(bool poll);
     bool                                GLFWStartPollEvents() const;
     
-    boost::future<CEWindowHandle*>      WindowCreate(int width, int height, std::string title);
-    boost::future<void>                 WindowLoadGL(CEWindowHandle* handle);
-    boost::signals2::scoped_connection  WindowOn(CEWindowHandle* handle, const std::string& event, std::function<void(CEWindowEvent)> callback);
+    AsyncEngineResult<CEWindowHandle*>  WindowCreate(int width, int height, std::string title);
+    AsyncEngineResult<CENone>           WindowLoadGL(CEWindowHandle* handle);
+    EventConnection                     WindowOn(CEWindowHandle* handle, const std::string& event, std::function<void(CEWindowEvent)> callback);
     
-    boost::future<void>                 RenderPipelineInit(CEWindowHandle* handle, CERenderPipelineInit init);
+    AsyncEngineResult<CENone>           RenderPipelineInit(CEWindowHandle* handle, CERenderPipelineInit init);
     
-    boost::future<CEBlockHandle*>       BlockCreate(CEBlockCreateInit init);
-    boost::future<void>                 BlockBake();
+    AsyncEngineResult<CEBlockHandle*>   BlockCreate(CEBlockCreateInit init);
+    AsyncEngineResult<CENone>           BlockBake();
 
-    boost::future<CEChunkHandle*>       ChunkCreate(int x, int y, int z);
-    boost::future<void>                 ChunkDelete(CEChunkHandle* handle);
-    boost::future<void>                 ChunkUpdateData(CEChunkHandle* handle, CEBlockHandle** blocks);
+    AsyncEngineResult<CEChunkHandle*>   ChunkCreate(int x, int y, int z);
+    AsyncEngineResult<CENone>           ChunkDelete(CEChunkHandle* handle);
+    AsyncEngineResult<CENone>           ChunkUpdateData(CEChunkHandle* handle, CEBlockHandle** blocks);
 
-    boost::future<void>                 SceneAddChunk(CEChunkHandle* handle);
-    boost::future<void>                 SceneRemoveChunk(CEChunkHandle* handle);
+    AsyncEngineResult<CENone>           SceneAddChunk(CEChunkHandle* handle);
+    AsyncEngineResult<CENone>           SceneRemoveChunk(CEChunkHandle* handle);
 
-    boost::future<void>                 CameraAttachWindow(CEWindowHandle* handle);
-    boost::future<void>                 CameraDetachWindow(CEWindowHandle* handle);
-    boost::future<CECameraPosition>     CameraGetPosition();
-    boost::signals2::scoped_connection  CameraOn(const std::string& event, std::function<void(CECameraEvent)> callback);
+    AsyncEngineResult<CENone>           CameraAttachWindow(CEWindowHandle* handle);
+    AsyncEngineResult<CENone>           CameraDetachWindow(CEWindowHandle* handle);
+    AsyncEngineResult<CECameraPosition> CameraGetPosition();
+    EventConnection                     CameraOn(const std::string& event, std::function<void(CECameraEvent)> callback);
 
   private:
     EngineData* data_ = nullptr;

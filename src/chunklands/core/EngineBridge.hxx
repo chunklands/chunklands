@@ -10,8 +10,6 @@
 
 namespace chunklands::core {
 
-  void engine_call_void_resolver(JSEnv env, boost::future<void> result, JSDeferred deferred);
-
   class EngineBridge : public JSObjectWrap<EngineBridge> {
     JS_DECL_INITCTOR()
 
@@ -60,6 +58,12 @@ namespace chunklands::core {
 
     template<class F1, class F, class T = typename std::result_of_t<F1&&()>::value_type>
     JSPromise MakeEngineCall(JSEnv env, F1&& engine_call, F fn);
+
+    template<class T, class F>
+    JSPromise MakeAsyncEngineCall(JSEnv env, engine::AsyncResult<T> async_result, F fn);
+
+    template<class T, class F>
+    JSPromise MakeAsyncEngineCall2(JSEnv env, engine::AsyncEngineResult<T> async_result, F fn);
 
     template<class T, class F, class R = std::result_of_t<F&&(boost::future<T>, JSDeferred)>>
     inline JSValue RunInNodeThread(JSEnv env, boost::future<T> result, F&& fn);

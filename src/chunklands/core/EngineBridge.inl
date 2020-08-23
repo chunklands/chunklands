@@ -33,6 +33,12 @@ namespace chunklands::core {
     boost::future<T> result;
   };
 
+  template<class T>
+  struct Holder {
+    Holder(T&& data) : data(std::forward<T>(data)) {}
+    T data;
+  };
+
   template<class F1, class F, class T>
   JSPromise EngineBridge::MakeEngineCall(JSEnv env, F1&& engine_call, F fn) {
     assert(IsNodeThread());
@@ -67,6 +73,78 @@ namespace chunklands::core {
     return promise;
   }
 
+  template<class T, class F>
+  JSPromise EngineBridge::MakeAsyncEngineCall(JSEnv env, engine::AsyncResult<T> async_result, F fn) {
+    assert(IsNodeThread());
+
+    JSDeferred deferred = JSDeferred::New(env);
+    JSPromise  promise  = deferred.Promise();
+
+    async_result.then([this, deferred = std::move(deferred), fn = std::move(fn)](engine::AsyncResult<T> async_resolved_result) {
+      assert(NotIsNodeThread());
+
+      auto data = std::make_unique<Holder<engine::AsyncResult<T>>>(std::move(async_resolved_result));
+      
+      const napi_status status = fn_.NonBlockingCall(data.get(), [this, deferred = std::move(deferred), fn = std::move(fn)](JSEnv env, JSFunction, Holder<engine::AsyncResult<T>>* data_ptr) {
+        assert(IsNodeThread());
+
+        std::unique_ptr<Holder<engine::AsyncResult<T>>> data(data_ptr);
+        try {
+          auto result = data->data.get(); // may throw
+          fn(env, std::move(result), std::move(deferred)); // may throw
+        } catch (const engine::engine_exception& e) { // TODO(daaitch): no exceptions here ...
+          FatalAbort(e);
+        } catch (const engine::gl::gl_exception& e) {
+          FatalAbort(e);
+        } catch (...) {
+          JSError::Fatal("unknown", "UNKNOWN ERROR");
+        }
+      });
+
+      if (status == napi_ok) {
+        data.release();
+      }
+    });
+
+    return promise;
+  }
+
+  template<class T, class F>
+  JSPromise EngineBridge::MakeAsyncEngineCall2(JSEnv env, engine::AsyncEngineResult<T> async_result, F fn) {
+    assert(IsNodeThread());
+
+    JSDeferred deferred = JSDeferred::New(env);
+    JSPromise  promise  = deferred.Promise();
+    
+    async_result.Future().then([this, deferred = std::move(deferred), fn = std::move(fn)](engine::AsyncEngineResult<T> async_resolved_result) {
+      assert(NotIsNodeThread());
+
+      auto data = std::make_unique<Holder<engine::AsyncEngineResult<T>>>(std::move(async_resolved_result));
+      
+      const napi_status status = fn_.NonBlockingCall(data.get(), [this, deferred = std::move(deferred), fn = std::move(fn)](JSEnv env, JSFunction, Holder<engine::AsyncEngineResult<T>>* data_ptr) {
+        assert(IsNodeThread());
+
+        std::unique_ptr<Holder<engine::AsyncEngineResult<T>>> data(data_ptr);
+        try {
+          auto result = data->data.Future().get();
+          fn(env, std::move(result), std::move(deferred)); // may throw
+        } catch (const engine::engine_exception& e) { // TODO(daaitch): no exceptions here ...
+          FatalAbort(e);
+        } catch (const engine::gl::gl_exception& e) {
+          FatalAbort(e);
+        } catch (...) {
+          JSError::Fatal("unknown", "UNKNOWN ERROR");
+        }
+      });
+
+      if (status == napi_ok) {
+        data.release();
+      }
+    });
+
+    return promise;
+  }
+
   template<class T, class F, class R>
   inline JSValue EngineBridge::RunInNodeThread(JSEnv env, boost::future<T> result, F&& fn) {
     JSDeferred deferred = JSDeferred::New(env);
@@ -90,7 +168,7 @@ namespace chunklands::core {
     JSRef2 js_this_ref      = JSRef2::New(env, Value());
     JSRef2 js_callback_ref  = JSRef2::New(env, js_callback);
 
-    boost::signals2::scoped_connection conn = fn_calls_engine(
+    engine::EventConnection conn = fn_calls_engine(
       std::move(type),
       [
         this,

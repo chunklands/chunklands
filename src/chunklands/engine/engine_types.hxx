@@ -1,11 +1,138 @@
 #ifndef __CHUNKLANDS_ENGINE_ENGINETYPES_HXX__
 #define __CHUNKLANDS_ENGINE_ENGINETYPES_HXX__
 
+#include <boost/signals2.hpp>
+#include <chunklands/engine/engine_exception.hxx>
+#include <chunklands/libcxx/boost_thread.hxx>
 #include <chunklands/libcxx/glfw.hxx>
 #include <string>
 #include <vector>
 
 namespace chunklands::engine {
+
+  template<class T>
+  struct OkResultX {
+    T value;
+  };
+
+  struct OkEmptyResultX {
+  };
+
+  template<class E>
+  struct ErrResultX {
+    E value;
+  };
+
+  template<class E, class T>
+  class ResultX {
+  public:
+    ResultX(OkResultX<T>&& ok) : result_(std::move(ok.value)) {
+    }
+
+    ResultX(OkEmptyResultX&&) : result_(T()) {
+    }
+
+    ResultX(ErrResultX<E>&& err) : result_(std::move(err.value)) {
+    }
+
+    bool IsError() const {
+      return std::holds_alternative<E>(result_);
+    }
+
+    bool IsOk() const {
+      return std::holds_alternative<T>(result_);
+    }
+
+    const T& Value() const {
+      return std::get<T>(result_);
+    }
+
+    T& Value() {
+      return std::get<T>(result_);
+    }
+
+    const E& Error() const {
+      return std::get<E>(result_);
+    }
+
+    E& Error() {
+      return std::get<E>(result_);
+    }
+
+  private:
+    std::variant<E, T> result_;
+  };
+
+  template<class E>
+  static inline ErrResultX<E> Err(E&& e) {
+    return ErrResultX<E> {std::forward<E>(e)};
+  }
+
+  template<class T>
+  static inline OkResultX<T> Ok(T&& value) {
+    return OkResultX<T> {std::forward<T>(value)};
+  };
+
+  static inline OkEmptyResultX Ok() {
+    return OkEmptyResultX();
+  };
+
+  template<class E, class T>
+  class AsyncResultX {
+  public:
+    // using AsyncResult2<E, T>;
+    // using AsyncResult2<E, T>::AsyncResult2;
+
+    // AsyncResultX(boost::future<ResultX<E, T>> future) {
+    //   (*this) = std::move(future);
+    // }
+
+    AsyncResultX(ErrResultX<E>&& value) {
+      boost::promise<ResultX<E, T>> p;
+      p.set_value(std::move(value));
+      (*this) = p.get_future();
+    }
+
+    AsyncResultX(OkResultX<T>&& value) {
+      boost::promise<ResultX<E, T>> p;
+      p.set_value(std::move(value));
+      (*this) = p.get_future();
+    }
+
+    AsyncResultX(boost::future<ResultX<E, T>> future) : future_(std::move(future)) {
+    }
+
+    boost::future<ResultX<E, T>>& Future() {
+      return future_;
+    }
+
+    const boost::future<ResultX<E, T>>& Future() const {
+      return future_;
+    }
+
+    // AsyncResult3(const AsyncResult3<E, T>&) = default;
+    // AsyncResult3(AsyncResult3<E, T>&&) = default;
+    // AsyncResult3<E, T>& operator=(const AsyncResult3<E, T>&) = default;
+    // AsyncResult3<E, T>& operator=(AsyncResult3<E, T>&&) = default;
+  private:
+    boost::future<ResultX<E, T>> future_;
+  };
+
+  template<class T>
+  using EngineResultX = ResultX<engine_exception, T>;
+
+  template<class T>
+  using AsyncEngineResult = AsyncResultX<engine_exception, T>;
+
+  template<class T>
+  using Result = std::variant<engine_exception, T>;
+
+  template<class T>
+  using AsyncResult = boost::future<Result<T>>;
+
+  using CENone = std::monostate;
+
+  using EventConnection = boost::signals2::scoped_connection;
 
   struct CEWindowHandle;
   struct CEChunkHandle;
