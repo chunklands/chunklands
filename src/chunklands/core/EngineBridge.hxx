@@ -8,7 +8,35 @@
 #include <memory>
 #include <thread>
 
+#define JS_ENGINE_CHECK(x, env, ...)                                                             \
+    do {                                                                                         \
+        if (!(x)) {                                                                              \
+            std::string function_name(BOOST_CURRENT_FUNCTION);                                   \
+            std::string api_name = name_of_jscall(function_name);                                \
+            auto e = engine::create_engine_exception(api_name.c_str(), #x);                      \
+                                                                                                 \
+            Napi::Error::New(env, get_engine_exception_message(e)).ThrowAsJavaScriptException(); \
+            return __VA_ARGS__;                                                                  \
+        }                                                                                        \
+    } while (0)
+
 namespace chunklands::core {
+
+inline std::string name_of_jscall(const std::string& name)
+{
+    const size_t index_of_jscall = name.find("JSCall_");
+    if (index_of_jscall == std::string::npos) {
+        return name;
+    }
+
+    std::string api_name = name.substr(index_of_jscall + 7);
+    const size_t index_of_parenthese = api_name.find("(");
+    if (index_of_parenthese == std::string::npos) {
+        return api_name;
+    }
+
+    return api_name.substr(0, index_of_parenthese);
+}
 
 class EngineBridge : public JSObjectWrap<EngineBridge> {
     JS_DECL_INITCTOR()
@@ -56,14 +84,8 @@ private:
     template <class T, class F>
     inline void RunInNodeThread(std::unique_ptr<T> data, F&& fn);
 
-    template <class F1, class F, class T = typename std::result_of_t<F1 && ()>::value_type>
-    JSPromise MakeEngineCall(JSEnv env, F1&& engine_call, F fn);
-
     template <class T, class F>
-    JSPromise MakeAsyncEngineCall(JSEnv env, engine::AsyncResult<T> async_result, F fn);
-
-    template <class T, class F>
-    JSPromise MakeAsyncEngineCall2(JSEnv env, engine::AsyncEngineResult<T> async_result, F fn);
+    JSPromise MakeEngineCall(JSEnv env, engine::AsyncEngineResult<T> async_result, F fn);
 
     template <class T, class F, class R = std::result_of_t<F && (boost::future<T>, JSDeferred)>>
     inline JSValue RunInNodeThread(JSEnv env, boost::future<T> result, F&& fn);

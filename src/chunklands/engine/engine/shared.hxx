@@ -22,21 +22,8 @@
 #define _ENGINE_FN_NAME __api_fn_name
 #define ENGINE_FN() static const char* _ENGINE_FN_NAME = BOOST_CURRENT_FUNCTION;
 
-#define CHECK_OR_FATAL(x)                                                        \
-    do {                                                                         \
-        if (!(x)) {                                                              \
-            BOOST_THROW_EXCEPTION(create_engine_exception(_ENGINE_FN_NAME, #x)); \
-        }                                                                        \
-    } while (0)
-
-#define ENGINE_CHECK(x)                                                  \
-    do {                                                                 \
-        if (!(x)) {                                                      \
-            return engine::create_engine_exception(_ENGINE_FN_NAME, #x); \
-        }                                                                \
-    } while (0)
-#define ENGINE_CHECKX(x) ENGINE_CHECKX_MSG((x), #x)
-#define ENGINE_CHECKX_MSG(x, MSG)                                      \
+#define ENGINE_CHECK(x) ENGINE_CHECK_MSG((x), #x)
+#define ENGINE_CHECK_MSG(x, MSG)                                       \
     do {                                                               \
         if (!(x)) {                                                    \
             return Err(create_engine_exception(_ENGINE_FN_NAME, MSG)); \

@@ -32,7 +32,7 @@ Engine::BlockCreate(CEBlockCreateInit init)
 {
     EASY_FUNCTION();
     ENGINE_FN();
-    ENGINE_CHECKX(init.id.length() > 0);
+    ENGINE_CHECK(init.id.length() > 0);
     std::unique_ptr<Block> block = std::make_unique<Block>(std::move(init.id), init.opaque, std::move(init.faces));
 
     static_assert(sizeof(char) == sizeof(stbi_uc), "check char size");
@@ -42,7 +42,7 @@ Engine::BlockCreate(CEBlockCreateInit init)
     if (init.texture.size() > 0) {
         stbi_uc* d = stbi_load_from_memory(init.texture.data(), init.texture.size(), &b->width, &b->height, nullptr, COLOR_COMPONENTS);
         b->image.reset(d);
-        ENGINE_CHECKX(b->image);
+        ENGINE_CHECK(b->image);
     }
 
     return EnqueueTask(data_->executors.opengl, [this, block = std::move(block), b = std::move(b)]() mutable -> EngineResultX<CEBlockHandle*> {
@@ -226,7 +226,7 @@ Engine::BlockBake()
         std::memset(data.get(), 0, size);
         generate(data.get(), dim, root.get());
 
-        ENGINE_CHECKX(data_->render_pipeline.gbuffer != nullptr);
+        ENGINE_CHECK(data_->render_pipeline.gbuffer != nullptr);
 
 #ifdef CHUNKLANDS_ENGINE_ENGINE_DEBUG_TEXTURE
         const int result = stbi_write_png("out.png", dim, dim, 4, data.get(), 0);

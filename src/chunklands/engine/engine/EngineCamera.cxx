@@ -10,11 +10,11 @@ Engine::CameraAttachWindow(CEWindowHandle* handle)
     ENGINE_FN();
 
     return EnqueueTask(data_->executors.opengl, [this, handle]() -> EngineResultX<CENone> {
-        ENGINE_CHECKX(has_handle(data_->window.windows, handle));
+        ENGINE_CHECK(has_handle(data_->window.windows, handle));
         Window* window = reinterpret_cast<Window*>(handle);
 
         auto it = data_->window.window_input_controllers.find(window);
-        ENGINE_CHECKX(it != data_->window.window_input_controllers.end());
+        ENGINE_CHECK(it != data_->window.window_input_controllers.end());
 
         window->StartMouseGrab();
         data_->window.current_window_input_controller = it->second;
@@ -29,11 +29,11 @@ Engine::CameraDetachWindow(CEWindowHandle* handle)
     ENGINE_FN();
 
     return EnqueueTask(data_->executors.opengl, [this, handle]() -> EngineResultX<CENone> {
-        ENGINE_CHECKX(has_handle(data_->window.windows, handle));
+        ENGINE_CHECK(has_handle(data_->window.windows, handle));
         Window* window = reinterpret_cast<Window*>(handle);
 
         auto it = data_->window.window_input_controllers.find(window);
-        ENGINE_CHECKX(it != data_->window.window_input_controllers.end());
+        ENGINE_CHECK(it != data_->window.window_input_controllers.end());
 
         window->StopMouseGrab();
         if (data_->window.current_window_input_controller == it->second) {
@@ -57,18 +57,18 @@ Engine::CameraGetPosition()
     });
 }
 
-EventConnection
+EngineResultX<EventConnection>
 Engine::CameraOn(const std::string& event, std::function<void(CECameraEvent)> callback)
 {
     if (event == "positionchange") {
-        return data_->camera.camera.on_position_change.connect([callback = std::move(callback)](CECameraPosition pos) {
+        return Ok(EventConnection(data_->camera.camera.on_position_change.connect([callback = std::move(callback)](CECameraPosition pos) {
             CECameraEvent event("positionchange");
             event.positionchange = std::move(pos);
             callback(std::move(event));
-        });
+        })));
     }
 
-    return EventConnection();
+    return Ok();
 }
 
 } // namespace chunklands::engine

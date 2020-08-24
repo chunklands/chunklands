@@ -15,12 +15,12 @@ Engine::RenderPipelineInit(CEWindowHandle* handle, CERenderPipelineInit init)
     EASY_FUNCTION();
     ENGINE_FN();
 
-    ENGINE_CHECKX(data_->render_pipeline.gbuffer == nullptr);
+    ENGINE_CHECK(data_->render_pipeline.gbuffer == nullptr);
 
     return EnqueueTask(data_->executors.opengl, [this, handle, init = std::move(init)]() -> EngineResultX<CENone> {
         EASY_FUNCTION();
 
-        CHECK_OR_FATAL(has_handle(data_->window.windows, handle));
+        ENGINE_CHECK(has_handle(data_->window.windows, handle));
         Window* const window = reinterpret_cast<Window*>(handle);
 
         {

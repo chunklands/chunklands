@@ -24,12 +24,12 @@ public:
 public:
     // clang-format off
     AsyncEngineResult<CENone>           GLFWInit();
-    void                                GLFWStartPollEvents(bool poll);
-    bool                                GLFWStartPollEvents() const;
+    EngineResultX<CENone>               GLFWStartPollEvents(bool poll);
+    EngineResultX<bool>                 GLFWStartPollEvents() const;
     
     AsyncEngineResult<CEWindowHandle*>  WindowCreate(int width, int height, std::string title);
     AsyncEngineResult<CENone>           WindowLoadGL(CEWindowHandle* handle);
-    EventConnection                     WindowOn(CEWindowHandle* handle, const std::string& event, std::function<void(CEWindowEvent)> callback);
+    EngineResultX<EventConnection>      WindowOn(CEWindowHandle* handle, const std::string& event, std::function<void(CEWindowEvent)> callback);
     
     AsyncEngineResult<CENone>           RenderPipelineInit(CEWindowHandle* handle, CERenderPipelineInit init);
     
@@ -46,7 +46,7 @@ public:
     AsyncEngineResult<CENone>           CameraAttachWindow(CEWindowHandle* handle);
     AsyncEngineResult<CENone>           CameraDetachWindow(CEWindowHandle* handle);
     AsyncEngineResult<CECameraPosition> CameraGetPosition();
-    EventConnection                     CameraOn(const std::string& event, std::function<void(CECameraEvent)> callback);
+    EngineResultX<EventConnection>      CameraOn(const std::string& event, std::function<void(CECameraEvent)> callback);
     // clang-format on
 private:
     EngineData* data_ = nullptr;

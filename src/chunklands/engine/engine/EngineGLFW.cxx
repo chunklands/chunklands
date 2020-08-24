@@ -14,33 +14,34 @@ Engine::GLFWInit()
         EASY_FUNCTION();
         const int result = glfwInit();
         data_->glfw.initialized = result == GLFW_TRUE;
-        ENGINE_CHECKX(data_->glfw.initialized);
+        ENGINE_CHECK(data_->glfw.initialized);
 
         GLFWmonitor* monitor = glfwGetPrimaryMonitor();
-        ENGINE_CHECKX(monitor != nullptr);
+        ENGINE_CHECK(monitor != nullptr);
 
         const GLFWvidmode* mode = glfwGetVideoMode(monitor);
-        ENGINE_CHECKX(mode != nullptr);
+        ENGINE_CHECK(mode != nullptr);
 
         data_->gameloop.render_refresh_rate = mode->refreshRate;
         return Ok();
     });
 }
 
-void Engine::GLFWStartPollEvents(bool poll)
+EngineResultX<CENone> Engine::GLFWStartPollEvents(bool poll)
 {
     ENGINE_FN();
-    CHECK_OR_FATAL(data_->glfw.initialized);
+    ENGINE_CHECK(data_->glfw.initialized);
 
     data_->glfw.start_poll_events = poll;
+    return Ok();
 }
 
-bool Engine::GLFWStartPollEvents() const
+EngineResultX<bool> Engine::GLFWStartPollEvents() const
 {
     ENGINE_FN();
-    CHECK_OR_FATAL(data_->glfw.initialized);
+    ENGINE_CHECK(data_->glfw.initialized);
 
-    return data_->glfw.start_poll_events;
+    return Ok(data_->glfw.start_poll_events);
 }
 
 } // namespace chunklands::engine

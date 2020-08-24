@@ -87,6 +87,12 @@ static inline OkResultX<T> Ok(T&& value)
     return OkResultX<T> { std::forward<T>(value) };
 };
 
+template <class T>
+static inline OkResultX<T> Ok(T& value)
+{
+    return OkResultX<T> { value };
+};
+
 static inline OkEmptyResultX Ok()
 {
     return OkEmptyResultX();

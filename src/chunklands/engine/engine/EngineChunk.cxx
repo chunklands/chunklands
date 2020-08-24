@@ -19,7 +19,7 @@ Engine::ChunkCreate(int x, int y, int z)
         data_->chunk.chunks.insert(chunk.get());
         data_->chunk.by_state[ChunkState::kEmpty].insert(chunk.get());
         auto result_by_pos_insert = data_->chunk.by_pos.insert({ glm::ivec3(chunk->x, chunk->y, chunk->z), chunk.get() });
-        ENGINE_CHECKX_MSG(result_by_pos_insert.second, "chunk was not present in the map");
+        ENGINE_CHECK_MSG(result_by_pos_insert.second, "chunk was not present in the map");
 
         return Ok(reinterpret_cast<CEChunkHandle*>(chunk.release()));
     });
@@ -34,9 +34,9 @@ Engine::ChunkDelete(CEChunkHandle* handle)
     return EnqueueTask(data_->executors.opengl, [this, handle]() -> EngineResultX<CENone> {
         EASY_FUNCTION();
 
-        ENGINE_CHECKX(has_handle(data_->chunk.chunks, handle));
+        ENGINE_CHECK(has_handle(data_->chunk.chunks, handle));
         std::unique_ptr<Chunk> chunk(reinterpret_cast<Chunk*>(handle));
-        ENGINE_CHECKX(has_handle(data_->chunk.by_state[chunk->state], handle));
+        ENGINE_CHECK(has_handle(data_->chunk.by_state[chunk->state], handle));
 
         const std::size_t erased = data_->chunk.chunks.erase(chunk.get());
         assert(erased == 1);
@@ -60,7 +60,7 @@ Engine::ChunkUpdateData(CEChunkHandle* handle, CEBlockHandle** blocks)
 
     return EnqueueTask(data_->executors.opengl, [this, handle, blocks]() -> EngineResultX<CENone> {
         EASY_FUNCTION();
-        ENGINE_CHECKX(has_handle(data_->chunk.chunks, handle));
+        ENGINE_CHECK(has_handle(data_->chunk.chunks, handle));
         Chunk* chunk = reinterpret_cast<Chunk*>(handle);
 
         const std::size_t erase_count = data_->chunk.by_state[chunk->state].erase(chunk);
@@ -71,7 +71,7 @@ Engine::ChunkUpdateData(CEChunkHandle* handle, CEBlockHandle** blocks)
             for (int y = 0; y < CE_CHUNK_SIZE; y++) {
                 for (int x = 0; x < CE_CHUNK_SIZE; x++, i++) {
                     CEBlockHandle* const block_handle = blocks[i];
-                    ENGINE_CHECKX(has_handle(data_->block.blocks, block_handle));
+                    ENGINE_CHECK(has_handle(data_->block.blocks, block_handle));
                     chunk->blocks[z][y][x] = reinterpret_cast<Block*>(block_handle);
                 }
             }

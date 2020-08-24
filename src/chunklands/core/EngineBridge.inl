@@ -48,80 +48,8 @@ struct Holder {
     T data;
 };
 
-template <class F1, class F, class T>
-JSPromise EngineBridge::MakeEngineCall(JSEnv env, F1&& engine_call, F fn)
-{
-    assert(IsNodeThread());
-
-    auto result = WrapEngineCall(std::forward<F1>(engine_call));
-
-    JSDeferred deferred = JSDeferred::New(env);
-    JSPromise promise = deferred.Promise();
-    result.then([this, deferred = std::move(deferred), fn = std::move(fn)](decltype(result) result) {
-        assert(NotIsNodeThread());
-
-        std::unique_ptr<X<T>> data = std::make_unique<X<T>>(std::move(result));
-
-        const napi_status status = fn_.NonBlockingCall(data.get(), [this, deferred = std::move(deferred), fn = std::move(fn)](JSEnv env, JSFunction, X<T>* data_ptr) {
-            assert(IsNodeThread());
-
-            std::unique_ptr<X<T>> data(data_ptr);
-            try {
-                fn(env, std::move(data->result), std::move(deferred));
-            } catch (const engine::engine_exception& e) {
-                FatalAbort(e);
-            } catch (const engine::gl::gl_exception& e) {
-                FatalAbort(e);
-            }
-        });
-
-        if (status == napi_ok) {
-            data.release();
-        }
-    });
-
-    return promise;
-}
-
 template <class T, class F>
-JSPromise EngineBridge::MakeAsyncEngineCall(JSEnv env, engine::AsyncResult<T> async_result, F fn)
-{
-    assert(IsNodeThread());
-
-    JSDeferred deferred = JSDeferred::New(env);
-    JSPromise promise = deferred.Promise();
-
-    async_result.then([this, deferred = std::move(deferred), fn = std::move(fn)](engine::AsyncResult<T> async_resolved_result) {
-        assert(NotIsNodeThread());
-
-        auto data = std::make_unique<Holder<engine::AsyncResult<T>>>(std::move(async_resolved_result));
-
-        const napi_status status = fn_.NonBlockingCall(data.get(), [this, deferred = std::move(deferred), fn = std::move(fn)](JSEnv env, JSFunction, Holder<engine::AsyncResult<T>>* data_ptr) {
-            assert(IsNodeThread());
-
-            std::unique_ptr<Holder<engine::AsyncResult<T>>> data(data_ptr);
-            try {
-                auto result = data->data.get(); // may throw
-                fn(env, std::move(result), std::move(deferred)); // may throw
-            } catch (const engine::engine_exception& e) { // TODO(daaitch): no exceptions here ...
-                FatalAbort(e);
-            } catch (const engine::gl::gl_exception& e) {
-                FatalAbort(e);
-            } catch (...) {
-                JSError::Fatal("unknown", "UNKNOWN ERROR");
-            }
-        });
-
-        if (status == napi_ok) {
-            data.release();
-        }
-    });
-
-    return promise;
-}
-
-template <class T, class F>
-JSPromise EngineBridge::MakeAsyncEngineCall2(JSEnv env, engine::AsyncEngineResult<T> async_result, F fn)
+JSPromise EngineBridge::MakeEngineCall(JSEnv env, engine::AsyncEngineResult<T> async_result, F fn)
 {
     assert(IsNodeThread());
 
@@ -185,7 +113,7 @@ JSValue EngineBridge::EventHandler(JSEnv env, JSValue js_type, JSValue js_callba
     JSRef2 js_this_ref = JSRef2::New(env, Value());
     JSRef2 js_callback_ref = JSRef2::New(env, js_callback);
 
-    engine::EventConnection conn = fn_calls_engine(
+    engine::EngineResultX<engine::EventConnection> result = fn_calls_engine(
         std::move(type),
         [this,
             js_this_ref = std::move(js_this_ref),
@@ -217,8 +145,14 @@ JSValue EngineBridge::EventHandler(JSEnv env, JSValue js_type, JSValue js_callba
                 });
         });
 
+    if (result.IsError()) {
+        JSError err = JSError::New(env, engine::get_engine_exception_message(result.Error()));
+        err.ThrowAsJavaScriptException();
+        return JSValue();
+    }
+
     return JSFunction::New(
-        env, [conn = conn.release()](JSCbi) {
+        env, [conn = result.Value().release()](JSCbi) {
             conn.disconnect();
         },
         "cleanup", nullptr);
