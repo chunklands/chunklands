@@ -20,8 +20,8 @@ Engine::RenderPipelineInit(CEWindowHandle* handle, CERenderPipelineInit init)
     return EnqueueTask(data_->executors.opengl, [this, handle, init = std::move(init)]() -> EngineResultX<CENone> {
         EASY_FUNCTION();
 
-        ENGINE_CHECK(has_handle(data_->window.windows, handle));
-        Window* const window = reinterpret_cast<Window*>(handle);
+        Window* window = nullptr;
+        ENGINE_CHECK(get_handle(&window, data_->window.windows, handle));
 
         {
             std::unique_ptr<gl::Program> program = std::make_unique<gl::Program>(init.gbuffer.vertex_shader.data(),

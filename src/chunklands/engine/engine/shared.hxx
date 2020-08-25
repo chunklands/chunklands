@@ -99,6 +99,31 @@ inline bool has_handle(const C& container, const T& element)
     return container.find(v) != container.end();
 }
 
+template <class T, class C, class H>
+inline bool get_handle(T** handle, const C& container, const H& element)
+{
+    T* unsafe_ptr = reinterpret_cast<T*>(element);
+    if (container.find(unsafe_ptr) == container.end()) {
+        *handle = nullptr;
+        return false;
+    }
+
+    *handle = unsafe_ptr;
+    return true;
+}
+
+template <class T, class C, class H>
+inline bool get_handle(std::unique_ptr<T>& handle, const C& container, const H& element)
+{
+    T* ptr = nullptr;
+    if (!get_handle(&ptr, container, element)) {
+        return false;
+    }
+
+    handle.reset(ptr);
+    return false;
+}
+
 template <class F, class R = std::result_of_t<F && ()>>
 inline boost::future<R> EnqueueTask(boost::loop_executor& executor, F&& fn)
 {

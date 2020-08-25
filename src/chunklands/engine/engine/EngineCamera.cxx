@@ -10,8 +10,8 @@ Engine::CameraAttachWindow(CEWindowHandle* handle)
     ENGINE_FN();
 
     return EnqueueTask(data_->executors.opengl, [this, handle]() -> EngineResultX<CENone> {
-        ENGINE_CHECK(has_handle(data_->window.windows, handle));
-        Window* window = reinterpret_cast<Window*>(handle);
+        Window* window = nullptr;
+        ENGINE_CHECK(get_handle(&window, data_->window.windows, handle));
 
         auto it = data_->window.window_input_controllers.find(window);
         ENGINE_CHECK(it != data_->window.window_input_controllers.end());
@@ -29,8 +29,8 @@ Engine::CameraDetachWindow(CEWindowHandle* handle)
     ENGINE_FN();
 
     return EnqueueTask(data_->executors.opengl, [this, handle]() -> EngineResultX<CENone> {
-        ENGINE_CHECK(has_handle(data_->window.windows, handle));
-        Window* window = reinterpret_cast<Window*>(handle);
+        Window* window = nullptr;
+        ENGINE_CHECK(get_handle(&window, data_->window.windows, handle));
 
         auto it = data_->window.window_input_controllers.find(window);
         ENGINE_CHECK(it != data_->window.window_input_controllers.end());

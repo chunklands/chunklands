@@ -34,8 +34,8 @@ Engine::ChunkDelete(CEChunkHandle* handle)
     return EnqueueTask(data_->executors.opengl, [this, handle]() -> EngineResultX<CENone> {
         EASY_FUNCTION();
 
-        ENGINE_CHECK(has_handle(data_->chunk.chunks, handle));
-        std::unique_ptr<Chunk> chunk(reinterpret_cast<Chunk*>(handle));
+        std::unique_ptr<Chunk> chunk;
+        ENGINE_CHECK(get_handle(chunk, data_->chunk.chunks, handle));
         ENGINE_CHECK(has_handle(data_->chunk.by_state[chunk->state], handle));
 
         const std::size_t erased = data_->chunk.chunks.erase(chunk.get());
@@ -60,8 +60,8 @@ Engine::ChunkUpdateData(CEChunkHandle* handle, CEBlockHandle** blocks)
 
     return EnqueueTask(data_->executors.opengl, [this, handle, blocks]() -> EngineResultX<CENone> {
         EASY_FUNCTION();
-        ENGINE_CHECK(has_handle(data_->chunk.chunks, handle));
-        Chunk* chunk = reinterpret_cast<Chunk*>(handle);
+        Chunk* chunk = nullptr;
+        ENGINE_CHECK(get_handle(&chunk, data_->chunk.chunks, handle));
 
         const std::size_t erase_count = data_->chunk.by_state[chunk->state].erase(chunk);
         assert(erase_count == 1);

@@ -43,8 +43,8 @@ Engine::WindowLoadGL(CEWindowHandle* handle)
     return EnqueueTask(data_->executors.opengl, [this, handle]() -> EngineResultX<CENone> {
         EASY_FUNCTION();
 
-        ENGINE_CHECK(has_handle(data_->window.windows, handle));
-        Window* const window = reinterpret_cast<Window*>(handle);
+        Window* window = nullptr;
+        ENGINE_CHECK(get_handle(&window, data_->window.windows, handle));
 
         const bool gl_loaded = window->LoadGL();
         ENGINE_CHECK(gl_loaded);
@@ -58,8 +58,9 @@ Engine::WindowOn(CEWindowHandle* handle, const std::string& event, std::function
 {
     EASY_FUNCTION();
     ENGINE_FN();
-    Window* const window = reinterpret_cast<Window*>(handle);
-    ENGINE_CHECK(has_handle(data_->window.windows, window));
+
+    Window* window = nullptr;
+    ENGINE_CHECK(get_handle(&window, data_->window.windows, handle));
 
     if (event == "shouldclose") {
         return Ok(EventConnection(window->on_close.connect([callback = std::move(callback)]() {
