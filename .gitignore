@@ -5,3 +5,5 @@
 /node_modules
 /cache
 /profiles/*
+/err.log
+/out.log

@@ -37,16 +37,17 @@ Engine::Engine()
                     EASY_BLOCK("Engine Tick");
                     this->Render();
 
-                    const double swap_time = loop_start + refresh_interval * 0.8; // e.g. 60Hz -> 16ms
+                    // TODO(daaitch):
+                    const double swap_time = loop_start + refresh_interval * 0.0; // e.g. 60Hz -> 16ms
 
                     while (true) {
+                        data_->executors.opengl.run_queued_closures();
+                        this->Update();
+
                         const double now = glfwGetTime();
                         if (now >= swap_time) {
                             break;
                         }
-
-                        data_->executors.opengl.run_queued_closures();
-                        this->Update();
                     }
 #ifdef CHUNKLANDS_DEBUG_SWAP_TIME
                     const double render_swap_start = glfwGetTime();
@@ -115,7 +116,7 @@ void Engine::Render()
             EASY_BLOCK("GBufferPass");
             data_->render_pipeline.gbuffer->BeginPass();
 
-            for (Chunk* const chunk : data_->chunk.scene) {
+            for (Chunk* const chunk : data_->chunk.SceneChunks()) {
                 assert(chunk);
 
                 if (chunk->state == ChunkState::kMeshPrepared) {
@@ -164,46 +165,7 @@ void Engine::RenderSwap()
 
 void Engine::Update()
 {
-
-    {
-        // chunk updates
-        std::set<Chunk*> blocked_chunks; // DMA
-        for (Chunk* chunk : data_->chunk.by_state[ChunkState::kDataPrepared]) {
-            assert(chunk);
-            assert(chunk->state == ChunkState::kDataPrepared);
-
-            std::array<const Chunk*, kChunkNeighborCount> neighbors;
-
-            const glm::ivec3 chunk_pos = glm::ivec3(chunk->x, chunk->y, chunk->z);
-            auto find_and_set_neighbor_chunk = [&](ChunkNeighbor dir, const glm::ivec3& offset) { // lambda
-                auto it = data_->chunk.by_pos.find(chunk_pos + offset);
-                if (it != data_->chunk.by_pos.end()) {
-                    const Chunk* const neighbor = it->second;
-                    if (neighbor->state >= kDataPrepared) {
-                        neighbors[dir] = it->second;
-                        return true;
-                    }
-                }
-
-                return false;
-            };
-
-            if (
-                !find_and_set_neighbor_chunk(kChunkNeighborLeft, glm::ivec3(-1, 0, 0)) || !find_and_set_neighbor_chunk(kChunkNeighborRight, glm::ivec3(1, 0, 0)) || !find_and_set_neighbor_chunk(kChunkNeighborBottom, glm::ivec3(0, -1, 0)) || !find_and_set_neighbor_chunk(kChunkNeighborTop, glm::ivec3(0, 1, 0)) || !find_and_set_neighbor_chunk(kChunkNeighborFront, glm::ivec3(0, 0, -1)) || !find_and_set_neighbor_chunk(kChunkNeighborBack, glm::ivec3(0, 0, 1))) {
-                blocked_chunks.insert(chunk); // DMA
-                continue;
-            }
-
-            ChunkMeshDataGenerator generator(chunk, std::move(neighbors));
-            generator();
-
-            chunk->state = ChunkState::kMeshPrepared;
-            data_->chunk.by_state[ChunkState::kMeshPrepared].insert(chunk);
-            // notice: set is all cleared after the loop
-        }
-
-        data_->chunk.by_state[ChunkState::kDataPrepared] = std::move(blocked_chunks);
-    }
+    data_->chunk.UpdateChunks();
 }
 
 void Engine::Terminate()

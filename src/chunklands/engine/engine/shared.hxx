@@ -8,6 +8,7 @@
 #include <chunklands/engine/LightingPass.hxx>
 #include <chunklands/engine/Window.hxx>
 #include <chunklands/engine/WindowInputController.hxx>
+#include <chunklands/engine/engine/ChunkData.hxx>
 #include <chunklands/engine/engine/Engine.hxx>
 #include <chunklands/engine/engine_exception.hxx>
 #include <chunklands/engine/gl/RenderQuad.hxx>
@@ -32,18 +33,6 @@
 
 namespace chunklands::engine {
 
-struct ivec3_hasher {
-    std::size_t operator()(const glm::ivec3& v) const
-    {
-        std::size_t seed = 0;
-        boost::hash_combine(seed, boost::hash_value(v.x));
-        boost::hash_combine(seed, boost::hash_value(v.y));
-        boost::hash_combine(seed, boost::hash_value(v.z));
-
-        return seed;
-    }
-};
-
 struct EngineData {
 
     struct {
@@ -62,12 +51,7 @@ struct EngineData {
         Camera camera;
     } camera;
 
-    struct {
-        std::set<Chunk*> chunks;
-        std::set<Chunk*> by_state[ChunkState::kCount];
-        std::set<Chunk*> scene;
-        std::unordered_map<glm::ivec3, Chunk*, ivec3_hasher> by_pos;
-    } chunk;
+    ChunkData chunk;
 
     CharacterController character_controller { &camera.camera };
 
@@ -91,38 +75,6 @@ struct EngineData {
         std::set<Block*> blocks;
     } block;
 };
-
-template <class C, class T>
-inline bool has_handle(const C& container, const T& element)
-{
-    const typename C::value_type v = reinterpret_cast<typename C::value_type>(element);
-    return container.find(v) != container.end();
-}
-
-template <class T, class C, class H>
-inline bool get_handle(T** handle, const C& container, const H& element)
-{
-    T* unsafe_ptr = reinterpret_cast<T*>(element);
-    if (container.find(unsafe_ptr) == container.end()) {
-        *handle = nullptr;
-        return false;
-    }
-
-    *handle = unsafe_ptr;
-    return true;
-}
-
-template <class T, class C, class H>
-inline bool get_handle(std::unique_ptr<T>& handle, const C& container, const H& element)
-{
-    T* ptr = nullptr;
-    if (!get_handle(&ptr, container, element)) {
-        return false;
-    }
-
-    handle.reset(ptr);
-    return false;
-}
 
 template <class F, class R = std::result_of_t<F && ()>>
 inline boost::future<R> EnqueueTask(boost::loop_executor& executor, F&& fn)

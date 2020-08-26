@@ -13,11 +13,9 @@ Engine::SceneAddChunk(CEChunkHandle* handle)
     return EnqueueTask(data_->executors.opengl, [this, handle]() -> EngineResultX<CENone> {
         EASY_FUNCTION();
         Chunk* chunk = nullptr;
-        ENGINE_CHECK(get_handle(&chunk, data_->chunk.chunks, handle));
+        ENGINE_CHECK(data_->chunk.GetChunk(&chunk, handle));
 
-        auto insert_result = data_->chunk.scene.insert(chunk);
-        ENGINE_CHECK_MSG(insert_result.second, "chunk is should not already be added to scene");
-
+        ENGINE_CHECK_MSG(data_->chunk.AddToScene(chunk), "adding chunk to scene failed");
         return Ok();
     });
 }
@@ -31,9 +29,8 @@ Engine::SceneRemoveChunk(CEChunkHandle* handle)
     return EnqueueTask(data_->executors.opengl, [this, handle]() -> EngineResultX<CENone> {
         EASY_FUNCTION();
         Chunk* chunk = nullptr;
-        ENGINE_CHECK(get_handle(&chunk, data_->chunk.chunks, handle));
-        const std::size_t count = data_->chunk.scene.erase(chunk);
-        assert(count == 1);
+        ENGINE_CHECK(data_->chunk.GetChunk(&chunk, handle));
+        ENGINE_CHECK_MSG(data_->chunk.RemoveFromScene(chunk), "remove chunk from scene failed");
 
         return Ok();
     });

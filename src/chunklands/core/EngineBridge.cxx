@@ -195,7 +195,7 @@ EngineBridge::JSCall_windowOn(JSCbi info)
     JS_ENGINE_CHECK(unsafe_get_handle_ptr(&handle, info.Env(), info[0]), info.Env(), JSValue());
 
     return EventHandler<engine::CEWindowEvent>(
-        info.Env(), info[1], info[2], [this, handle](const std::string& type, auto cb) { return engine_->WindowOn(handle, type, std::move(cb)); }, [](const engine::CEWindowEvent& event, JSEnv env, JSObject js_event) {
+        info.Env(), info[1], info[2], [this, handle](const std::string& type, auto&& cb) { return engine_->WindowOn(handle, type, std::move(cb)); }, [](const engine::CEWindowEvent& event, JSEnv env, JSObject js_event) {
       if (event.type == "shouldclose") {
         // nothing
       } else if (event.type == "click") {
@@ -357,11 +357,17 @@ EngineBridge::JSCall_chunkUpdate(JSCbi info)
     JS_ENGINE_CHECK(js_blocks.ByteLength() == engine::CE_CHUNK_BLOCK_COUNT * sizeof(engine::CEBlockHandle*), info.Env(), JSValue());
     engine::CEBlockHandle** blocks = reinterpret_cast<engine::CEBlockHandle**>(js_blocks.Data());
 
-    JSRef2 js_blocks_ref = JSRef2::New(info.Env(), js_blocks);
+    napi_ref js_blocks_ref;
+    napi_status status = napi_create_reference(info.Env(), js_blocks, 1, &js_blocks_ref);
+    NAPI_THROW_IF_FAILED(info.Env(), status, JSValue());
+
     return MakeEngineCall(info.Env(),
         engine_->ChunkUpdateData(handle, blocks),
-        create_resolver<engine::CENone>(std::make_tuple(std::move(js_blocks_ref)),
-            none_resolver));
+        create_resolver<engine::CENone>(),
+        [js_blocks_ref, env = info.Env()]() {
+            napi_status status = napi_delete_reference(env, js_blocks_ref);
+            NAPI_THROW_IF_FAILED(env, status);
+        });
 }
 
 JSValue

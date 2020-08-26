@@ -7,8 +7,8 @@ const renderChunkOffsets = generatePosOffsets(RENDER_DISTANCE);
 
 module.exports = class ChunkManager {
   /**
-   * 
-   * @param {{abort: Abort}} param0 
+   *
+   * @param {{abort: Abort}} param0
    */
   constructor({abort, engine, blocks}) {
     this._engine = engine;
@@ -21,7 +21,9 @@ module.exports = class ChunkManager {
 
   updatePosition(abort, cameraPos) {
     const pos = chunkPos(cameraPos);
-    if (pos.x !== this._currentChunkPos.x || pos.y !== this._currentChunkPos.y || pos.z !== this._currentChunkPos.z) {
+    if (pos.x !== this._currentChunkPos.x ||
+        pos.y !== this._currentChunkPos.y ||
+        pos.z !== this._currentChunkPos.z) {
       this._currentChunkPos = pos;
       this._handleChunkChange(abort, pos).catch(Abort.catchResolver);
     }
@@ -31,10 +33,10 @@ module.exports = class ChunkManager {
     abort.check();
 
     for (const [key, chunk] of this._chunks.entries()) {
-      if (chunk.hChunk && distanceCmp(chunk.pos, chunkPos, RENDER_DISTANCE) === 1) {
+      if (chunk.hChunk &&
+          distanceCmp(chunk.pos, chunkPos, RENDER_DISTANCE) === 1) {
         const deleted = this._chunks.delete(key);
         assert(deleted);
-        this._engine.sceneRemoveChunk(chunk.hChunk);
         this._engine.chunkDelete(chunk.hChunk);
       }
     }
@@ -49,11 +51,8 @@ module.exports = class ChunkManager {
         const pos = {x: cx, y: cy, z: cz};
 
         // reserve
-        this._chunks.set(key, {
-          pos,
-          hChunk: undefined
-        });
-        
+        this._chunks.set(key, {pos, hChunk: undefined});
+
         const hChunk = await this._createChunk(abort, pos);
 
         // check chunkInfo still active
@@ -69,11 +68,11 @@ module.exports = class ChunkManager {
   }
 
   async _createChunk(abort, chunkPos) {
-    const [ handle, buf ] = await Promise.all([
+    const [handle, buf] = await Promise.all([
       abort.race(this._engine.chunkCreate(chunkPos.x, chunkPos.y, chunkPos.z)),
       abort.race(this._worldGen.generateChunk(abort, chunkPos, 32))
     ]);
-    
+
     await abort.race(this._engine.chunkUpdate(handle, buf));
 
     return handle;
@@ -99,8 +98,9 @@ function chunkDimPos(dim) {
 }
 
 // function createChunk(blocks, coord) {
-//   const arrayBuffer = new ArrayBuffer(32 * 32 * 32 * BigUint64Array.BYTES_PER_ELEMENT);
-//   const buffer = new BigUint64Array(arrayBuffer);
+//   const arrayBuffer = new ArrayBuffer(32 * 32 * 32 *
+//   BigUint64Array.BYTES_PER_ELEMENT); const buffer = new
+//   BigUint64Array(arrayBuffer);
 
 //   const dirtHandle = blocks['block.dirt'];
 //   const airHandle = blocks['block.air'];
@@ -130,7 +130,7 @@ function generatePosOffsets(distance) {
   for (let z = -distance; z <= distance; z++) {
     for (let y = -distance; y <= distance; y++) {
       for (let x = -distance; x <= distance; x++) {
-        const dist2 = x**2 + y**2 + z**2;
+        const dist2 = x ** 2 + y ** 2 + z ** 2;
         if (dist2 <= distance2) {
           posWithSquareDistances.push({dist2, pos: {x, y, z}});
         }

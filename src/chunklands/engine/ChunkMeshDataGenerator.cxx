@@ -10,7 +10,13 @@ inline bool is_opaque(const Chunk* chunk, int bx, int by, int bz)
 
 void ChunkMeshDataGenerator::operator()()
 {
-    assert(chunk->state == ChunkState::kDataPrepared);
+    assert(chunk->state == ChunkState::kDataPreparedWithAllNeighbors);
+    assert(chunk->neighbors[kChunkNeighborLeft] != nullptr && chunk->neighbors[kChunkNeighborLeft]->state >= kDataPrepared);
+    assert(chunk->neighbors[kChunkNeighborRight] != nullptr && chunk->neighbors[kChunkNeighborRight]->state >= kDataPrepared);
+    assert(chunk->neighbors[kChunkNeighborBottom] != nullptr && chunk->neighbors[kChunkNeighborBottom]->state >= kDataPrepared);
+    assert(chunk->neighbors[kChunkNeighborTop] != nullptr && chunk->neighbors[kChunkNeighborTop]->state >= kDataPrepared);
+    assert(chunk->neighbors[kChunkNeighborFront] != nullptr && chunk->neighbors[kChunkNeighborFront]->state >= kDataPrepared);
+    assert(chunk->neighbors[kChunkNeighborBack] != nullptr && chunk->neighbors[kChunkNeighborBack]->state >= kDataPrepared);
 
     const GLfloat chunk_offset_x = GLfloat(chunk->x * CE_CHUNK_SIZE);
     const GLfloat chunk_offset_y = GLfloat(chunk->y * CE_CHUNK_SIZE);
@@ -27,42 +33,42 @@ void ChunkMeshDataGenerator::operator()()
                     if (face.type == FaceType::Left) {
                         if (x > 0 && is_opaque(chunk, x - 1, y, z))
                             continue;
-                        if (x == 0 && is_opaque(neighbors[kChunkNeighborLeft], CE_CHUNK_SIZE - 1, y, z))
+                        if (x == 0 && is_opaque(chunk->neighbors[kChunkNeighborLeft], CE_CHUNK_SIZE - 1, y, z))
                             continue;
                     }
 
                     if (face.type == FaceType::Right) {
                         if (x < CE_CHUNK_SIZE - 1 && is_opaque(chunk, x + 1, y, z))
                             continue;
-                        if (x == CE_CHUNK_SIZE - 1 && is_opaque(neighbors[kChunkNeighborRight], 0, y, z))
+                        if (x == CE_CHUNK_SIZE - 1 && is_opaque(chunk->neighbors[kChunkNeighborRight], 0, y, z))
                             continue;
                     }
 
                     if (face.type == FaceType::Bottom) {
                         if (y > 0 && is_opaque(chunk, x, y - 1, z))
                             continue;
-                        if (y == 0 && is_opaque(neighbors[kChunkNeighborBottom], x, CE_CHUNK_SIZE - 1, z))
+                        if (y == 0 && is_opaque(chunk->neighbors[kChunkNeighborBottom], x, CE_CHUNK_SIZE - 1, z))
                             continue;
                     }
 
                     if (face.type == FaceType::Top) {
                         if (y < CE_CHUNK_SIZE - 1 && is_opaque(chunk, x, y + 1, z))
                             continue;
-                        if (y == CE_CHUNK_SIZE - 1 && is_opaque(neighbors[kChunkNeighborTop], x, 0, z))
+                        if (y == CE_CHUNK_SIZE - 1 && is_opaque(chunk->neighbors[kChunkNeighborTop], x, 0, z))
                             continue;
                     }
 
                     if (face.type == FaceType::Front) {
                         if (z > 0 && is_opaque(chunk, x, y, z - 1))
                             continue;
-                        if (z == 0 && is_opaque(neighbors[kChunkNeighborFront], x, y, CE_CHUNK_SIZE - 1))
+                        if (z == 0 && is_opaque(chunk->neighbors[kChunkNeighborFront], x, y, CE_CHUNK_SIZE - 1))
                             continue;
                     }
 
                     if (face.type == FaceType::Back) {
                         if (z < CE_CHUNK_SIZE - 1 && is_opaque(chunk, x, y, z + 1))
                             continue;
-                        if (z == CE_CHUNK_SIZE - 1 && is_opaque(neighbors[kChunkNeighborBack], x, y, 0))
+                        if (z == CE_CHUNK_SIZE - 1 && is_opaque(chunk->neighbors[kChunkNeighborBack], x, y, 0))
                             continue;
                     }
 
@@ -79,8 +85,6 @@ void ChunkMeshDataGenerator::operator()()
     }
 
     chunk->mesh.vao.Initialize(vb_data.data(), vb_data.size());
-
-    chunk->state = ChunkState::kMeshPrepared;
 }
 
 } // namespace chunklands::engine

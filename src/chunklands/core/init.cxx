@@ -14,6 +14,8 @@ JSObject Init(JSEnv env, JSObject exports)
 
     LOG_PROCESS("initialize NAPI module");
 
+    JSRef2::InitializeNodeThreadId();
+
     exports["EngineBridge"] = core::EngineBridge::Initialize(env);
 
     return exports;

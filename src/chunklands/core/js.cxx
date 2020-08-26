@@ -27,4 +27,6 @@ JSError js_create_error(JSEnv env, const std::string& msg)
 
     return JSError::New(env, ss.str());
 }
+
+std::thread::id JSRef2::node_thread_id;
 }

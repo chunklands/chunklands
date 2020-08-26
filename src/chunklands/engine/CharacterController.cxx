@@ -8,8 +8,14 @@ constexpr float LOOK_RADIANS = M_PI * 0.9;
 constexpr float MIN_PITCH = -LOOK_RADIANS / 2.0;
 constexpr float MAX_PITCH = +LOOK_RADIANS / 2.0;
 
-void CharacterController::Move(const float forward, const float right)
+void CharacterController::Move(float forward, float right)
 {
+    const float length = std::sqrt(forward * forward + right * right);
+    if (length > 1.f) {
+        forward /= length;
+        right /= length;
+    }
+
     // TODO(daaitch): collision here
     const glm::vec2& look = camera_->GetLook();
     const float yaw = look.x;

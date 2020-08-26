@@ -11,8 +11,19 @@ namespace chunklands::engine {
 enum ChunkState {
     kEmpty,
     kDataPrepared,
+    kDataPreparedWithAllNeighbors,
     kMeshPrepared,
     kCount,
+};
+
+enum ChunkNeighbor {
+    kChunkNeighborLeft,
+    kChunkNeighborRight,
+    kChunkNeighborBottom,
+    kChunkNeighborTop,
+    kChunkNeighborFront,
+    kChunkNeighborBack,
+    kChunkNeighborCount
 };
 
 struct Chunk {
@@ -22,11 +33,28 @@ struct Chunk {
         , z(z)
     {
         std::memset(&blocks, 0, sizeof(blocks));
+        neighbors[kChunkNeighborLeft] = nullptr;
+        neighbors[kChunkNeighborRight] = nullptr;
+        neighbors[kChunkNeighborBottom] = nullptr;
+        neighbors[kChunkNeighborTop] = nullptr;
+        neighbors[kChunkNeighborFront] = nullptr;
+        neighbors[kChunkNeighborBack] = nullptr;
+    }
+
+    bool HasAllNeighborsDataPrepared() const
+    {
+        return (neighbors[kChunkNeighborLeft] != nullptr && neighbors[kChunkNeighborLeft]->state >= kDataPrepared)
+            && (neighbors[kChunkNeighborRight] != nullptr && neighbors[kChunkNeighborRight]->state >= kDataPrepared)
+            && (neighbors[kChunkNeighborBottom] != nullptr && neighbors[kChunkNeighborBottom]->state >= kDataPrepared)
+            && (neighbors[kChunkNeighborTop] != nullptr && neighbors[kChunkNeighborTop]->state >= kDataPrepared)
+            && (neighbors[kChunkNeighborFront] != nullptr && neighbors[kChunkNeighborFront]->state >= kDataPrepared)
+            && (neighbors[kChunkNeighborBack] != nullptr && neighbors[kChunkNeighborBack]->state >= kDataPrepared);
     }
 
     int x, y, z;
     ChunkState state = ChunkState::kEmpty;
     Block* blocks[CE_CHUNK_SIZE][CE_CHUNK_SIZE][CE_CHUNK_SIZE];
+    Chunk* neighbors[kChunkNeighborCount];
 
     GBufferMesh mesh;
 };

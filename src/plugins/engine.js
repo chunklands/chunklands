@@ -1,9 +1,9 @@
 const debug = require('debug')('plugin:engine');
 
 const DEBUG_ENGINE = false;
-const DEBUG_PATTERN = /^chunkCreate$/
+const DEBUG_PATTERN = /./
 
-module.exports = async function plugin(registry, { chunklands }) {
+module.exports = async function plugin(registry, {chunklands}) {
   let engine = new chunklands.EngineBridge();
 
   if (DEBUG_ENGINE) {

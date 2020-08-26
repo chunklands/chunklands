@@ -84,8 +84,14 @@ private:
     template <class T, class F>
     inline void RunInNodeThread(std::unique_ptr<T> data, F&& fn);
 
+    template <class T, class F, class FC>
+    JSPromise MakeEngineCall(JSEnv env, engine::AsyncEngineResult<T> async_result, F&& fn, FC&& cleanup);
+
     template <class T, class F>
-    JSPromise MakeEngineCall(JSEnv env, engine::AsyncEngineResult<T> async_result, F fn);
+    JSPromise MakeEngineCall(JSEnv env, engine::AsyncEngineResult<T> async_result, F&& fn)
+    {
+        return MakeEngineCall(env, std::move(async_result), std::forward<F>(fn), []() {});
+    }
 
     template <class T, class F, class R = std::result_of_t<F && (boost::future<T>, JSDeferred)>>
     inline JSValue RunInNodeThread(JSEnv env, boost::future<T> result, F&& fn);

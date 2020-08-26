@@ -5,6 +5,7 @@
 #include <cassert>
 #include <napi.h>
 #include <sstream>
+#include <thread>
 
 // Wrap
 #define JS_IMPL_WRAP(CLASS, CLASS_DEF) \
@@ -323,8 +324,15 @@ private:
 
 class JSRef2 {
 public:
+    static void InitializeNodeThreadId()
+    {
+        node_thread_id = std::this_thread::get_id();
+    }
+
     static JSRef2 New(napi_env env, napi_value value)
     {
+        assert(IsNodeThread());
+
         napi_ref ref = nullptr;
         napi_status status = napi_create_reference(env, value, 1, &ref);
 
@@ -339,27 +347,14 @@ public:
     {
     }
 
-    JSRef2(const JSRef2& other)
-    {
-        (*this) = other;
-    }
+    JSRef2(const JSRef2&) = delete;
 
     JSRef2(JSRef2&& other)
     {
         (*this) = std::move(other);
     }
 
-    JSRef2& operator=(const JSRef2& other)
-    {
-        Reset();
-        env_ = other.env_;
-        ref_ = other.ref_;
-
-        const napi_status status = napi_reference_ref(env_, ref_, nullptr);
-        NAPI_THROW_IF_FAILED(env_, status, *this);
-
-        return *this;
-    }
+    JSRef2& operator=(const JSRef2&) = delete;
 
     JSRef2& operator=(JSRef2&& other)
     {
@@ -375,6 +370,8 @@ public:
 
     JSValue Value() const
     {
+        assert(IsNodeThread());
+
         napi_value value = nullptr;
         const napi_status status = napi_get_reference_value(env_, ref_, &value);
         NAPI_THROW_IF_FAILED(env_, status, nullptr);
@@ -390,6 +387,8 @@ public:
 private:
     void Reset()
     {
+        assert(IsNodeThread());
+
         if (ref_) {
             napi_reference_unref(env_, ref_, nullptr);
             ref_ = nullptr;
@@ -398,9 +397,16 @@ private:
         env_ = nullptr;
     }
 
+    static bool IsNodeThread()
+    {
+        return std::this_thread::get_id() == node_thread_id;
+    }
+
 private:
     napi_env env_ = nullptr;
     napi_ref ref_ = nullptr;
+
+    static std::thread::id node_thread_id;
 };
 }
 
