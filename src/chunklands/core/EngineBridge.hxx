@@ -2,45 +2,17 @@
 #define __CHUNKLANDS_CORE_ENGINEBRIDGE_HXX__
 
 #include <atomic>
-#include <chunklands/core/js.hxx>
-#include <chunklands/engine/engine/Engine.hxx>
+#include <chunklands/engine/Engine.hxx>
 #include <chunklands/libcxx/boost_thread.hxx>
 #include <chunklands/libcxx/easylogging++.hxx>
+#include <chunklands/libcxx/js.hxx>
 #include <iostream>
 #include <memory>
 #include <thread>
 
-#define JS_ENGINE_CHECK(x, env, ...)                                                             \
-    do {                                                                                         \
-        if (!(x)) {                                                                              \
-            std::string function_name(BOOST_CURRENT_FUNCTION);                                   \
-            std::string api_name = name_of_jscall(function_name);                                \
-            auto e = engine::create_engine_exception(api_name.c_str(), #x);                      \
-                                                                                                 \
-            Napi::Error::New(env, get_engine_exception_message(e)).ThrowAsJavaScriptException(); \
-            return __VA_ARGS__;                                                                  \
-        }                                                                                        \
-    } while (0)
-
 namespace chunklands::core {
 
 constexpr bool log = false;
-
-inline std::string name_of_jscall(const std::string& name)
-{
-    const size_t index_of_jscall = name.find("JSCall_");
-    if (index_of_jscall == std::string::npos) {
-        return name;
-    }
-
-    std::string api_name = name.substr(index_of_jscall + 7);
-    const size_t index_of_parenthese = api_name.find("(");
-    if (index_of_parenthese == std::string::npos) {
-        return api_name;
-    }
-
-    return api_name.substr(0, index_of_parenthese);
-}
 
 class EngineBridge : public JSObjectWrap<EngineBridge> {
     JS_DECL_INITCTOR()

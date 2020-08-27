@@ -2,8 +2,8 @@
 #define __CHUNKLANDS_ENGINE_GL_VAO_HXX__
 
 #include <boost/move/core.hpp>
-#include <chunklands/engine/engine_types.hxx>
 #include <chunklands/engine/gl/gl_check.hxx>
+#include <chunklands/engine/types.hxx>
 #include <chunklands/libcxx/glfw.hxx>
 
 namespace chunklands::engine::gl {

@@ -1,7 +1,7 @@
 #ifndef __CHUNKLANDS_INIT_H__
 #define __CHUNKLANDS_INIT_H__
 
-#include "js.hxx"
+#include <chunklands/libcxx/js.hxx>
 
 namespace chunklands {
 

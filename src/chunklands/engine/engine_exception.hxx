@@ -1,5 +1,5 @@
-#ifndef __CHUNKLANDS_ENGINE_ENGINE_EXCEPTION_HXX__
-#define __CHUNKLANDS_ENGINE_ENGINE_EXCEPTION_HXX__
+#ifndef __CHUNKLANDS_ENGINE_ENGINEEXCEPTION_HXX__
+#define __CHUNKLANDS_ENGINE_ENGINEEXCEPTION_HXX__
 
 #include <boost/exception/all.hpp>
 #include <boost/exception/errinfo_api_function.hpp>
