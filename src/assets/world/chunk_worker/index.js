@@ -1,4 +1,4 @@
-const { parentPort, workerData, isMainThread } = require('worker_threads');
+const {parentPort, workerData, isMainThread} = require('worker_threads');
 
 if (isMainThread) {
   throw new Error('do not use from main thread');
@@ -11,34 +11,26 @@ if (isMainThread) {
 // 4. caves
 // 5. multi-blocks
 
-const { chunkDim, blocks } = workerData;
-const { ChunkLoader } = require('./chunks')(chunkDim, blocks);
+const {chunkDim, blocks} = workerData;
+const {ChunkLoader} = require('./chunks')(chunkDim, blocks);
+const ChunkPrioLoader = require('./ChunkPrioLoader');
 
 parentPort.on('message', handleMessage);
 
-const chunkLoader = new ChunkLoader();
+const prioLoader = new ChunkPrioLoader(new ChunkLoader());
 
-/**
- * @param {{x: number, y: number, z: number, sendPort: import('worker_threads').MessagePort}} param0 
- */
-function handleMessage({x, y, z, sendPort}) {
-  // const data = new ArrayBuffer(4 * (16 ** 3));
-  // const dataBlocks = new Int32Array(data);
-  // if (x === 0 && y === 0 && z === 0) {
-  //   dataBlocks.fill(blocks['block.dirt']);
-  // } else {
-  //   dataBlocks.fill(blocks['block.air']);
-  // }
-  
-  // sendPort.postMessage(data);
-  // sendPort.close();
+function handleMessage({type, payload}) {
+  if (type === 'updateposition') {
+    handleUpdatePosition(payload);
+  } else if (type === 'requestchunk') {
+    handleRequestChunk(payload);
+  }
+}
 
-  const chunk = chunkLoader.getChunk(x, y, z);
-  
-  // we cannot send back a TypedBuffer -.-
+function handleUpdatePosition(pos) {
+  prioLoader.updatePositionAndSort(pos);
+}
 
-  // do not transfer ArrayBuffer, because chunk may be unloaded and reloaded
-  // => transferred ArrayBuffer would be empty then
-  sendPort.postMessage(chunk.data);
-  sendPort.close();
+function handleRequestChunk({pos, sendPort}) {
+  prioLoader.addChunk(pos, sendPort);
 }

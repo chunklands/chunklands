@@ -1,4 +1,4 @@
-const { MessageChannel, Worker } = require('worker_threads');
+const {MessageChannel, Worker} = require('worker_threads');
 const Abort = require('../../lib/Abort');
 
 module.exports = class SimpleWorldGen {
@@ -6,11 +6,10 @@ module.exports = class SimpleWorldGen {
    * @param {{abort: Abort, blocks: {[blockId: string]: bigint}}} param0
    */
   constructor({abort, blocks}) {
-
     this._worker = new Worker(`${__dirname}/chunk_worker/index.js`, {
       workerData: {
         blocks,
-        chunkDim: 32 // TODO(daaitch): magic number
+        chunkDim: 32  // TODO(daaitch): magic number
       }
     });
 
@@ -24,59 +23,63 @@ module.exports = class SimpleWorldGen {
     });
 
     abort.onceAbort(async () => {
-      await this._worker.terminate();      
+      await this._worker.terminate();
     });
   }
 
   /**
-   * 
-   * @param {import('../../lib/Abort')} abort 
-   * @param {{x: number, y: number, z: number}} param1 
+   *
+   * @param {import('../../lib/Abort')} abort
+   * @param {{x: number, y: number, z: number}} pos
    * @param {number} chunkDim
    */
-  async generateChunk(abort, {x, y, z}, chunkDim) {
+  async generateChunk(abort, pos) {
     abort.check();
 
-    const { port1: sendPort, port2: recvPort } = new MessageChannel();
+    const {port1: sendPort, port2: recvPort} = new MessageChannel();
 
     try {
-      this._worker.postMessage({x, y, z, chunkDim, sendPort}, [sendPort]);
-      return await receiveBuffer(abort, recvPort);
+      this._worker.postMessage(
+          {type: 'requestchunk', payload: {pos, sendPort}}, [sendPort]);
+
+      return await new Promise((resolve, reject) => {
+        const messageCleanup =
+            () => {
+              recvPort.off('message', handleMessage);
+            }
+
+        const abortCleanup = abort.onceAbort(() => {
+          messageCleanup();
+          reject(Abort.ABORT_ERROR);
+        });
+
+        recvPort.once('message', handleMessage);
+
+        function handleMessage(buffer) {
+          abortCleanup();
+
+          if (buffer.byteLength === 0) {
+            reject(new Error(`no buffer for: ${x} ${y} ${z}`));
+            return;
+          }
+
+          resolve(buffer);
+        }
+      });
     } finally {
-      sendPort.close(); // is transmitted :-/
+      sendPort.close();
       recvPort.close();
     }
+  }
+
+  updatePosition(pos) {
+    this._worker.postMessage({type: 'updateposition', payload: pos});
   }
 }
 
 /**
- * 
- * @param {import('../../lib/Abort')} abort 
- * @param {import('worker_threads').MessagePort} port 
+ *
+ * @param {import('../../lib/Abort')} abort
+ * @param {import('worker_threads').MessagePort} port
  */
-async function receiveBuffer(abort, port) {
-  return await new Promise((resolve, reject) => {
-    
-    const messageCleanup = () => {
-      port.off('message', handleMessage);
-    }
-    
-    const abortCleanup = abort.onceAbort(() => {
-      messageCleanup();
-      reject(Abort.ABORT_ERROR);
-    });
-
-    port.once('message', handleMessage);
-
-    function handleMessage(buffer) {
-      abortCleanup();
-
-      if (buffer.byteLength === 0) {
-        reject(new Error(`no buffer for: ${x} ${y} ${z}`));
-        return;
-      }
-
-      resolve(buffer);
-    }
-  });
-}
+async function fetchChunk(abort, pos, port) {}

@@ -13,6 +13,11 @@ inline void update_uniform(GLint location, GLint value)
     glUniform1i(location, value);
 }
 
+inline void update_uniform(GLint location, GLfloat value)
+{
+    glUniform1f(location, value);
+}
+
 inline void update_uniform(GLint location, const glm::vec3& value)
 {
     glUniform3fv(location, 1, glm::value_ptr(value));

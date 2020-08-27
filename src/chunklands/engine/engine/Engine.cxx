@@ -11,9 +11,11 @@
 #include <chunklands/libcxx/easylogging++.hxx>
 #include <iostream>
 
-// #define CHUNKLANDS_DEBUG_SWAP_TIME
+#define CHUNKLANDS_DEBUG_SWAP_TIME
 
 namespace chunklands::engine {
+
+constexpr bool log = false;
 
 Engine::Engine()
 {
@@ -37,25 +39,26 @@ Engine::Engine()
                     EASY_BLOCK("Engine Tick");
                     this->Render();
 
-                    // TODO(daaitch):
-                    const double swap_time = loop_start + refresh_interval * 0.0; // e.g. 60Hz -> 16ms
+                    // data_->executors.opengl.run_queued_closures();
+                    const double swap_time = loop_start + refresh_interval * 0.75; // e.g. 60Hz -> 16ms
 
-                    while (true) {
-                        data_->executors.opengl.run_queued_closures();
-                        this->Update();
+                    int i = 0;
+                    const bool has_more_elements = data_->executors.opengl.reschedule_until([&]() {
+                        i++;
+                        return i >= 10 || glfwGetTime() >= swap_time;
+                    });
 
-                        const double now = glfwGetTime();
-                        if (now >= swap_time) {
-                            break;
-                        }
-                    }
+                    LOG_IF(!has_more_elements && log, DEBUG) << "OpenGL executor is empty";
+
+                    this->Update();
+
 #ifdef CHUNKLANDS_DEBUG_SWAP_TIME
                     const double render_swap_start = glfwGetTime();
 #endif
                     this->RenderSwap();
 #ifdef CHUNKLANDS_DEBUG_SWAP_TIME
                     const double render_swap_end = glfwGetTime();
-                    LOG(DEBUG) << "wait for swap: " << render_swap_end - render_swap_start << "s";
+                    LOG_IF(log, DEBUG) << "wait for swap: " << render_swap_end - render_swap_start << "s";
 #endif
                 }
             }
@@ -81,6 +84,8 @@ Engine::~Engine()
 void Engine::Render()
 {
     // TODO(daaitch): unnecessary glClear should be removed when render pipeline in place
+
+    const double now = glfwGetTime();
 
     {
         EASY_BLOCK("glClear");
@@ -115,11 +120,14 @@ void Engine::Render()
         {
             EASY_BLOCK("GBufferPass");
             data_->render_pipeline.gbuffer->BeginPass();
+            data_->render_pipeline.gbuffer->SetCameraPos(data_->camera.camera.GetEye());
 
             for (Chunk* const chunk : data_->chunk.SceneChunks()) {
                 assert(chunk);
 
                 if (chunk->state == ChunkState::kMeshPrepared) {
+                    const float linear_new_factor = std::max(1.f - float((now - chunk->mesh_time) / 0.3f), 0.f);
+                    data_->render_pipeline.gbuffer->SetNewFactor(linear_new_factor * linear_new_factor * linear_new_factor * linear_new_factor);
                     chunk->mesh.vao.Render();
                 }
             }
@@ -173,7 +181,7 @@ void Engine::Terminate()
 
     if (!data_->executors.stop) {
 
-        LOG(DEBUG) << "set Engine stop = true";
+        LOG_IF(log, DEBUG) << "set Engine stop = true";
         data_->executors.stop = true;
 
         {

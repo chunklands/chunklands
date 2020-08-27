@@ -43,7 +43,8 @@ struct Chunk {
 
     bool HasAllNeighborsDataPrepared() const
     {
-        return (neighbors[kChunkNeighborLeft] != nullptr && neighbors[kChunkNeighborLeft]->state >= kDataPrepared)
+        return state >= kDataPrepared
+            && (neighbors[kChunkNeighborLeft] != nullptr && neighbors[kChunkNeighborLeft]->state >= kDataPrepared)
             && (neighbors[kChunkNeighborRight] != nullptr && neighbors[kChunkNeighborRight]->state >= kDataPrepared)
             && (neighbors[kChunkNeighborBottom] != nullptr && neighbors[kChunkNeighborBottom]->state >= kDataPrepared)
             && (neighbors[kChunkNeighborTop] != nullptr && neighbors[kChunkNeighborTop]->state >= kDataPrepared)
@@ -57,6 +58,7 @@ struct Chunk {
     Chunk* neighbors[kChunkNeighborCount];
 
     GBufferMesh mesh;
+    double mesh_time = 0.0;
 };
 
 } // namespace chunklands::engine

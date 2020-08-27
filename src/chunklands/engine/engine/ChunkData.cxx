@@ -6,9 +6,11 @@
 
 namespace chunklands::engine {
 
+constexpr bool log = false;
+
 void ChunkData::Add(Chunk* chunk)
 {
-    LOG(DEBUG) << "chunk " << chunk << " add";
+    LOG_IF(log, DEBUG) << "chunk " << chunk << " add";
     auto insert_chunks_result = chunks_.insert(chunk);
     assert(insert_chunks_result.second);
 
@@ -28,7 +30,7 @@ void ChunkData::Add(Chunk* chunk)
             assert(it->second->neighbors[kChunkNeighborRight] == nullptr);
             it->second->neighbors[kChunkNeighborRight] = chunk;
 
-            LOG(DEBUG) << "chunk " << chunk << " set left neighbor " << it->second;
+            LOG_IF(log, DEBUG) << "chunk " << chunk << " set left neighbor " << it->second;
         }
     }
 
@@ -41,7 +43,7 @@ void ChunkData::Add(Chunk* chunk)
             assert(it->second->neighbors[kChunkNeighborLeft] == nullptr);
             it->second->neighbors[kChunkNeighborLeft] = chunk;
 
-            LOG(DEBUG) << "chunk " << chunk << " set right neighbor " << it->second;
+            LOG_IF(log, DEBUG) << "chunk " << chunk << " set right neighbor " << it->second;
         }
     }
 
@@ -54,7 +56,7 @@ void ChunkData::Add(Chunk* chunk)
             assert(it->second->neighbors[kChunkNeighborTop] == nullptr);
             it->second->neighbors[kChunkNeighborTop] = chunk;
 
-            LOG(DEBUG) << "chunk " << chunk << " set bottom neighbor " << it->second;
+            LOG_IF(log, DEBUG) << "chunk " << chunk << " set bottom neighbor " << it->second;
         }
     }
 
@@ -67,7 +69,7 @@ void ChunkData::Add(Chunk* chunk)
             assert(it->second->neighbors[kChunkNeighborBottom] == nullptr);
             it->second->neighbors[kChunkNeighborBottom] = chunk;
 
-            LOG(DEBUG) << "chunk " << chunk << " set top neighbor " << it->second;
+            LOG_IF(log, DEBUG) << "chunk " << chunk << " set top neighbor " << it->second;
         }
     }
 
@@ -80,7 +82,7 @@ void ChunkData::Add(Chunk* chunk)
             assert(it->second->neighbors[kChunkNeighborBack] == nullptr);
             it->second->neighbors[kChunkNeighborBack] = chunk;
 
-            LOG(DEBUG) << "chunk " << chunk << " set front neighbor " << it->second;
+            LOG_IF(log, DEBUG) << "chunk " << chunk << " set front neighbor " << it->second;
         }
     }
 
@@ -93,7 +95,7 @@ void ChunkData::Add(Chunk* chunk)
             assert(it->second->neighbors[kChunkNeighborFront] == nullptr);
             it->second->neighbors[kChunkNeighborFront] = chunk;
 
-            LOG(DEBUG) << "chunk " << chunk << " set back neighbor " << it->second;
+            LOG_IF(log, DEBUG) << "chunk " << chunk << " set back neighbor " << it->second;
         }
     }
 
@@ -102,7 +104,7 @@ void ChunkData::Add(Chunk* chunk)
 
 void ChunkData::SetChunkDataPrepared(Chunk* chunk)
 {
-    LOG(DEBUG) << "chunk " << chunk << " set data prepared";
+    LOG_IF(log, DEBUG) << "chunk " << chunk << " set data prepared";
 
     assert(has_handle(chunks_, chunk));
     size_t erase_result = by_state_[chunk->state].erase(chunk);
@@ -112,12 +114,12 @@ void ChunkData::SetChunkDataPrepared(Chunk* chunk)
         chunk->state = kDataPreparedWithAllNeighbors;
         by_state_[kDataPreparedWithAllNeighbors].insert(chunk);
 
-        LOG(DEBUG) << "chunk " << chunk << " has all neighbors' data prepared, add to kDataPreparedWithAllNeighbors";
+        LOG_IF(log, DEBUG) << "chunk " << chunk << " has all neighbors' data prepared, add to kDataPreparedWithAllNeighbors";
     } else {
         chunk->state = kDataPrepared;
         by_state_[kDataPrepared].insert(chunk);
 
-        LOG(DEBUG) << "chunk " << chunk << " has not all neighbors' data prepared, add to kDataPrepared";
+        LOG_IF(log, DEBUG) << "chunk " << chunk << " has not all neighbors' data prepared, add to kDataPrepared";
     }
 
     for (int i = 0; i < kChunkNeighborCount; i++) {
@@ -126,18 +128,22 @@ void ChunkData::SetChunkDataPrepared(Chunk* chunk)
             continue;
         }
 
+        if (neighbor->state >= kMeshPrepared) {
+            continue;
+        }
+
         if (!neighbor->HasAllNeighborsDataPrepared()) {
             continue;
         }
 
-        LOG(DEBUG) << "chunk " << chunk << ", neighbor " << neighbor << " erase from " << neighbor->state;
+        LOG_IF(log, DEBUG) << "chunk " << chunk << ", neighbor " << neighbor << " erase from " << neighbor->state;
         size_t erase_result = by_state_[neighbor->state].erase(neighbor);
         assert(erase_result == 1);
 
         neighbor->state = kDataPreparedWithAllNeighbors;
 
         by_state_[kDataPreparedWithAllNeighbors].insert(neighbor);
-        LOG(DEBUG) << "chunk " << chunk << ", neighbor " << neighbor << " add to " << kDataPreparedWithAllNeighbors;
+        LOG_IF(log, DEBUG) << "chunk " << chunk << ", neighbor " << neighbor << " add to " << kDataPreparedWithAllNeighbors;
     }
 
     __IntegrityCheck();
@@ -146,7 +152,7 @@ void ChunkData::SetChunkDataPrepared(Chunk* chunk)
 void ChunkData::Remove(Chunk* chunk)
 {
     EASY_FUNCTION();
-    LOG(DEBUG) << "chunk " << chunk << " remove";
+    LOG_IF(log, DEBUG) << "chunk " << chunk << " remove";
 
     size_t erase_chunk_result = chunks_.erase(chunk);
     assert(erase_chunk_result == 1);
@@ -169,7 +175,7 @@ void ChunkData::Remove(Chunk* chunk)
             it->second->neighbors[kChunkNeighborRight] = nullptr;
 
             if (it->second->state == kDataPreparedWithAllNeighbors) {
-                LOG(DEBUG) << "chunk " << chunk << ", neighbor " << it->second << " remove from " << kDataPreparedWithAllNeighbors;
+                LOG_IF(log, DEBUG) << "chunk " << chunk << ", neighbor " << it->second << " remove from " << kDataPreparedWithAllNeighbors;
                 size_t erase_result = by_state_[kDataPreparedWithAllNeighbors].erase(it->second);
                 assert(erase_result == 1);
 
@@ -178,7 +184,7 @@ void ChunkData::Remove(Chunk* chunk)
                 auto insert_result = by_state_[kDataPrepared].insert(it->second);
                 assert(insert_result.second);
 
-                LOG(DEBUG) << "chunk " << chunk << ", neighbor " << it->second << " add to " << kDataPrepared;
+                LOG_IF(log, DEBUG) << "chunk " << chunk << ", neighbor " << it->second << " add to " << kDataPrepared;
             }
         }
     }
@@ -193,7 +199,7 @@ void ChunkData::Remove(Chunk* chunk)
             it->second->neighbors[kChunkNeighborLeft] = nullptr;
 
             if (it->second->state == kDataPreparedWithAllNeighbors) {
-                LOG(DEBUG) << "chunk " << chunk << ", neighbor " << it->second << " remove from " << kDataPreparedWithAllNeighbors;
+                LOG_IF(log, DEBUG) << "chunk " << chunk << ", neighbor " << it->second << " remove from " << kDataPreparedWithAllNeighbors;
                 size_t erase_result = by_state_[kDataPreparedWithAllNeighbors].erase(it->second);
                 assert(erase_result == 1);
 
@@ -202,7 +208,7 @@ void ChunkData::Remove(Chunk* chunk)
                 auto insert_result = by_state_[kDataPrepared].insert(it->second);
                 assert(insert_result.second);
 
-                LOG(DEBUG) << "chunk " << chunk << ", neighbor " << it->second << " add to " << kDataPrepared;
+                LOG_IF(log, DEBUG) << "chunk " << chunk << ", neighbor " << it->second << " add to " << kDataPrepared;
             }
         }
     }
@@ -217,7 +223,7 @@ void ChunkData::Remove(Chunk* chunk)
             it->second->neighbors[kChunkNeighborTop] = nullptr;
 
             if (it->second->state == kDataPreparedWithAllNeighbors) {
-                LOG(DEBUG) << "chunk " << chunk << ", neighbor " << it->second << " remove from " << kDataPreparedWithAllNeighbors;
+                LOG_IF(log, DEBUG) << "chunk " << chunk << ", neighbor " << it->second << " remove from " << kDataPreparedWithAllNeighbors;
                 size_t erase_result = by_state_[kDataPreparedWithAllNeighbors].erase(it->second);
                 assert(erase_result == 1);
 
@@ -226,7 +232,7 @@ void ChunkData::Remove(Chunk* chunk)
                 auto insert_result = by_state_[kDataPrepared].insert(it->second);
                 assert(insert_result.second);
 
-                LOG(DEBUG) << "chunk " << chunk << ", neighbor " << it->second << " add to " << kDataPrepared;
+                LOG_IF(log, DEBUG) << "chunk " << chunk << ", neighbor " << it->second << " add to " << kDataPrepared;
             }
         }
     }
@@ -241,7 +247,7 @@ void ChunkData::Remove(Chunk* chunk)
             it->second->neighbors[kChunkNeighborBottom] = nullptr;
 
             if (it->second->state == kDataPreparedWithAllNeighbors) {
-                LOG(DEBUG) << "chunk " << chunk << ", neighbor " << it->second << " remove from " << kDataPreparedWithAllNeighbors;
+                LOG_IF(log, DEBUG) << "chunk " << chunk << ", neighbor " << it->second << " remove from " << kDataPreparedWithAllNeighbors;
                 size_t erase_result = by_state_[kDataPreparedWithAllNeighbors].erase(it->second);
                 assert(erase_result == 1);
 
@@ -250,7 +256,7 @@ void ChunkData::Remove(Chunk* chunk)
                 auto insert_result = by_state_[kDataPrepared].insert(it->second);
                 assert(insert_result.second);
 
-                LOG(DEBUG) << "chunk " << chunk << ", neighbor " << it->second << " add to " << kDataPrepared;
+                LOG_IF(log, DEBUG) << "chunk " << chunk << ", neighbor " << it->second << " add to " << kDataPrepared;
             }
         }
     }
@@ -265,7 +271,7 @@ void ChunkData::Remove(Chunk* chunk)
             it->second->neighbors[kChunkNeighborBack] = nullptr;
 
             if (it->second->state == kDataPreparedWithAllNeighbors) {
-                LOG(DEBUG) << "chunk " << chunk << ", neighbor " << it->second << " remove from " << kDataPreparedWithAllNeighbors;
+                LOG_IF(log, DEBUG) << "chunk " << chunk << ", neighbor " << it->second << " remove from " << kDataPreparedWithAllNeighbors;
                 size_t erase_result = by_state_[kDataPreparedWithAllNeighbors].erase(it->second);
                 assert(erase_result == 1);
 
@@ -274,7 +280,7 @@ void ChunkData::Remove(Chunk* chunk)
                 auto insert_result = by_state_[kDataPrepared].insert(it->second);
                 assert(insert_result.second);
 
-                LOG(DEBUG) << "chunk " << chunk << ", neighbor " << it->second << " add to " << kDataPrepared;
+                LOG_IF(log, DEBUG) << "chunk " << chunk << ", neighbor " << it->second << " add to " << kDataPrepared;
             }
         }
     }
@@ -289,7 +295,7 @@ void ChunkData::Remove(Chunk* chunk)
             it->second->neighbors[kChunkNeighborFront] = nullptr;
 
             if (it->second->state == kDataPreparedWithAllNeighbors) {
-                LOG(DEBUG) << "chunk " << chunk << ", neighbor " << it->second << " remove from " << kDataPreparedWithAllNeighbors;
+                LOG_IF(log, DEBUG) << "chunk " << chunk << ", neighbor " << it->second << " remove from " << kDataPreparedWithAllNeighbors;
                 size_t erase_result = by_state_[kDataPreparedWithAllNeighbors].erase(it->second);
                 assert(erase_result == 1);
 
@@ -298,7 +304,7 @@ void ChunkData::Remove(Chunk* chunk)
                 auto insert_result = by_state_[kDataPrepared].insert(it->second);
                 assert(insert_result.second);
 
-                LOG(DEBUG) << "chunk " << chunk << ", neighbor " << it->second << " add to " << kDataPrepared;
+                LOG_IF(log, DEBUG) << "chunk " << chunk << ", neighbor " << it->second << " add to " << kDataPrepared;
             }
         }
     }
@@ -311,7 +317,7 @@ void ChunkData::UpdateChunks()
     EASY_FUNCTION();
     constexpr int MAX_GENERATED = 1;
 
-    LOG(DEBUG) << "chunks update";
+    LOG_IF(log, DEBUG) << "chunks update";
 
     int generated = 0;
     for (auto it = by_state_[kDataPreparedWithAllNeighbors].begin(); it != by_state_[kDataPreparedWithAllNeighbors].end();) {
@@ -319,13 +325,11 @@ void ChunkData::UpdateChunks()
         Chunk* const chunk = *it;
         assert(chunk->state == kDataPreparedWithAllNeighbors);
 
-        LOG(DEBUG) << "chunk " << chunk << " generate";
-
         generated++;
         ChunkMeshDataGenerator generator(chunk);
         generator();
 
-        LOG(DEBUG) << "chunk " << chunk << " generate, remove from " << kDataPreparedWithAllNeighbors << " add to " << kMeshPrepared;
+        LOG_IF(log, DEBUG) << "chunk " << chunk << " generate, remove from " << kDataPreparedWithAllNeighbors << " add to " << kMeshPrepared;
         it = by_state_[kDataPreparedWithAllNeighbors].erase(it);
 
         chunk->state = ChunkState::kMeshPrepared;
@@ -342,6 +346,7 @@ void ChunkData::UpdateChunks()
 
 void ChunkData::__IntegrityCheck() const
 {
+#ifdef CHUNKLANDS_ENGINE_ENGINE_CHUNKDATA_INTEGRITY_CHECK
     for (Chunk* chunk : chunks_) {
         for (int i = 0; i < ChunkState::kCount; i++) {
             if (chunk->state == i) {
@@ -363,6 +368,7 @@ void ChunkData::__IntegrityCheck() const
             }
         }
     }
+#endif
 }
 
 } // namespace chunklands::engine

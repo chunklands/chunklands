@@ -4,6 +4,7 @@ const SimpleWorldGen = require('../../assets/world/SimpleWorldGen');
 
 const RENDER_DISTANCE = 10;
 const renderChunkOffsets = generatePosOffsets(RENDER_DISTANCE);
+console.log(`renderChunkOffsets: ${renderChunkOffsets.length}`)
 
 module.exports = class ChunkManager {
   /**
@@ -25,8 +26,13 @@ module.exports = class ChunkManager {
         pos.y !== this._currentChunkPos.y ||
         pos.z !== this._currentChunkPos.z) {
       this._currentChunkPos = pos;
+      this._updateWorkerPosition(pos);
       this._handleChunkChange(abort, pos).catch(Abort.catchResolver);
     }
+  }
+
+  _updateWorkerPosition(pos) {
+    this._worldGen.updatePosition(pos);
   }
 
   async _handleChunkChange(abort, chunkPos) {
@@ -70,7 +76,7 @@ module.exports = class ChunkManager {
   async _createChunk(abort, chunkPos) {
     const [handle, buf] = await Promise.all([
       abort.race(this._engine.chunkCreate(chunkPos.x, chunkPos.y, chunkPos.z)),
-      abort.race(this._worldGen.generateChunk(abort, chunkPos, 32))
+      abort.race(this._worldGen.generateChunk(abort, chunkPos))
     ]);
 
     await abort.race(this._engine.chunkUpdate(handle, buf));
@@ -130,7 +136,7 @@ function generatePosOffsets(distance) {
   for (let z = -distance; z <= distance; z++) {
     for (let y = -distance; y <= distance; y++) {
       for (let x = -distance; x <= distance; x++) {
-        const dist2 = x ** 2 + y ** 2 + z ** 2;
+        const dist2 = x ** 2 + y ** 6 + z ** 2;  // x^2 + y^6 + z^2
         if (dist2 <= distance2) {
           posWithSquareDistances.push({dist2, pos: {x, y, z}});
         }

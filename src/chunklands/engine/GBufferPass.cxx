@@ -10,6 +10,8 @@ GBufferPass::GBufferPass(Window* window, std::unique_ptr<gl::Program> program)
     , u_proj_(*program_, "u_proj")
     , u_view_(*program_, "u_view")
     , u_texture_(*program_, "u_texture")
+    , u_new_factor(*program_, "u_new_factor")
+    , u_camera_pos(*program_, "u_camera_pos")
 {
     assert(window);
     const window_size_t size = window->GetSize();
@@ -131,10 +133,31 @@ void GBufferPass::EndPass()
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
+void GBufferPass::SetNewFactor(GLfloat new_factor)
+{
+    u_new_factor.Update(new_factor);
+}
+
+void GBufferPass::SetCameraPos(const glm::vec3& camera_pos)
+{
+    u_camera_pos.Update(camera_pos);
+}
+
 void GBufferPass::UpdateProj(int width, int height)
 {
+    // constexpr float Y = -50.f;
+    constexpr float zFar = 1000.f;
+    constexpr float zNear = 0.1f;
+    // constexpr float zFar2 = 1000.f;
+
     glViewport(0, 0, width, height);
-    proj_ = glm::perspective(glm::radians(75.f), float(width) / float(height), 0.1f, 1000.0f);
+    proj_ = glm::perspective(glm::radians(75.f), float(width) / float(height), zNear, zFar);
+
+    // glm::mat4 T = glm::identity<glm::mat4>();
+    // T[2][1] = Y / (zFar2 - zNear);
+    // T[3][1] = (Y * zNear) / (zFar2 - zNear);
+
+    // proj_ = proj_ * T;
 }
 
 void GBufferPass::LoadTexture(GLsizei width, GLsizei height, GLenum format, GLenum type, const void* pixels)

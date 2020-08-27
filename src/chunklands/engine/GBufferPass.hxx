@@ -20,6 +20,9 @@ public:
     void BeginPass();
     void EndPass();
 
+    void SetCameraPos(const glm::vec3& camera_pos);
+    void SetNewFactor(GLfloat new_factor);
+
     void LoadTexture(GLsizei width, GLsizei height, GLenum format, GLenum type, const void* pixels);
 
     GLuint GetPositionTexture() const
@@ -51,6 +54,8 @@ private:
     glm::mat4 view_;
 
     gl::Uniform<GLint> u_texture_;
+    gl::Uniform<GLfloat> u_new_factor;
+    gl::Uniform<glm::vec3> u_camera_pos;
 
     GLuint renderbuffer_ = 0;
     GLuint framebuffer_ = 0;

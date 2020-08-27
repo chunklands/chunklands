@@ -68,6 +68,9 @@ JSPromise EngineBridge::MakeEngineCall(JSEnv env, engine::AsyncEngineResult<T> a
             const napi_status status = fn_.NonBlockingCall(data.get(), [this, deferred = std::move(deferred), fn = std::move(fn), cleanup](JSEnv env, JSFunction, Holder<engine::AsyncEngineResult<T>>* data_ptr) {
                 assert(IsNodeThread());
 
+                DecrementJsCalls();
+                LogJsCalls();
+
                 {
                     std::unique_ptr<Holder<engine::AsyncEngineResult<T>>> data(data_ptr);
                     try {
@@ -87,6 +90,8 @@ JSPromise EngineBridge::MakeEngineCall(JSEnv env, engine::AsyncEngineResult<T> a
 
             if (status == napi_ok) {
                 data.release();
+                IncrementJsCalls();
+                LogJsCalls();
             } else {
                 cleanup();
             }

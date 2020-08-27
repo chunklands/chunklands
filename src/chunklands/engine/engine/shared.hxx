@@ -38,6 +38,8 @@ struct EngineData {
     struct {
         std::thread opengl_thread;
         boost::loop_executor opengl;
+
+        // boost::
         bool stop = false;
     } executors;
 

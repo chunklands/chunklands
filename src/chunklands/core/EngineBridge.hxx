@@ -1,9 +1,11 @@
 #ifndef __CHUNKLANDS_CORE_ENGINEBRIDGE_HXX__
 #define __CHUNKLANDS_CORE_ENGINEBRIDGE_HXX__
 
+#include <atomic>
 #include <chunklands/core/js.hxx>
 #include <chunklands/engine/engine/Engine.hxx>
 #include <chunklands/libcxx/boost_thread.hxx>
+#include <chunklands/libcxx/easylogging++.hxx>
 #include <iostream>
 #include <memory>
 #include <thread>
@@ -21,6 +23,8 @@
     } while (0)
 
 namespace chunklands::core {
+
+constexpr bool log = false;
 
 inline std::string name_of_jscall(const std::string& name)
 {
@@ -110,10 +114,26 @@ private:
         return !IsNodeThread();
     }
 
+    inline void IncrementJsCalls()
+    {
+        js_calls++;
+    }
+
+    inline void DecrementJsCalls()
+    {
+        js_calls--;
+    }
+
+    inline void LogJsCalls()
+    {
+        LOG_IF(log, DEBUG) << "jscalls " << (int)js_calls;
+    }
+
 private:
     engine::Engine* engine_ = nullptr;
     std::thread::id node_thread_id_;
     JSTSFunction fn_;
+    std::atomic<int> js_calls { 0 };
 };
 
 } // namespace chunklands::core

@@ -85,6 +85,7 @@ void ChunkMeshDataGenerator::operator()()
     }
 
     chunk->mesh.vao.Initialize(vb_data.data(), vb_data.size());
+    chunk->mesh_time = glfwGetTime();
 }
 
 } // namespace chunklands::engine
