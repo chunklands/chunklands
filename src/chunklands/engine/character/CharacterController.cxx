@@ -17,7 +17,7 @@ void CharacterController::Move(float forward, float right)
     }
 
     // TODO(daaitch): collision here
-    const glm::vec2& look = camera_->GetLook();
+    const glm::vec2& look = camera_.GetLook();
     const float yaw = look.x;
     const float pitch = look.y;
     const float sin_yaw = std::sin(yaw);
@@ -30,12 +30,14 @@ void CharacterController::Move(float forward, float right)
         sin_pitch * forward,
         cos_pitch * cos_yaw * forward + sin_yaw * right);
 
-    camera_->SetEye(camera_->GetEye() + move);
+    auto response = movement_controller_.CalculateMovement(this->engine_chunk_data_, camera_.GetEye(), std::move(move));
+
+    camera_.SetEye(response.new_camera_pos);
 }
 
 void CharacterController::Look(const glm::vec2& delta)
 {
-    glm::vec2 look = camera_->GetLook() + delta;
+    glm::vec2 look = camera_.GetLook() + delta;
 
     // yaw modulo
     look.x = std::fmod(look.x, float(2.f * M_PI));
@@ -44,7 +46,7 @@ void CharacterController::Look(const glm::vec2& delta)
     look.y = std::max(MIN_PITCH, look.y);
     look.y = std::min(MAX_PITCH, look.y);
 
-    camera_->SetLook(look);
+    camera_.SetLook(look);
 }
 
 } // namespace chunklands::engine::character

@@ -38,9 +38,9 @@ struct EngineData {
         camera::Camera camera;
     } camera;
 
-    ChunkData chunk;
+    EngineChunkData chunk;
 
-    character::CharacterController character_controller { &camera.camera };
+    character::CharacterController character_controller { camera.camera, chunk };
 
     struct {
         int render_refresh_rate = -1;

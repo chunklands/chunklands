@@ -8,7 +8,7 @@ namespace chunklands::engine {
 
 constexpr bool log = false;
 
-void ChunkData::Add(chunk::Chunk* chunk)
+void EngineChunkData::Add(chunk::Chunk* chunk)
 {
     LOG_IF(log, DEBUG) << "chunk " << chunk << " add";
     auto insert_chunks_result = chunks_.insert(chunk);
@@ -102,7 +102,7 @@ void ChunkData::Add(chunk::Chunk* chunk)
     __IntegrityCheck();
 }
 
-void ChunkData::SetChunkDataPrepared(chunk::Chunk* chunk)
+void EngineChunkData::SetChunkDataPrepared(chunk::Chunk* chunk)
 {
     LOG_IF(log, DEBUG) << "chunk " << chunk << " set data prepared";
 
@@ -149,7 +149,7 @@ void ChunkData::SetChunkDataPrepared(chunk::Chunk* chunk)
     __IntegrityCheck();
 }
 
-void ChunkData::Remove(chunk::Chunk* chunk)
+void EngineChunkData::Remove(chunk::Chunk* chunk)
 {
     EASY_FUNCTION();
     LOG_IF(log, DEBUG) << "chunk " << chunk << " remove";
@@ -312,7 +312,7 @@ void ChunkData::Remove(chunk::Chunk* chunk)
     __IntegrityCheck();
 }
 
-void ChunkData::UpdateChunks()
+void EngineChunkData::UpdateChunks()
 {
     EASY_FUNCTION();
     constexpr int MAX_GENERATED = 1;
@@ -344,7 +344,7 @@ void ChunkData::UpdateChunks()
     __IntegrityCheck();
 }
 
-void ChunkData::__IntegrityCheck() const
+void EngineChunkData::__IntegrityCheck() const
 {
 #ifdef CHUNKLANDS_ENGINE_ENGINE_CHUNKDATA_INTEGRITY_CHECK
     for (Chunk* chunk : chunks_) {

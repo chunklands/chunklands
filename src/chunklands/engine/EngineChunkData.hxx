@@ -22,7 +22,7 @@ struct ivec3_hasher {
     }
 };
 
-struct ChunkData {
+struct EngineChunkData {
 public:
     bool GetChunk(chunk::Chunk** chunk, CEChunkHandle* handle)
     {
@@ -64,6 +64,11 @@ public:
     const std::set<chunk::Chunk*>& SceneChunks() const { return scene_; }
 
     void UpdateChunks();
+
+    const std::unordered_map<glm::ivec3, chunk::Chunk*, ivec3_hasher>& GetChunksByPos() const
+    {
+        return by_pos_;
+    }
 
 private:
     std::set<chunk::Chunk*> chunks_;
