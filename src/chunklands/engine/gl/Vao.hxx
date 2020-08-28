@@ -147,6 +147,22 @@ struct X<VaoElementRenderQuad> {
     }
 };
 
+template <>
+struct X<CEVaoElementBlockSelectBlock> {
+    static void DefineAttribs()
+    {
+        GL_CHECK_DEBUG();
+
+        constexpr GLsizei stride = sizeof(CEVaoElementBlockSelectBlock);
+        static_assert(stride == 12, "packed check");
+
+        // position attribute
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, (void*)(0 * sizeof(GLfloat)));
+        glEnableVertexAttribArray(0);
+        GL_CHECK_DEBUG();
+    }
+};
+
 template <GLenum Mode, class T>
 class Vao {
 public:

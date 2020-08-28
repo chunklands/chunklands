@@ -228,14 +228,14 @@ Engine::BlockBake()
         std::memset(data.get(), 0, size);
         generate(data.get(), dim, root.get());
 
-        ENGINE_CHECK(data_->render_pipeline.gbuffer != nullptr);
+        ENGINE_CHECK(data_->render.gbuffer != nullptr);
 
 #ifdef CHUNKLANDS_ENGINE_ENGINE_DEBUG_TEXTURE
         const int result = stbi_write_png("out.png", dim, dim, 4, data.get(), 0);
         assert(result == 1);
 #endif
 
-        data_->render_pipeline.gbuffer->LoadTexture(dim, dim, GL_RGBA, GL_UNSIGNED_BYTE, data.get());
+        data_->render.gbuffer->LoadTexture(dim, dim, GL_RGBA, GL_UNSIGNED_BYTE, data.get());
         return Ok();
     });
 }

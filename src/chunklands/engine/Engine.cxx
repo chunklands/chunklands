@@ -87,6 +87,8 @@ void Engine::Render()
 
     const double now = glfwGetTime();
 
+    const glm::mat4 view = glm::lookAt(data_->camera.camera.GetEye(), data_->camera.camera.GetCenter(), glm::vec3(0, 1, 0));
+
     {
         EASY_BLOCK("glClear");
         for (const window::Window* const window : data_->window.windows) {
@@ -102,47 +104,47 @@ void Engine::Render()
     if (data_->window.current_window_input_controller) {
         constexpr double move_factor = 20.0;
         const window::windowinputcontroller_cursor_t cursor_delta = data_->window.current_window_input_controller->GetAndResetCursorDelta();
-        data_->character_controller.Look(glm::vec2(cursor_delta.dx, cursor_delta.dy));
-
         const window::windowinputcontroller_move_t move_delta = data_->window.current_window_input_controller->GetAndResetMoveDelta();
-        data_->character_controller.Move(
-            move_factor * (move_delta.forward - move_delta.back),
-            move_factor * (move_delta.right - move_delta.left));
+
+        data_->character_controller.MoveAndLook(
+            glm::vec2(move_factor * (move_delta.forward - move_delta.back),
+                move_factor * (move_delta.right - move_delta.left)),
+            glm::vec2(cursor_delta.dx, cursor_delta.dy));
     }
 
-    if (data_->render_pipeline.gbuffer) {
-        data_->render_pipeline.gbuffer->UpdateView(data_->camera.camera.GetEye(),
-            data_->camera.camera.GetCenter());
-    }
-
-    if (data_->render_pipeline.gbuffer && data_->render_pipeline.lighting && data_->render_pipeline.render_quad) {
+    if (data_->render.gbuffer && data_->render.lighting && data_->render.block_select && data_->render.render_quad) {
 
         {
             EASY_BLOCK("GBufferPass");
-            data_->render_pipeline.gbuffer->BeginPass();
-            data_->render_pipeline.gbuffer->SetCameraPos(data_->camera.camera.GetEye());
+            data_->render.gbuffer->BeginPass(data_->render.proj,
+                view, data_->camera.camera.GetEye());
 
             for (chunk::Chunk* const chunk : data_->chunk.SceneChunks()) {
                 assert(chunk);
 
                 if (chunk->state == chunk::ChunkState::kMeshPrepared) {
                     const float linear_new_factor = std::max(1.f - float((now - chunk->mesh_time) / 0.3f), 0.f);
-                    data_->render_pipeline.gbuffer->SetNewFactor(linear_new_factor * linear_new_factor * linear_new_factor * linear_new_factor);
+                    data_->render.gbuffer->SetNewFactor(linear_new_factor * linear_new_factor * linear_new_factor * linear_new_factor);
                     chunk->mesh.vao.Render();
                 }
             }
 
-            data_->render_pipeline.gbuffer->EndPass();
+            data_->render.gbuffer->EndPass();
         }
 
         {
             EASY_BLOCK("LightingPass");
-            data_->render_pipeline.lighting->BeginPass(data_->render_pipeline.gbuffer->GetPositionTexture(),
-                data_->render_pipeline.gbuffer->GetNormalTexture(),
-                data_->render_pipeline.gbuffer->GetColorTexture());
+            data_->render.lighting->BeginPass(data_->render.gbuffer->GetPositionTexture(),
+                data_->render.gbuffer->GetNormalTexture(),
+                data_->render.gbuffer->GetColorTexture());
 
-            data_->render_pipeline.render_quad->Render();
-            data_->render_pipeline.lighting->EndPass();
+            data_->render.render_quad->Render();
+            data_->render.lighting->EndPass();
+        }
+
+        if (data_->render.block_select && data_->render.pointing_block) {
+            EASY_BLOCK("SelectBlockPass");
+            data_->render.block_select->MakePass(data_->render.proj, view, *data_->render.pointing_block);
         }
     }
 

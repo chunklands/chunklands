@@ -5,7 +5,7 @@
 
 namespace chunklands::engine::render {
 
-GBufferPass::GBufferPass(window::Window* window, std::unique_ptr<gl::Program> program)
+GBufferPass::GBufferPass(std::unique_ptr<gl::Program> program)
     : program_(std::move(program))
     , u_proj_(*program_, "u_proj")
     , u_view_(*program_, "u_view")
@@ -13,18 +13,6 @@ GBufferPass::GBufferPass(window::Window* window, std::unique_ptr<gl::Program> pr
     , u_new_factor(*program_, "u_new_factor")
     , u_camera_pos(*program_, "u_camera_pos")
 {
-    assert(window);
-    const window::size size = window->GetSize();
-    UpdateBuffers(size.width, size.height);
-    UpdateProj(size.width, size.height);
-
-    window_resize_conn_ = window->on_resize.connect([this](const window::size& size) {
-        UpdateBuffers(size.width, size.height);
-        UpdateProj(size.width, size.height);
-    });
-
-    view_ = glm::lookAt(glm::vec3(12, -4, 50), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
-
     program_->Use();
     u_texture_.Update(0);
     program_->Unuse();
@@ -111,7 +99,7 @@ void GBufferPass::DeleteBuffers()
     GL_CHECK_DEBUG();
 }
 
-void GBufferPass::BeginPass()
+void GBufferPass::BeginPass(const glm::mat4& proj, const glm::mat4& view, const glm::vec3& camera_pos)
 {
     glBindFramebuffer(GL_FRAMEBUFFER, framebuffer_);
     glClearColor(1.f, 1.f, 1.f, 1.f);
@@ -123,41 +111,15 @@ void GBufferPass::BeginPass()
     }
 
     program_->Use();
-    u_proj_.Update(proj_);
-    u_view_.Update(view_);
+    u_proj_.Update(proj);
+    u_view_.Update(view);
+    u_camera_pos.Update(camera_pos);
 }
 
 void GBufferPass::EndPass()
 {
     program_->Unuse();
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-}
-
-void GBufferPass::SetNewFactor(GLfloat new_factor)
-{
-    u_new_factor.Update(new_factor);
-}
-
-void GBufferPass::SetCameraPos(const glm::vec3& camera_pos)
-{
-    u_camera_pos.Update(camera_pos);
-}
-
-void GBufferPass::UpdateProj(int width, int height)
-{
-    // constexpr float Y = -50.f;
-    constexpr float zFar = 1000.f;
-    constexpr float zNear = 0.1f;
-    // constexpr float zFar2 = 1000.f;
-
-    glViewport(0, 0, width, height);
-    proj_ = glm::perspective(glm::radians(75.f), float(width) / float(height), zNear, zFar);
-
-    // glm::mat4 T = glm::identity<glm::mat4>();
-    // T[2][1] = Y / (zFar2 - zNear);
-    // T[3][1] = (Y * zNear) / (zFar2 - zNear);
-
-    // proj_ = proj_ * T;
 }
 
 void GBufferPass::LoadTexture(GLsizei width, GLsizei height, GLenum format, GLenum type, const void* pixels)
@@ -178,11 +140,6 @@ void GBufferPass::LoadTexture(GLsizei width, GLsizei height, GLenum format, GLen
     // glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, &p);
     glBindTexture(GL_TEXTURE_2D, 0);
     GL_CHECK_DEBUG();
-}
-
-void GBufferPass::UpdateView(const glm::vec3& eye, const glm::vec3& center)
-{
-    view_ = glm::lookAt(eye, center, glm::vec3(0, 1, 0));
 }
 
 } // namespace chunklands::engine::render

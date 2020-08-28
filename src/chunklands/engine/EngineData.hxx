@@ -3,13 +3,11 @@
 
 #include "Engine.hxx"
 #include "EngineChunkData.hxx"
+#include "EngineRenderData.hxx"
 #include <chunklands/engine/camera/Camera.hxx>
 #include <chunklands/engine/character/CharacterController.hxx>
 #include <chunklands/engine/chunk/Chunk.hxx>
 #include <chunklands/engine/engine_exception.hxx>
-#include <chunklands/engine/gl/RenderQuad.hxx>
-#include <chunklands/engine/render/GBufferPass.hxx>
-#include <chunklands/engine/render/LightingPass.hxx>
 #include <chunklands/engine/window/Window.hxx>
 #include <chunklands/engine/window/WindowInputController.hxx>
 #include <map>
@@ -39,8 +37,9 @@ struct EngineData {
     } camera;
 
     EngineChunkData chunk;
+    EngineRenderData render;
 
-    character::CharacterController character_controller { camera.camera, chunk };
+    character::CharacterController character_controller { camera.camera, chunk, render };
 
     struct {
         int render_refresh_rate = -1;
@@ -50,12 +49,6 @@ struct EngineData {
         bool initialized = false;
         bool start_poll_events = false;
     } glfw;
-
-    struct {
-        gl::RenderQuad* render_quad = nullptr;
-        render::GBufferPass* gbuffer = nullptr;
-        render::LightingPass* lighting = nullptr;
-    } render_pipeline;
 
     struct {
         std::set<void*> unbaked;

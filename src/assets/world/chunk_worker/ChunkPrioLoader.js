@@ -44,7 +44,7 @@ module.exports = class ChunkPrioLoader {
           const camDistance = Math.sqrt(
               (pos.x - this._pos.x) ** 2, (pos.y - this._pos.y) ** 2,
               (pos.z - this._pos.z) ** 2);
-          console.log(`get chunk: ${camDistance}`);
+          // console.log(`get chunk: ${camDistance}`);
           const chunk = this._chunkLoader.getChunk(pos.x, pos.y, pos.z);
           sendPort.postMessage(chunk.data);
           sendPort.close();

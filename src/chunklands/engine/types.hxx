@@ -186,6 +186,10 @@ struct __attribute__((packed)) CEVaoElementChunkBlock {
     GLfloat uv[2];
 };
 
+struct __attribute__((packed)) CEVaoElementBlockSelectBlock {
+    GLfloat position[3];
+};
+
 struct CEBlockFace {
     FaceType type;
     std::vector<CEVaoElementChunkBlock> data;
@@ -206,6 +210,7 @@ struct CEPassInit {
 struct CERenderPipelineInit {
     CEPassInit gbuffer;
     CEPassInit lighting;
+    CEPassInit select_block;
 };
 
 struct CEEvent {

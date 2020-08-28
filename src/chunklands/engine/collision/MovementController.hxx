@@ -19,6 +19,8 @@ public:
         glm::vec3 camera_pos,
         glm::vec3 outstanding_movement);
 
+    std::optional<math::ivec3> PointingBlock(const EngineChunkData& data, const math::fLine3& look);
+
 private:
     math::fAABB3 player_box_ {
         { -.3f, -1.4f, -.3f },

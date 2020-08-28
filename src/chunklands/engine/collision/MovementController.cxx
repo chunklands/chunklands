@@ -4,6 +4,7 @@
 #include "collision.hxx"
 #include <chunklands/engine/chunk/Chunk.hxx>
 #include <chunklands/engine/math/math.hxx>
+#include <optional>
 
 namespace chunklands::engine::collision {
 
@@ -20,6 +21,105 @@ collision::collision_impulse ProcessCollision(block::Block* block, const math::i
         collision::AABB3D { glm::vec3(block_coord), glm::vec3(1) },
         collision::AABB3D { box.origin, box.span },
         movement);
+}
+
+std::optional<math::ivec3> FindPointingBlock(const EngineChunkData& data, const math::fLine3& look)
+{
+    auto& by_pos = data.GetChunksByPos();
+
+    math::fAABB3 box { look.origin, math::fvec3(0.f) };
+    math::fAABB3 movement_box { box | look.span };
+
+    collision::collision_impulse result;
+    math::ivec3 result_coord(0);
+
+    for (auto&& chunk_pos : math::chunk_pos_in_box { movement_box, CE_CHUNK_SIZE }) {
+        const auto&& chunk_result = by_pos.find(chunk_pos);
+        if (chunk_result == by_pos.cend()) {
+            continue;
+        }
+
+        chunk::Chunk* chunk = chunk_result->second;
+        if (chunk->state < chunk::kDataPrepared) {
+            continue;
+        }
+        math::ivec3 chunk_coord { chunk_pos * (int)CE_CHUNK_SIZE };
+
+        for (auto&& block_pos : math::block_pos_in_box { movement_box, chunk_pos, CE_CHUNK_SIZE }) {
+            block::Block* block = chunk->blocks[block_pos.z][block_pos.y][block_pos.x];
+            assert(block != nullptr);
+
+            math::ivec3 block_coord { chunk_coord + block_pos };
+
+            const collision::collision_impulse impulse = ProcessCollision(block, block_coord, box, look.span);
+
+            if (impulse.is_more_relevant_than(result)) {
+                result = impulse;
+                result_coord = block_coord;
+            }
+        }
+    }
+
+    if (result.collision.in_unittime() && result.collision.will() && !result.collision.never()) {
+        return { result_coord };
+    }
+
+    return {};
+}
+
+std::optional<math::ivec3> FindAddingBlock(const EngineChunkData& data, const math::fLine3& look)
+{
+    auto& by_pos = data.GetChunksByPos();
+
+    math::fAABB3 box { look.origin, math::fvec3(0.f) };
+    math::fAABB3 movement_box { box | look.span };
+
+    collision::collision_impulse result;
+    math::ivec3 result_coord(0);
+
+    for (auto&& chunk_pos : math::chunk_pos_in_box { movement_box, CE_CHUNK_SIZE }) {
+        const auto&& chunk_result = by_pos.find(chunk_pos);
+        if (chunk_result == by_pos.cend()) {
+            continue;
+        }
+
+        auto&& chunk = chunk_result->second;
+        if (chunk->state < chunk::kDataPrepared) {
+            continue;
+        }
+        math::ivec3 chunk_coord { chunk_pos * (int)CE_CHUNK_SIZE };
+
+        for (auto&& block_pos : math::block_pos_in_box { movement_box, chunk_pos, CE_CHUNK_SIZE }) {
+            block::Block* block = chunk->blocks[block_pos.z][block_pos.y][block_pos.x];
+            assert(block != nullptr);
+
+            math::ivec3 block_coord { chunk_coord + block_pos };
+
+            const collision::collision_impulse impulse = ProcessCollision(block, block_coord, box, look.span);
+
+            if (impulse.is_more_relevant_than(result)) {
+                result = impulse;
+                result_coord = block_coord;
+            }
+        }
+    }
+
+    if (result.collision.in_unittime() && result.collision.will() && !result.collision.never()) {
+        if (result.is_x_collision) {
+            return { look.span.x >= 0 ? result_coord + math::ivec3(-1, 0, 0) : result_coord + math::ivec3(+1, 0, 0) };
+        }
+        if (result.is_y_collision) {
+            return { look.span.y >= 0 ? result_coord + math::ivec3(0, -1, 0) : result_coord + math::ivec3(0, +1, 0) };
+        }
+        if (result.is_z_collision) {
+            return { look.span.z >= 0 ? result_coord + math::ivec3(0, 0, -1) : result_coord + math::ivec3(0, 0, +1) };
+        }
+
+        // should not happen
+        assert(false);
+    }
+
+    return {};
 }
 
 collision_impulse ProcessNextCollision(const EngineChunkData& data, const math::fAABB3& box, const math::fvec3& movement)
@@ -89,4 +189,10 @@ MovementController::CalculateMovement(const EngineChunkData& data, glm::vec3 cam
         .new_camera_pos = camera_pos
     };
 }
+
+std::optional<math::ivec3> MovementController::PointingBlock(const EngineChunkData& data, const math::fLine3& look)
+{
+    return FindPointingBlock(data, look);
+}
+
 } // namespace chunklands::engine::collision
