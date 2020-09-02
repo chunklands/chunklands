@@ -67,6 +67,8 @@ Engine::Engine()
         {
             LOG_PROCESS("close loop executor");
             data_->executors.opengl.close();
+
+            this->FinalizeOpenGLThread();
         }
     });
 }
@@ -112,7 +114,7 @@ void Engine::Render()
             glm::vec2(cursor_delta.dx, cursor_delta.dy));
     }
 
-    if (data_->render.gbuffer && data_->render.lighting && data_->render.block_select && data_->render.render_quad) {
+    if (data_->render.initialized) {
 
         {
             EASY_BLOCK("GBufferPass");
@@ -142,9 +144,16 @@ void Engine::Render()
             data_->render.lighting->EndPass();
         }
 
-        if (data_->render.block_select && data_->render.pointing_block) {
+        if (data_->render.pointing_block) {
             EASY_BLOCK("SelectBlockPass");
             data_->render.block_select->MakePass(data_->render.proj, view, *data_->render.pointing_block);
+        }
+
+        {
+            EASY_BLOCK("SpritePass");
+            data_->render.sprite->BeginPass(data_->render.sprite_proj, data_->render.gbuffer->GetBakeTexture());
+            data_->sprite.crosshair.Render();
+            data_->render.sprite->EndPass();
         }
     }
 
@@ -191,6 +200,11 @@ void Engine::Terminate()
             data_->executors.opengl_thread.join();
         }
     }
+}
+
+void Engine::FinalizeOpenGLThread()
+{
+    data_->sprite.crosshair.Clear();
 }
 
 } // namespace chunklands::engine

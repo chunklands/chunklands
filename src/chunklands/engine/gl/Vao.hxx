@@ -163,11 +163,40 @@ struct X<CEVaoElementBlockSelectBlock> {
     }
 };
 
+template <>
+struct X<CEVaoElementSprite> {
+    static void DefineAttribs()
+    {
+        GL_CHECK_DEBUG();
+
+        constexpr GLsizei stride = sizeof(CEVaoElementSprite);
+        static_assert(stride == 32, "packed check");
+
+        // position attribute
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, (void*)(0 * sizeof(GLfloat)));
+        glEnableVertexAttribArray(0);
+
+        // normal attribute
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, stride, (void*)(3 * sizeof(GLfloat)));
+        glEnableVertexAttribArray(1);
+
+        // uv attribute
+        glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, stride, (void*)(6 * sizeof(GLfloat)));
+        glEnableVertexAttribArray(2);
+        GL_CHECK_DEBUG();
+    }
+};
+
 template <GLenum Mode, class T>
 class Vao {
 public:
     Vao() {}
     ~Vao()
+    {
+        Clear();
+    }
+
+    void Clear()
     {
         if (vbo_ != 0) {
             glDeleteBuffers(1, &vbo_);

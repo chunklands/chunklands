@@ -6,6 +6,7 @@
 #include <chunklands/engine/gl/RenderQuad.hxx>
 #include <chunklands/engine/render/GBufferPass.hxx>
 #include <chunklands/engine/render/LightingPass.hxx>
+#include <chunklands/engine/render/SpritePass.hxx>
 #include <chunklands/engine/window/Window.hxx>
 #include <chunklands/libcxx/easy_profiler.hxx>
 
@@ -47,16 +48,34 @@ Engine::RenderPipelineInit(CEWindowHandle* handle, CERenderPipelineInit init)
         }
 
         {
+            std::unique_ptr<gl::Program> program = std::make_unique<gl::Program>(init.sprite.vertex_shader.data(),
+                init.sprite.fragment_shader.data());
+            std::unique_ptr<render::SpritePass> sprite_pass = std::make_unique<render::SpritePass>(std::move(program));
+            data_->render.sprite = sprite_pass.release();
+        }
+
+        {
             std::unique_ptr<gl::RenderQuad> render_quad = std::make_unique<gl::RenderQuad>();
             data_->render.render_quad = render_quad.release();
         }
 
+        data_->render.initialized = true;
+
         auto x = [this](const window::size& size) {
+            glm::vec2 s(size.width, size.height);
             constexpr float zFar = 1000.f;
             constexpr float zNear = 0.1f;
 
             glViewport(0, 0, size.width, size.height);
-            data_->render.proj = glm::perspective(glm::radians(75.f), float(size.width) / float(size.height), zNear, zFar);
+            data_->render.proj = glm::perspective(glm::radians(75.f), s.x / s.y, zNear, zFar);
+
+            const float max_dim = std::max(s.x, s.y);
+            data_->render.sprite_proj = glm::ortho(
+                (max_dim - s.x) / 2.f / max_dim,
+                (max_dim - ((max_dim - s.x) / 2.f)) / max_dim,
+                (max_dim - s.y) / 2.f / max_dim,
+                (max_dim - ((max_dim - s.y) / 2.f)) / max_dim);
+
             data_->render.gbuffer->UpdateBuffers(size.width, size.height);
         };
 

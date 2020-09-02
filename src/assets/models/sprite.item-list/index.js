@@ -1,3 +1,6 @@
+// clang-format off
+const {promisify} = require('util');
+const readFile = promisify(require('fs').readFile);
 
 const n = 9;
 const screenPaddingX = 1/4;
@@ -26,20 +29,18 @@ function data(i) {
   ];
 }
 
-module.exports = () => ({
+module.exports = async () => ({
   id: 'sprite.item-list',
-  faces: {
-    all: [
-      ...data(0),
-      ...data(1),
-      ...data(2),
-      ...data(3),
-      ...data(4),
-      ...data(5),
-      ...data(6),
-      ...data(7),
-      ...data(8),
-    ],
-  },
-  texture: `${__dirname}/item.png`
+  data: new Float32Array([
+    ...data(0),
+    ...data(1),
+    ...data(2),
+    ...data(3),
+    ...data(4),
+    ...data(5),
+    ...data(6),
+    ...data(7),
+    ...data(8),
+  ]).buffer,
+  texture: await readFile(`${__dirname}/item.png`)
 });

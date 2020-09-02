@@ -35,6 +35,7 @@ JS_DEF_INITCTOR(EngineBridge, ONE_ARG({
                                   JS_CB(renderPipelineInit),
                                   JS_CB(blockCreate),
                                   JS_CB(blockBake),
+                                  JS_CB(spriteCreate),
                                   JS_CB(chunkCreate),
                                   JS_CB(chunkDelete),
                                   JS_CB(chunkUpdate),

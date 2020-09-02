@@ -29,8 +29,6 @@ private:
     // gl::Uniform<GLint> u_normal_texture;
     gl::Uniform<GLint> u_color_texture;
 
-    boost::signals2::scoped_connection window_resize_conn_;
-
     BOOST_MOVABLE_BUT_NOT_COPYABLE(LightingPass)
 };
 

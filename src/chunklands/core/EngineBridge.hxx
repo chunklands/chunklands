@@ -37,6 +37,9 @@ class EngineBridge : public JSObjectWrap<EngineBridge> {
     JS_DECL_CB(blockCreate)
     JS_DECL_CB(blockBake)
 
+    // Sprite
+    JS_DECL_CB(spriteCreate)
+
     // Chunk
     JS_DECL_CB(chunkCreate)
     JS_DECL_CB(chunkDelete)

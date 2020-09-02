@@ -166,6 +166,7 @@ struct CEChunkHandle;
 struct CEGBufferMeshHandle;
 struct CEBlockRegistrar;
 struct CEBlockHandle;
+struct CESpriteHandle;
 
 constexpr int CE_CHUNK_SIZE = 32;
 constexpr int CE_CHUNK_BLOCK_COUNT = CE_CHUNK_SIZE * CE_CHUNK_SIZE * CE_CHUNK_SIZE;
@@ -181,6 +182,12 @@ enum class FaceType {
 };
 
 struct __attribute__((packed)) CEVaoElementChunkBlock {
+    GLfloat position[3];
+    GLfloat normal[3];
+    GLfloat uv[2];
+};
+
+struct __attribute__((packed)) CEVaoElementSprite {
     GLfloat position[3];
     GLfloat normal[3];
     GLfloat uv[2];
@@ -202,6 +209,12 @@ struct CEBlockCreateInit {
     std::vector<unsigned char> texture;
 };
 
+struct CESpriteCreateInit {
+    std::string id;
+    std::vector<CEVaoElementSprite> data;
+    std::vector<unsigned char> texture;
+};
+
 struct CEPassInit {
     std::string vertex_shader;
     std::string fragment_shader;
@@ -211,6 +224,7 @@ struct CERenderPipelineInit {
     CEPassInit gbuffer;
     CEPassInit lighting;
     CEPassInit select_block;
+    CEPassInit sprite;
 };
 
 struct CEEvent {

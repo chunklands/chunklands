@@ -41,6 +41,11 @@ public:
         return texture_color_;
     }
 
+    GLuint GetBakeTexture() const
+    {
+        return texture_;
+    }
+
 private:
     void DeleteBuffers();
 

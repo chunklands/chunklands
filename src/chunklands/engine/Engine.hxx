@@ -19,6 +19,7 @@ public:
     void Render();
     void RenderSwap();
     void Update();
+    void FinalizeOpenGLThread();
     void Terminate();
 
 public:
@@ -36,6 +37,8 @@ public:
     AsyncEngineResult<CEBlockHandle*>   BlockCreate(CEBlockCreateInit init);
     AsyncEngineResult<CENone>           BlockBake();
 
+    AsyncEngineResult<CESpriteHandle*>  SpriteCreate(CESpriteCreateInit init);
+
     AsyncEngineResult<CEChunkHandle*>   ChunkCreate(int x, int y, int z);
     AsyncEngineResult<CENone>           ChunkDelete(CEChunkHandle* handle);
     AsyncEngineResult<CENone>           ChunkUpdateData(CEChunkHandle* handle, CEBlockHandle** blocks);
@@ -48,6 +51,7 @@ public:
     AsyncEngineResult<CECameraPosition> CameraGetPosition();
     EngineResultX<EventConnection>      CameraOn(const std::string& event, std::function<void(CECameraEvent)> callback);
     // clang-format on
+
 private:
     EngineData* data_ = nullptr;
 };

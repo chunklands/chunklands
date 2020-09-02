@@ -4,10 +4,13 @@
 #include "Engine.hxx"
 #include "EngineChunkData.hxx"
 #include "EngineRenderData.hxx"
+#include <chunklands/engine/algorithm/texture_bake.hxx>
 #include <chunklands/engine/camera/Camera.hxx>
 #include <chunklands/engine/character/CharacterController.hxx>
 #include <chunklands/engine/chunk/Chunk.hxx>
 #include <chunklands/engine/engine_exception.hxx>
+#include <chunklands/engine/gl/Vao.hxx>
+#include <chunklands/engine/sprite/Sprite.hxx>
 #include <chunklands/engine/window/Window.hxx>
 #include <chunklands/engine/window/WindowInputController.hxx>
 #include <map>
@@ -51,9 +54,16 @@ struct EngineData {
     } glfw;
 
     struct {
-        std::set<void*> unbaked;
         std::set<block::Block*> blocks;
     } block;
+
+    struct {
+        std::set<sprite::Sprite*> sprites;
+
+        gl::Vao<GL_TRIANGLES, CEVaoElementSprite> crosshair;
+    } sprite;
+
+    algorithm::texture_bake::TextureBaker texture_baker;
 };
 
 } // namespace chunklands::engine

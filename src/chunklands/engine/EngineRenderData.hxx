@@ -6,18 +6,23 @@
 #include <chunklands/engine/render/BlockSelectPass.hxx>
 #include <chunklands/engine/render/GBufferPass.hxx>
 #include <chunklands/engine/render/LightingPass.hxx>
+#include <chunklands/engine/render/SpritePass.hxx>
 
 namespace chunklands::engine {
 
 struct EngineRenderData {
+    bool initialized = false;
     gl::RenderQuad* render_quad = nullptr;
     render::GBufferPass* gbuffer = nullptr;
     render::LightingPass* lighting = nullptr;
     render::BlockSelectPass* block_select = nullptr;
+    render::SpritePass* sprite = nullptr;
 
     std::optional<glm::ivec3> pointing_block;
 
     glm::mat4 proj;
+    glm::mat4 sprite_proj;
+
     boost::signals2::scoped_connection window_resize_conn;
 };
 

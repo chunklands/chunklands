@@ -1,3 +1,4 @@
+// clang-format off
 const { promisify } = require('util');
 const readFile = promisify(require('fs').readFile);
 

@@ -26,6 +26,10 @@ EngineBridge::JSCall_renderPipelineInit(JSCbi info)
     init.select_block.vertex_shader = js_block_select.Get("vertexShader").ToString();
     init.select_block.fragment_shader = js_block_select.Get("fragmentShader").ToString();
 
+    JSObject js_sprite = js_init.Get("sprite").ToObject();
+    init.sprite.vertex_shader = js_sprite.Get("vertexShader").ToString();
+    init.sprite.fragment_shader = js_sprite.Get("fragmentShader").ToString();
+
     return MakeEngineCall(info.Env(),
         engine_->RenderPipelineInit(handle, std::move(init)),
         create_resolver<engine::CENone>());

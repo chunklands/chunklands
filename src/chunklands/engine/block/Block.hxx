@@ -1,6 +1,7 @@
 #ifndef __CHUNKLANDS_ENGINE_BLOCK_BLOCK_HXX__
 #define __CHUNKLANDS_ENGINE_BLOCK_BLOCK_HXX__
 
+#include <chunklands/engine/algorithm/texture_bake.hxx>
 #include <chunklands/engine/gl/Vao.hxx>
 #include <chunklands/engine/types.hxx>
 #include <string>

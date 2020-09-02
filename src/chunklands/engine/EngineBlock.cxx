@@ -3,6 +3,7 @@
 #include "EngineData.hxx"
 #include "api_util.hxx"
 #include <chunklands/engine/block/Block.hxx>
+#include <chunklands/engine/image/image_loader.hxx>
 #include <chunklands/engine/render/GBufferPass.hxx>
 #include <chunklands/libcxx/easy_profiler.hxx>
 #include <chunklands/libcxx/stb.hxx>
@@ -29,98 +30,75 @@ struct unbaked_block {
 
 constexpr int COLOR_COMPONENTS = 4;
 
+class BlockTextureBakerEntity : public algorithm::texture_bake::TextureBakerEntity {
+public:
+    BlockTextureBakerEntity(const std::set<block::Block*>* blocks, block::Block* block, image::image image)
+        : blocks_(blocks)
+        , block_(block)
+        , image_(std::move(image))
+    {
+        assert(blocks != nullptr);
+        assert(block != nullptr);
+    }
+
+    const stbi_uc* GetTextureData() const override
+    {
+        return image_.data.get();
+    }
+
+    int GetTextureWidth() const override
+    {
+        return image_.width;
+    }
+
+    int GetTextureHeight() const override
+    {
+        return image_.height;
+    }
+
+    int GetTextureChannels() const override
+    {
+        return image_.channels;
+    }
+
+    void ForEachUVs(const std::function<void(float&, float&)>& uv_transform) override
+    {
+        assert(has_handle(*blocks_, block_));
+
+        for (auto& face : block_->faces) {
+            for (auto& data_elem : face.data) {
+                uv_transform(data_elem.uv[0], data_elem.uv[1]);
+            }
+        }
+    }
+
+private:
+    const std::set<block::Block*>* blocks_ = nullptr;
+    block::Block* block_ = nullptr;
+    image::image image_;
+
+    BOOST_MOVABLE_BUT_NOT_COPYABLE(BlockTextureBakerEntity)
+};
+
 AsyncEngineResult<CEBlockHandle*>
 Engine::BlockCreate(CEBlockCreateInit init)
 {
     EASY_FUNCTION();
     ENGINE_FN();
     ENGINE_CHECK(init.id.length() > 0);
-    std::unique_ptr<block::Block> block = std::make_unique<block::Block>(std::move(init.id), init.opaque, std::move(init.faces));
 
-    static_assert(sizeof(char) == sizeof(stbi_uc), "check char size");
+    auto block = std::make_unique<block::Block>(std::move(init.id), init.opaque, std::move(init.faces));
+    auto image = image::load_image(init.texture.data(), init.texture.size(), COLOR_COMPONENTS);
+    auto entity = std::unique_ptr<algorithm::texture_bake::TextureBakerEntity>(
+        new BlockTextureBakerEntity(&data_->block.blocks, block.get(), std::move(image)));
 
-    std::unique_ptr<unbaked_block> b = std::make_unique<unbaked_block>();
-    b->block = block.get();
-    if (init.texture.size() > 0) {
-        stbi_uc* d = stbi_load_from_memory(init.texture.data(), init.texture.size(), &b->width, &b->height, nullptr, COLOR_COMPONENTS);
-        b->image.reset(d);
-        ENGINE_CHECK(b->image);
-    }
+    return EnqueueTask(data_->executors.opengl, [this, block = std::move(block), entity = std::move(entity)]() mutable -> EngineResultX<CEBlockHandle*> {
+        auto insert_result = data_->block.blocks.insert(block.get());
+        ENGINE_CHECK_MSG(insert_result.second, "insert block");
 
-    return EnqueueTask(data_->executors.opengl, [this, block = std::move(block), b = std::move(b)]() mutable -> EngineResultX<CEBlockHandle*> {
-        data_->block.unbaked.insert(b.release());
-        data_->block.blocks.insert(block.get());
+        ENGINE_CHECK(data_->texture_baker.AddEntity(block.get(), std::move(entity)));
         return Ok(reinterpret_cast<CEBlockHandle*>(block.release()));
     });
-}
-
-enum BlockBakeNodeSplit {
-    kStillUnknown,
-    kHorizontal,
-    kVertical
-};
-
-struct block_bake_node {
-    unbaked_block* b = nullptr;
-    std::unique_ptr<block_bake_node> down, right;
-    BlockBakeNodeSplit split = kStillUnknown;
-    int x = 0, y = 0;
-};
-
-long nextPOT(long n)
-{
-    long r = 1;
-    while (r < n) {
-        r <<= 1;
-    }
-
-    return r;
-}
-
-void generate(unsigned char* texture, int dim, block_bake_node* node)
-{
-    assert(node);
-
-    if (!node->b) {
-        return;
-    }
-
-    const std::size_t off = ((node->x + (node->y * dim)) * COLOR_COMPONENTS);
-    unsigned char* dst = texture + off;
-    const unsigned char* src = node->b->image.get();
-
-    const std::size_t dst_line_offset = dim * COLOR_COMPONENTS;
-    const std::size_t src_line_offset = node->b->width * COLOR_COMPONENTS;
-
-    // copy image
-    for (int i = 0; i < node->b->height; i++) {
-        std::memcpy(dst, src, src_line_offset);
-        dst += dst_line_offset;
-        src += src_line_offset;
-    }
-
-    // update uv
-    const GLfloat d = dim;
-    for (CEBlockFace& face : node->b->block->faces) {
-        for (CEVaoElementChunkBlock& elem : face.data) {
-            const GLfloat x = node->x;
-            const GLfloat y = node->y;
-            const GLfloat w = node->b->width;
-            const GLfloat h = node->b->height;
-
-            elem.uv[0] = (x + (elem.uv[0] * w)) / d;
-            elem.uv[1] = (y + (elem.uv[1] * h)) / d;
-        }
-    }
-
-    // compute other nodes
-    if (node->right) {
-        generate(texture, dim, node->right.get());
-    }
-
-    if (node->down) {
-        generate(texture, dim, node->down.get());
-    }
 }
 
 AsyncEngineResult<CENone>
@@ -130,112 +108,16 @@ Engine::BlockBake()
     ENGINE_FN();
 
     return EnqueueTask(data_->executors.opengl, [this]() -> EngineResultX<CENone> {
-        std::unique_ptr<block_bake_node> root = std::make_unique<block_bake_node>();
-        int max_dim = 0;
-
-        for (void* unbaked : data_->block.unbaked) {
-            assert(unbaked);
-            unbaked_block* b = reinterpret_cast<unbaked_block*>(unbaked);
-            assert(b);
-
-            if (!b->image) {
-                continue;
-            }
-
-            block_bake_node* node = root.get();
-
-            for (;;) {
-                assert(node);
-
-                if (node->split == kStillUnknown) {
-                    assert(node->b == nullptr);
-                    node->b = b;
-
-                    const int overall_width = node->x + node->b->width;
-                    const int overall_height = node->y + node->b->height;
-
-                    max_dim = std::max(max_dim, overall_width);
-                    max_dim = std::max(max_dim, overall_height);
-
-                    node->split = overall_width > overall_height ? kHorizontal : kVertical;
-                    break;
-                }
-
-                // +++++++++
-                // +XXX
-                // +XXX.....
-                // +
-                // +
-                if (node->split == kHorizontal) {
-                    if (node->b->height >= b->height) {
-                        if (!node->right) {
-                            node->right = std::make_unique<block_bake_node>();
-                            node->right->x = node->x + node->b->width;
-                            node->right->y = node->y;
-                        }
-
-                        node = node->right.get();
-                        continue;
-                    }
-
-                    if (!node->down) {
-                        node->down = std::make_unique<block_bake_node>();
-                        node->down->x = node->x;
-                        node->down->y = node->y + node->b->height;
-                    }
-
-                    node = node->down.get();
-                    continue;
-                }
-
-                // ++++++
-                // +XXX
-                // +XXX
-                // +  .
-                // +  .
-                if (node->split == kVertical) {
-                    if (node->b->width >= b->width) {
-                        if (!node->down) {
-                            node->down = std::make_unique<block_bake_node>();
-                            node->down->x = node->x;
-                            node->down->y = node->y + node->b->height;
-                        }
-
-                        node = node->down.get();
-                        continue;
-                    }
-
-                    if (!node->right) {
-                        node->right = std::make_unique<block_bake_node>();
-                        node->right->x = node->x + node->b->width;
-                        node->right->y = node->y;
-                    }
-
-                    node = node->right.get();
-                    continue;
-                }
-
-                // unreachable
-                assert(false);
-            }
-        }
-
-        const long dim = nextPOT(max_dim);
-        assert((dim & (dim - 1)) == 0); // POT check
-
-        const std::size_t size = dim * dim * COLOR_COMPONENTS;
-        std::unique_ptr<unsigned char[]> data = std::make_unique<unsigned char[]>(size);
-        std::memset(data.get(), 0, size);
-        generate(data.get(), dim, root.get());
-
         ENGINE_CHECK(data_->render.gbuffer != nullptr);
 
-#ifdef CHUNKLANDS_ENGINE_ENGINE_DEBUG_TEXTURE
-        const int result = stbi_write_png("out.png", dim, dim, 4, data.get(), 0);
-        assert(result == 1);
-#endif
+        auto result = data_->texture_baker.Bake();
+        data_->render.gbuffer->LoadTexture(result.width, result.height, GL_RGBA, GL_UNSIGNED_BYTE, result.texture.data());
 
-        data_->render.gbuffer->LoadTexture(dim, dim, GL_RGBA, GL_UNSIGNED_BYTE, data.get());
+        for (auto&& x : data_->sprite.sprites) {
+            if (x->id == "sprite.crosshair") {
+                data_->sprite.crosshair.Initialize(x->vao_elements.data(), x->vao_elements.size());
+            }
+        }
         return Ok();
     });
 }
