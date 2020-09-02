@@ -153,6 +153,7 @@ void Engine::Render()
             EASY_BLOCK("SpritePass");
             data_->render.sprite->BeginPass(data_->render.sprite_proj, data_->render.gbuffer->GetBakeTexture());
             data_->sprite.crosshair.Render();
+            data_->sprite.items.Render();
             data_->render.sprite->EndPass();
         }
     }
@@ -205,6 +206,7 @@ void Engine::Terminate()
 void Engine::FinalizeOpenGLThread()
 {
     data_->sprite.crosshair.Clear();
+    data_->sprite.items.Clear();
 }
 
 } // namespace chunklands::engine

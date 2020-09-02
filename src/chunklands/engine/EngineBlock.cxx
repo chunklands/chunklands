@@ -116,6 +116,8 @@ Engine::BlockBake()
         for (auto&& x : data_->sprite.sprites) {
             if (x->id == "sprite.crosshair") {
                 data_->sprite.crosshair.Initialize(x->vao_elements.data(), x->vao_elements.size());
+            } else if (x->id == "sprite.item-list") {
+                data_->sprite.items.Initialize(x->vao_elements.data(), x->vao_elements.size());
             }
         }
         return Ok();

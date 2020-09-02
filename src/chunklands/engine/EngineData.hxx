@@ -61,6 +61,7 @@ struct EngineData {
         std::set<sprite::Sprite*> sprites;
 
         gl::Vao<GL_TRIANGLES, CEVaoElementSprite> crosshair;
+        gl::Vao<GL_TRIANGLES, CEVaoElementSprite> items;
     } sprite;
 
     algorithm::texture_bake::TextureBaker texture_baker;
