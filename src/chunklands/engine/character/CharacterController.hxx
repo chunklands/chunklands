@@ -21,6 +21,16 @@ public:
     // void Jump();
     void MoveAndLook(const glm::vec2& forward_right, const glm::vec2& look_delta);
 
+    void SetCollision(bool collision)
+    {
+        collision_ = collision;
+    }
+
+    bool IsCollision() const
+    {
+        return collision_;
+    }
+
 private:
     camera::Camera& camera_;
     EngineChunkData& engine_chunk_data_;
@@ -28,6 +38,7 @@ private:
     // bool is_grounded = false;
 
     collision::MovementController movement_controller_;
+    bool collision_ = true;
 };
 
 } // namespace chunklands::engine::character

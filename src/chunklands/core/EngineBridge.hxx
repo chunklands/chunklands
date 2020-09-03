@@ -55,6 +55,10 @@ class EngineBridge : public JSObjectWrap<EngineBridge> {
     JS_DECL_CB(cameraGetPosition)
     JS_DECL_CB(cameraOn)
 
+    // Character
+    JS_DECL_CB_VOID(characterSetCollision)
+    JS_DECL_CB(characterIsCollision)
+
 public:
     EngineBridge(JSCbi info);
     ~EngineBridge();

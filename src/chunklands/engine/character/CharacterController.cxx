@@ -51,9 +51,7 @@ void CharacterController::MoveAndLook(const glm::vec2& forward_right, const glm:
             sin_pitch * forward,
             cos_pitch * cos_yaw * forward + sin_yaw * right);
 
-        constexpr bool collision = true;
-
-        if (collision) {
+        if (collision_) {
             auto response = movement_controller_.CalculateMovement(engine_chunk_data_, camera_.GetEye(), move + glm::vec3(0, 0, 0) // fix -0.0 values
             );
             camera_.SetEye(response.new_camera_pos);

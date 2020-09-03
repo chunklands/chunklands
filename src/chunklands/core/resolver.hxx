@@ -6,6 +6,26 @@
 
 namespace chunklands::core {
 
+template <class T, class F>
+inline JSValue resolve(JSEnv env, const engine::EngineResultX<T>& result, F&& value_transform)
+{
+    if (result.IsError()) {
+        JSError err = JSError::New(env, engine::get_engine_exception_message(result.Error()));
+        err.ThrowAsJavaScriptException();
+        return JSValue();
+    }
+
+    return value_transform(result.Value());
+}
+
+inline void resolve(JSEnv env, const engine::EngineResultX<engine::CENone>& result)
+{
+    if (result.IsError()) {
+        JSError err = JSError::New(env, engine::get_engine_exception_message(result.Error()));
+        err.ThrowAsJavaScriptException();
+    }
+}
+
 template <class T, class F, class... R>
 inline auto create_resolver(std::tuple<R...> refs, F&& fn)
 {

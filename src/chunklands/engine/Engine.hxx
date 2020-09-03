@@ -50,6 +50,9 @@ public:
     AsyncEngineResult<CENone>           CameraDetachWindow(CEWindowHandle* handle);
     AsyncEngineResult<CECameraPosition> CameraGetPosition();
     EngineResultX<EventConnection>      CameraOn(const std::string& event, std::function<void(CECameraEvent)> callback);
+
+    EngineResultX<CENone>               CharacterSetCollision(bool collision);
+    EngineResultX<bool>                 CharacterIsCollision();
     // clang-format on
 
 private:
