@@ -71,8 +71,8 @@ Engine::RenderPipelineInit(CEWindowHandle* handle, CERenderPipelineInit init)
 
             const float min_dim = std::min(s.x, s.y);
             data_->render.sprite_proj = glm::ortho(
-                (min_dim - s.x) / 2.f / min_dim,
                 (min_dim - ((min_dim - s.x) / 2.f)) / min_dim,
+                (min_dim - s.x) / 2.f / min_dim,
                 (min_dim - s.y) / 2.f / min_dim,
                 (min_dim - ((min_dim - s.y) / 2.f)) / min_dim);
 
@@ -87,8 +87,8 @@ Engine::RenderPipelineInit(CEWindowHandle* handle, CERenderPipelineInit init)
 
         // culling
         glEnable(GL_CULL_FACE);
-        glCullFace(GL_FRONT);
-        glFrontFace(GL_CCW);
+        glCullFace(GL_BACK);
+        glFrontFace(GL_CW);
 
         assert(data_->render.gbuffer != nullptr);
         assert(data_->render.lighting != nullptr);
