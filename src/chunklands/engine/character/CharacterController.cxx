@@ -1,5 +1,6 @@
 
 #include "CharacterController.hxx"
+#include <chunklands/libcxx/easylogging++.hxx>
 #include <cmath>
 
 namespace chunklands::engine::character {
@@ -7,14 +8,15 @@ namespace chunklands::engine::character {
 constexpr float LOOK_RADIANS = M_PI * 0.9;
 constexpr float MIN_PITCH = -LOOK_RADIANS / 2.0;
 constexpr float MAX_PITCH = +LOOK_RADIANS / 2.0;
+constexpr float MOVE_SPEED = 7.5f;
+constexpr float MOVE_SPEED_FLIGHT_MODE = 20.f;
+// constexpr float GRAVITY = -9.81f;
+constexpr float GRAVITY = -0.8f;
 
-void CharacterController::MoveAndLook(const glm::vec2& forward_right, const glm::vec2& look_delta)
+void CharacterController::MoveAndLook(double, double now, const glm::vec2& forward_right, const glm::vec2& look_delta, bool jump)
 {
-
-    const bool will_change_look = glm::any(glm::notEqual(look_delta, glm::vec2(0, 0)));
-    const bool will_move = glm::any(glm::notEqual(forward_right, glm::vec2(0, 0)));
-
-    if (will_change_look) {
+    // look
+    {
         glm::vec2 look = camera_.GetLook() + look_delta;
 
         // yaw modulo
@@ -27,17 +29,18 @@ void CharacterController::MoveAndLook(const glm::vec2& forward_right, const glm:
         camera_.SetLook(look);
     }
 
-    if (will_move) {
-        const float length = glm::length(forward_right);
-        float forward = forward_right[0];
-        float right = forward_right[1];
-
-        if (length > 1.f) {
-            forward /= length;
-            right /= length;
+    // jump
+    {
+        if (jump && is_grounded_) {
+            is_grounded_ = false;
+            last_ground_time_ = now + 0.3;
         }
+    }
 
-        // TODO(daaitch): collision here
+    // move
+    {
+        glm::vec2 m(forward_right * (flight_mode_ ? MOVE_SPEED_FLIGHT_MODE : MOVE_SPEED));
+
         const glm::vec2& look = camera_.GetLook();
         const float yaw = look.x;
         const float pitch = look.y;
@@ -47,22 +50,38 @@ void CharacterController::MoveAndLook(const glm::vec2& forward_right, const glm:
         const float cos_pitch = std::cos(pitch);
 
         glm::vec3 move(
-            cos_pitch * sin_yaw * forward + -cos_yaw * right,
-            sin_pitch * forward,
-            cos_pitch * cos_yaw * forward + sin_yaw * right);
+            cos_pitch * sin_yaw * m[0] + -cos_yaw * m[1],
+            flight_mode_ ? sin_pitch * m[0] : (now - last_ground_time_) * GRAVITY,
+            cos_pitch * cos_yaw * m[0] + sin_yaw * m[1]);
 
         if (collision_) {
-            auto response = movement_controller_.CalculateMovement(engine_chunk_data_, camera_.GetEye(), move + glm::vec3(0, 0, 0) // fix -0.0 values
+            auto response = movement_controller_.CalculateMovement(engine_chunk_data_, camera_.GetEye(),
+                move + glm::vec3(0, 0, 0) // fix -0.0 values
             );
+
+            if (response.axis & math::CollisionAxis::kY) {
+                if (!is_grounded_) {
+                    LOG(DEBUG) << "grounded";
+                }
+
+                is_grounded_ = true;
+                last_ground_time_ = now;
+            } else {
+                if (is_grounded_) {
+                    // if was grounded but now no Y collsion
+                    LOG(DEBUG) << "fly";
+                }
+
+                is_grounded_ = false;
+            }
+
             camera_.SetEye(response.new_camera_pos);
         } else {
             camera_.SetEye(camera_.GetEye() + move);
         }
     }
 
-    if (will_change_look || will_move) {
-        engine_render_data_.pointing_block = movement_controller_.PointingBlock(engine_chunk_data_, math::fLine3(camera_.GetEye(), camera_.GetViewDirection() * 4.f));
-    }
+    engine_render_data_.pointing_block = movement_controller_.PointingBlock(engine_chunk_data_, math::fLine3(camera_.GetEye(), camera_.GetViewDirection() * 4.f));
 }
 
 } // namespace chunklands::engine::character

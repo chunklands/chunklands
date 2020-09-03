@@ -58,6 +58,8 @@ class EngineBridge : public JSObjectWrap<EngineBridge> {
     // Character
     JS_DECL_CB_VOID(characterSetCollision)
     JS_DECL_CB(characterIsCollision)
+    JS_DECL_CB_VOID(characterSetFlightMode)
+    JS_DECL_CB(characterIsFlightMode)
 
 public:
     EngineBridge(JSCbi info);

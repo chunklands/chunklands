@@ -5,42 +5,45 @@
 
 namespace chunklands::engine::window {
 
-struct windowinputcontroller_cursor_t {
+struct interaction_cursor {
     double dx = 0;
     double dy = 0;
 };
 
-struct windowinputcontroller_move_t {
+struct interaction_move {
     double forward = 0;
     double left = 0;
     double right = 0;
     double back = 0;
 };
 
-struct windowinputcontroller_moveaction_t {
-    bool forward_pending = false;
-    double forward_start = 0;
-    bool left_pending = false;
-    double left_start = 0;
-    bool right_pending = false;
-    double right_start = 0;
-    bool back_pending = false;
-    double back_start = 0;
+struct interaction_delta {
+    interaction_cursor cursor;
+    interaction_move move;
+    bool jump = false;
 };
 
 class WindowInputController {
 public:
     WindowInputController(Window* window);
 
-    windowinputcontroller_cursor_t GetAndResetCursorDelta();
-    windowinputcontroller_move_t GetAndResetMoveDelta();
+    interaction_delta GetAndResetInteraction(double now);
 
 private:
-    windowinputcontroller_cursor_t cursor_;
-    windowinputcontroller_move_t move_;
-    windowinputcontroller_moveaction_t move_action_;
-    boost::signals2::scoped_connection window_on_cursor_move_conn;
-    boost::signals2::scoped_connection window_on_key_conn;
+    interaction_cursor cursor_;
+    interaction_move move_;
+    boost::signals2::scoped_connection window_on_cursor_move_conn_;
+    boost::signals2::scoped_connection window_on_key_conn_;
+
+    bool forward_pending_ = false;
+    double forward_start_ = 0;
+    bool left_pending_ = false;
+    double left_start_ = 0;
+    bool right_pending_ = false;
+    double right_start_ = 0;
+    bool back_pending_ = false;
+    double back_start_ = 0;
+    bool jump_ = false;
 };
 
 } // namespace chunklands::engine::window

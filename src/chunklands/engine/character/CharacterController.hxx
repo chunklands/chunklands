@@ -18,8 +18,7 @@ public:
     {
     }
 
-    // void Jump();
-    void MoveAndLook(const glm::vec2& forward_right, const glm::vec2& look_delta);
+    void MoveAndLook(double diff, double now, const glm::vec2& forward_right, const glm::vec2& look_delta, bool jump);
 
     void SetCollision(bool collision)
     {
@@ -31,14 +30,30 @@ public:
         return collision_;
     }
 
+    void SetFlightMode(bool flight_mode)
+    {
+        flight_mode_ = flight_mode;
+
+        if (!flight_mode) {
+            last_ground_time_ = glfwGetTime();
+        }
+    }
+
+    bool IsFlightMode() const
+    {
+        return flight_mode_;
+    }
+
 private:
     camera::Camera& camera_;
     EngineChunkData& engine_chunk_data_;
     EngineRenderData& engine_render_data_;
-    // bool is_grounded = false;
 
     collision::MovementController movement_controller_;
     bool collision_ = true;
+    bool flight_mode_ = false;
+    bool is_grounded_ = true;
+    double last_ground_time_ = 0.0;
 };
 
 } // namespace chunklands::engine::character

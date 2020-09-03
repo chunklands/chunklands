@@ -18,6 +18,9 @@ module.exports = async function plugin(registry, opts) {
                         } else if (event.key === 82 && event.action === 1) {
                           const collision = engine.characterIsCollision();
                           engine.characterSetCollision(!collision)
+                        } else if (event.key === 70 && event.action === 1) {
+                          const flightMode = engine.characterIsFlightMode();
+                          engine.characterSetFlightMode(!flightMode);
                         }
                       }));
 

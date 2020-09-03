@@ -7,82 +7,90 @@ constexpr double factor = 0.002;
 
 WindowInputController::WindowInputController(Window* window)
 {
-    window_on_cursor_move_conn = window->on_mouse_grab.connect([this](const mouse_grab& grab) {
+    window_on_cursor_move_conn_ = window->on_mouse_grab.connect([this](const mouse_grab& grab) {
         cursor_.dx += grab.dx * factor;
         cursor_.dy += grab.dy * factor;
     });
 
-    window_on_key_conn = window->on_key.connect([this](const key& key) {
+    window_on_key_conn_ = window->on_key.connect([this](const key& key) {
+        const double now = glfwGetTime();
+
         if (key.key == GLFW_KEY_W) {
             if (key.action == GLFW_PRESS) {
-                move_action_.forward_pending = true;
-                move_action_.forward_start = glfwGetTime();
+                forward_pending_ = true;
+                forward_start_ = now;
             } else if (key.action == GLFW_RELEASE) {
-                move_.forward += glfwGetTime() - move_action_.forward_start;
-                move_action_.forward_pending = false;
+                move_.forward += now - forward_start_;
+                forward_pending_ = false;
             }
         } else if (key.key == GLFW_KEY_S) {
             if (key.action == GLFW_PRESS) {
-                move_action_.back_pending = true;
-                move_action_.back_start = glfwGetTime();
+                back_pending_ = true;
+                back_start_ = now;
             } else if (key.action == GLFW_RELEASE) {
-                move_.back += glfwGetTime() - move_action_.back_start;
-                move_action_.back_pending = false;
+                move_.back += now - back_start_;
+                back_pending_ = false;
             }
         } else if (key.key == GLFW_KEY_A) {
             if (key.action == GLFW_PRESS) {
-                move_action_.left_pending = true;
-                move_action_.left_start = glfwGetTime();
+                left_pending_ = true;
+                left_start_ = now;
             } else if (key.action == GLFW_RELEASE) {
-                move_.left += glfwGetTime() - move_action_.left_start;
-                move_action_.left_pending = false;
+                move_.left += now - left_start_;
+                left_pending_ = false;
             }
         } else if (key.key == GLFW_KEY_D) {
             if (key.action == GLFW_PRESS) {
-                move_action_.right_pending = true;
-                move_action_.right_start = glfwGetTime();
+                right_pending_ = true;
+                right_start_ = now;
             } else if (key.action == GLFW_RELEASE) {
-                move_.right += glfwGetTime() - move_action_.right_start;
-                move_action_.right_pending = false;
+                move_.right += now - right_start_;
+                right_pending_ = false;
+            }
+        } else if (key.key == GLFW_KEY_SPACE) {
+            if (key.action == GLFW_PRESS) {
+                jump_ = true;
             }
         }
     });
 }
 
-windowinputcontroller_cursor_t WindowInputController::GetAndResetCursorDelta()
+interaction_delta WindowInputController::GetAndResetInteraction(double now)
 {
-    const windowinputcontroller_cursor_t result = cursor_; // copy
-    cursor_ = windowinputcontroller_cursor_t();
-    return result;
-}
+    // cursor
+    interaction_delta interaction;
+    interaction.cursor = cursor_;
+    cursor_ = interaction_cursor();
 
-windowinputcontroller_move_t WindowInputController::GetAndResetMoveDelta()
-{
-    const double now = glfwGetTime();
-
-    if (move_action_.forward_pending) {
-        move_.forward += now - move_action_.forward_start;
-        move_action_.forward_start = now;
+    // move
+    if (forward_pending_) {
+        move_.forward += now - forward_start_;
+        forward_start_ = now;
     }
 
-    if (move_action_.back_pending) {
-        move_.back += now - move_action_.back_start;
-        move_action_.back_start = now;
+    if (back_pending_) {
+        move_.back += now - back_start_;
+        back_start_ = now;
     }
 
-    if (move_action_.left_pending) {
-        move_.left += now - move_action_.left_start;
-        move_action_.left_start = now;
+    if (left_pending_) {
+        move_.left += now - left_start_;
+        left_start_ = now;
     }
 
-    if (move_action_.right_pending) {
-        move_.right += now - move_action_.right_start;
-        move_action_.right_start = now;
+    if (right_pending_) {
+        move_.right += now - right_start_;
+        right_start_ = now;
     }
 
-    const windowinputcontroller_move_t result = move_; // copy
-    move_ = windowinputcontroller_move_t();
-    return result;
+    interaction.move = move_;
+    move_ = interaction_move();
+
+    // jump
+    interaction.jump = jump_;
+    jump_ = false;
+
+    return interaction;
 }
 
 } // namespace chunklands::engine::window

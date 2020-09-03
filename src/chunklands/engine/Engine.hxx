@@ -16,9 +16,9 @@ public:
     ~Engine();
 
 public:
-    void Render();
-    void RenderSwap();
-    void Update();
+    void Render(double diff, double now);
+    void RenderSwap(double diff, double now);
+    void Update(double diff, double now);
     void FinalizeOpenGLThread();
     void Terminate();
 
@@ -53,6 +53,8 @@ public:
 
     EngineResultX<CENone>               CharacterSetCollision(bool collision);
     EngineResultX<bool>                 CharacterIsCollision();
+    EngineResultX<CENone>               CharacterSetFlightMode(bool flight_mode);
+    EngineResultX<bool>                 CharacterIsFlightMode();
     // clang-format on
 
 private:

@@ -47,6 +47,8 @@ JS_DEF_INITCTOR(EngineBridge, ONE_ARG({
                                   JS_CB(cameraOn),
                                   JS_CB(characterSetCollision),
                                   JS_CB(characterIsCollision),
+                                  JS_CB(characterSetFlightMode),
+                                  JS_CB(characterIsFlightMode),
                               }))
 
 void EngineBridge::JSCall_terminate(JSCbi)
