@@ -1,7 +1,7 @@
 #ifndef __CHUNKLANDS_ENGINE_GL_GL_CHECK_HXX__
 #define __CHUNKLANDS_ENGINE_GL_GL_CHECK_HXX__
 
-#include "gl_exception.hxx"
+#include <chunklands/engine/engine_exception.hxx>
 #include <chunklands/libcxx/glfw.hxx>
 
 #ifndef NDEBUG
@@ -20,7 +20,7 @@ inline void gl_check()
     if (error != GL_NO_ERROR) {
         std::stringstream ss;
         ss << "Error: " << error;
-        throw_gl_exception("glGetError", ss.str());
+        throw create_engine_exception("glGetError", ss.str());
     }
 }
 

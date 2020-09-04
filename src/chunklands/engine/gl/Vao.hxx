@@ -187,6 +187,26 @@ struct X<CEVaoElementSprite> {
     }
 };
 
+template <>
+struct X<CEVaoElementText> {
+    static void DefineAttribs()
+    {
+        GL_CHECK_DEBUG();
+
+        constexpr GLsizei stride = sizeof(CEVaoElementText);
+        static_assert(stride == 16, "packed check");
+
+        // position attribute
+        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, stride, (void*)(0 * sizeof(GLfloat)));
+        glEnableVertexAttribArray(0);
+
+        // uv attribute
+        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, stride, (void*)(2 * sizeof(GLfloat)));
+        glEnableVertexAttribArray(1);
+        GL_CHECK_DEBUG();
+    }
+};
+
 template <GLenum Mode, class T>
 class Vao {
 public:

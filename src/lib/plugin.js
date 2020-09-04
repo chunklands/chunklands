@@ -1,15 +1,16 @@
-const { EventEmitter } = require('events');
+const {EventEmitter} = require('events');
 const debug = require('debug');
 const fs = require('fs');
 
 class PluginRegistry {
   constructor() {
     this._ee = new EventEmitter();
-    this._ee.setMaxListeners(50); // suppress memory leak warning
+    this._ee.setMaxListeners(50);  // suppress memory leak warning
     this._plugins = new Map();
 
     this._ee.on('error', event => {
       console.error(`PLUGIN ERROR ${event.name}`, event.error);
+      process.exit(1);
     });
 
     this.name = 'root';
@@ -27,7 +28,7 @@ class PluginRegistry {
   get(pluginName) {
     this.debug('request "%s"', pluginName);
     if (this._plugins.has(pluginName)) {
-      const { plugin } = this._plugins.get(pluginName);
+      const {plugin} = this._plugins.get(pluginName);
       return Promise.resolve(plugin);
     }
 
@@ -37,7 +38,7 @@ class PluginRegistry {
           this._ee.off('pluginloaded', handler);
           resolve(event.plugin);
         }
-      }
+      };
 
       this._ee.on('pluginloaded', handler);
     });
@@ -64,10 +65,10 @@ class PluginRegistry {
         this.debug('loaded "%s" successfully', name);
 
         this._plugins.set(name, {plugin, registry});
-        this._ee.emit('pluginloaded', { name, plugin });
+        this._ee.emit('pluginloaded', {name, plugin});
       } catch (e) {
         this.debug('loaded "%s" with error: %j', name, e);
-        this._ee.emit('error', { name, error: e });
+        this._ee.emit('error', {name, error: e});
       }
     })();
 
@@ -75,14 +76,13 @@ class PluginRegistry {
   }
 
   async invokeHook(hookName, ...args) {
-    const hookResults = []
+    const hookResults = [];
     for (const [name, {plugin, registry}] of this._plugins.entries()) {
-      const hook = plugin?.[hookName];
+      const hook = plugin ?.[hookName];
       if (hook instanceof Function) {
         registry.debug('invoke hook "%s"', hookName);
-        const hookResult = Promise
-          .resolve(hook.apply(plugin, args))
-          .then(result => ({name, result}));
+        const hookResult = Promise.resolve(hook.apply(plugin, args))
+                               .then(result => ({name, result}));
         hookResults.push(hookResult);
       }
     }

@@ -21,7 +21,7 @@ JSValue
 EngineBridge::JSCall_chunkDelete(JSCbi info)
 {
     engine::CEChunkHandle* handle = nullptr;
-    JS_ENGINE_CHECK(unsafe_get_handle_ptr(&handle, info.Env(), info[0]), info.Env(), JSValue());
+    JS_ENGINE_CHECK(info.Env(), unsafe_get_handle_ptr(&handle, info.Env(), info[0]), JSValue());
 
     return MakeEngineCall(info.Env(),
         engine_->ChunkDelete(handle),
@@ -32,11 +32,11 @@ JSValue
 EngineBridge::JSCall_chunkUpdate(JSCbi info)
 {
     engine::CEChunkHandle* handle = nullptr;
-    JS_ENGINE_CHECK(unsafe_get_handle_ptr(&handle, info.Env(), info[0]), info.Env(), JSValue());
-    JS_ENGINE_CHECK(info[1].IsArrayBuffer(), info.Env(), JSValue());
+    JS_ENGINE_CHECK(info.Env(), unsafe_get_handle_ptr(&handle, info.Env(), info[0]), JSValue());
+    JS_ENGINE_CHECK(info.Env(), info[1].IsArrayBuffer(), JSValue());
 
     JSArrayBuffer js_blocks = info[1].As<JSArrayBuffer>();
-    JS_ENGINE_CHECK(js_blocks.ByteLength() == engine::CE_CHUNK_BLOCK_COUNT * sizeof(engine::CEBlockHandle*), info.Env(), JSValue());
+    JS_ENGINE_CHECK(info.Env(), js_blocks.ByteLength() == engine::CE_CHUNK_BLOCK_COUNT * sizeof(engine::CEBlockHandle*), JSValue());
     engine::CEBlockHandle** blocks = reinterpret_cast<engine::CEBlockHandle**>(js_blocks.Data());
 
     napi_ref js_blocks_ref;

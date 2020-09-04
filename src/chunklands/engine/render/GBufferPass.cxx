@@ -1,7 +1,7 @@
 
 #include "GBufferPass.hxx"
+#include <chunklands/engine/engine_exception.hxx>
 #include <chunklands/engine/gl/gl_check.hxx>
-#include <chunklands/engine/gl/gl_exception.hxx>
 
 namespace chunklands::engine::render {
 
@@ -79,7 +79,7 @@ void GBufferPass::UpdateBuffers(int width, int height)
     GL_CHECK_DEBUG();
 
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-        gl::throw_gl_exception("glFramebufferRenderbuffer", "framebuffer status not complete");
+        throw create_engine_exception("glFramebufferRenderbuffer", "framebuffer status not complete");
     }
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);

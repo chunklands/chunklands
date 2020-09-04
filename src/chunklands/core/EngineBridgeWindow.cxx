@@ -21,7 +21,7 @@ JSValue
 EngineBridge::JSCall_windowLoadGL(JSCbi info)
 {
     engine::CEWindowHandle* handle = nullptr;
-    JS_ENGINE_CHECK(unsafe_get_handle_ptr(&handle, info.Env(), info[0]), info.Env(), JSValue());
+    JS_ENGINE_CHECK(info.Env(), unsafe_get_handle_ptr(&handle, info.Env(), info[0]), JSValue());
     return MakeEngineCall(info.Env(),
         engine_->WindowLoadGL(handle),
         create_resolver<engine::CENone>());
@@ -31,7 +31,7 @@ JSValue
 EngineBridge::JSCall_windowOn(JSCbi info)
 {
     engine::CEWindowHandle* handle = nullptr;
-    JS_ENGINE_CHECK(unsafe_get_handle_ptr(&handle, info.Env(), info[0]), info.Env(), JSValue());
+    JS_ENGINE_CHECK(info.Env(), unsafe_get_handle_ptr(&handle, info.Env(), info[0]), JSValue());
 
     return EventHandler<engine::CEWindowEvent>(
         info.Env(), info[1], info[2], [this, handle](const std::string& type, auto&& cb) { return engine_->WindowOn(handle, type, std::move(cb)); }, [](const engine::CEWindowEvent& event, JSEnv env, JSObject js_event) {

@@ -55,6 +55,11 @@ public:
     EngineResultX<bool>                 CharacterIsCollision();
     EngineResultX<CENone>               CharacterSetFlightMode(bool flight_mode);
     EngineResultX<bool>                 CharacterIsFlightMode();
+
+    AsyncEngineResult<CEFontHandle*>    FontLoad(CEFontInit init);
+
+    AsyncEngineResult<CETextHandle*>    TextCreate(CEFontHandle* font);
+    AsyncEngineResult<CENone>           TextUpdate(CETextHandle* handle, CETextUpdate update);
     // clang-format on
 
 private:

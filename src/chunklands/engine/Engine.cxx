@@ -130,7 +130,7 @@ void Engine::Render(double diff, double now)
             data_->render.gbuffer->BeginPass(data_->render.proj,
                 view, data_->camera.camera.GetEye());
 
-            for (chunk::Chunk* const chunk : data_->chunk.SceneChunks()) {
+            for (const chunk::Chunk* const chunk : data_->chunk.SceneChunks()) {
                 assert(chunk);
 
                 if (chunk->state == chunk::ChunkState::kMeshPrepared) {
@@ -164,6 +164,23 @@ void Engine::Render(double diff, double now)
             data_->sprite.crosshair.Render();
             data_->sprite.items.Render();
             data_->render.sprite->EndPass();
+        }
+
+        {
+            EASY_BLOCK("TextPass");
+            data_->render.text->BeginPass(data_->render.text_proj);
+            for (const text::Text* const text : data_->text.texts) {
+
+                font::Font* font = nullptr;
+                if (get_handle(&font, data_->font.fonts, text->font)) {
+                    assert(font != nullptr);
+
+                    data_->render.text->SetTexture(font->texture->GetTexture());
+                    data_->render.text->SetPosition(text->pos);
+                    text->vao.Render();
+                }
+            }
+            data_->render.text->EndPass();
         }
     }
 

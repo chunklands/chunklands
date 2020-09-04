@@ -61,6 +61,13 @@ class EngineBridge : public JSObjectWrap<EngineBridge> {
     JS_DECL_CB_VOID(characterSetFlightMode)
     JS_DECL_CB(characterIsFlightMode)
 
+    // Font
+    JS_DECL_CB(fontLoad)
+
+    // Text
+    JS_DECL_CB(textCreate)
+    JS_DECL_CB(textUpdate)
+
 public:
     EngineBridge(JSCbi info);
     ~EngineBridge();

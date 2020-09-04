@@ -9,7 +9,7 @@ JSValue
 EngineBridge::JSCall_renderPipelineInit(JSCbi info)
 {
     engine::CEWindowHandle* handle = nullptr;
-    JS_ENGINE_CHECK(unsafe_get_handle_ptr(&handle, info.Env(), info[0]), info.Env(), JSValue());
+    JS_ENGINE_CHECK(info.Env(), unsafe_get_handle_ptr(&handle, info.Env(), info[0]), JSValue());
 
     engine::CERenderPipelineInit init;
     JSObject js_init = info[1].ToObject();
@@ -29,6 +29,10 @@ EngineBridge::JSCall_renderPipelineInit(JSCbi info)
     JSObject js_sprite = js_init.Get("sprite").ToObject();
     init.sprite.vertex_shader = js_sprite.Get("vertexShader").ToString();
     init.sprite.fragment_shader = js_sprite.Get("fragmentShader").ToString();
+
+    JSObject js_text = js_init.Get("text").ToObject();
+    init.text.vertex_shader = js_text.Get("vertexShader").ToString();
+    init.text.fragment_shader = js_text.Get("fragmentShader").ToString();
 
     return MakeEngineCall(info.Env(),
         engine_->RenderPipelineInit(handle, std::move(init)),

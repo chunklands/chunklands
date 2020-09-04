@@ -26,32 +26,45 @@ Engine::RenderPipelineInit(CEWindowHandle* handle, CERenderPipelineInit init)
         window::Window* window = nullptr;
         ENGINE_CHECK(get_handle(&window, data_->window.windows, handle));
 
-        {
-            std::unique_ptr<gl::Program> program = std::make_unique<gl::Program>(init.gbuffer.vertex_shader.data(),
-                init.gbuffer.fragment_shader.data());
-            std::unique_ptr<render::GBufferPass> g_buffer_pass = std::make_unique<render::GBufferPass>(std::move(program));
-            data_->render.gbuffer = g_buffer_pass.release();
-        }
+        try {
 
-        {
-            std::unique_ptr<gl::Program> program = std::make_unique<gl::Program>(init.lighting.vertex_shader.data(),
-                init.lighting.fragment_shader.data());
-            std::unique_ptr<render::LightingPass> lighting_pass = std::make_unique<render::LightingPass>(std::move(program));
-            data_->render.lighting = lighting_pass.release();
-        }
+            {
+                std::unique_ptr<gl::Program> program = std::make_unique<gl::Program>(init.gbuffer.vertex_shader.data(),
+                    init.gbuffer.fragment_shader.data());
+                std::unique_ptr<render::GBufferPass> g_buffer_pass = std::make_unique<render::GBufferPass>(std::move(program));
+                data_->render.gbuffer = g_buffer_pass.release();
+                GL_CHECK_DEBUG();
+            }
 
-        {
-            std::unique_ptr<gl::Program> program = std::make_unique<gl::Program>(init.select_block.vertex_shader.data(),
-                init.select_block.fragment_shader.data());
-            std::unique_ptr<render::BlockSelectPass> block_select_pass = std::make_unique<render::BlockSelectPass>(std::move(program));
-            data_->render.block_select = block_select_pass.release();
-        }
+            {
+                std::unique_ptr<gl::Program> program = std::make_unique<gl::Program>(init.lighting.vertex_shader.data(),
+                    init.lighting.fragment_shader.data());
+                std::unique_ptr<render::LightingPass> lighting_pass = std::make_unique<render::LightingPass>(std::move(program));
+                data_->render.lighting = lighting_pass.release();
+            }
 
-        {
-            std::unique_ptr<gl::Program> program = std::make_unique<gl::Program>(init.sprite.vertex_shader.data(),
-                init.sprite.fragment_shader.data());
-            std::unique_ptr<render::SpritePass> sprite_pass = std::make_unique<render::SpritePass>(std::move(program));
-            data_->render.sprite = sprite_pass.release();
+            {
+                std::unique_ptr<gl::Program> program = std::make_unique<gl::Program>(init.select_block.vertex_shader.data(),
+                    init.select_block.fragment_shader.data());
+                std::unique_ptr<render::BlockSelectPass> block_select_pass = std::make_unique<render::BlockSelectPass>(std::move(program));
+                data_->render.block_select = block_select_pass.release();
+            }
+
+            {
+                std::unique_ptr<gl::Program> program = std::make_unique<gl::Program>(init.sprite.vertex_shader.data(),
+                    init.sprite.fragment_shader.data());
+                std::unique_ptr<render::SpritePass> sprite_pass = std::make_unique<render::SpritePass>(std::move(program));
+                data_->render.sprite = sprite_pass.release();
+            }
+
+            {
+                std::unique_ptr<gl::Program> program = std::make_unique<gl::Program>(init.text.vertex_shader.data(),
+                    init.text.fragment_shader.data());
+                std::unique_ptr<render::TextPass> text_pass = std::make_unique<render::TextPass>(std::move(program));
+                data_->render.text = text_pass.release();
+            }
+        } catch (const engine_exception& e) {
+            return Err(e);
         }
 
         {
@@ -76,6 +89,8 @@ Engine::RenderPipelineInit(CEWindowHandle* handle, CERenderPipelineInit init)
                 (min_dim - s.y) / 2.f / min_dim,
                 (min_dim - ((min_dim - s.y) / 2.f)) / min_dim);
 
+            data_->render.text_proj = glm::ortho(0.f, float(size.width), 0.f, float(size.height));
+
             data_->render.gbuffer->UpdateBuffers(size.width, size.height);
         };
 
@@ -93,6 +108,8 @@ Engine::RenderPipelineInit(CEWindowHandle* handle, CERenderPipelineInit init)
         assert(data_->render.gbuffer != nullptr);
         assert(data_->render.lighting != nullptr);
         assert(data_->render.block_select != nullptr);
+        assert(data_->render.sprite != nullptr);
+        assert(data_->render.text != nullptr);
         assert(data_->render.render_quad != nullptr);
 
         return Ok();

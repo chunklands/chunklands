@@ -76,9 +76,9 @@ private:
 };
 
 template <class E>
-static inline ErrResultX<E> Err(E&& e)
+static inline ErrResultX<E> Err(E e)
 {
-    return ErrResultX<E> { std::forward<E>(e) };
+    return ErrResultX<E> { std::move(e) };
 }
 
 template <class T>
@@ -167,6 +167,8 @@ struct CEGBufferMeshHandle;
 struct CEBlockRegistrar;
 struct CEBlockHandle;
 struct CESpriteHandle;
+struct CETextHandle;
+struct CEFontHandle;
 
 constexpr int CE_CHUNK_SIZE = 32;
 constexpr int CE_CHUNK_BLOCK_COUNT = CE_CHUNK_SIZE * CE_CHUNK_SIZE * CE_CHUNK_SIZE;
@@ -190,6 +192,11 @@ struct __attribute__((packed)) CEVaoElementChunkBlock {
 struct __attribute__((packed)) CEVaoElementSprite {
     GLfloat position[3];
     GLfloat normal[3];
+    GLfloat uv[2];
+};
+
+struct __attribute__((packed)) CEVaoElementText {
+    GLfloat position[2];
     GLfloat uv[2];
 };
 
@@ -225,6 +232,7 @@ struct CERenderPipelineInit {
     CEPassInit lighting;
     CEPassInit select_block;
     CEPassInit sprite;
+    CEPassInit text;
 };
 
 struct CEEvent {
@@ -263,6 +271,34 @@ struct CECameraEvent : public CEEvent {
     union {
         CECameraPosition positionchange;
     };
+};
+
+struct CEVector2f {
+    float x, y;
+};
+
+struct CETextUpdate {
+    std::optional<CEVector2f> pos;
+    std::optional<std::string> text;
+};
+
+struct CEFontInitCharacter {
+    int x = 0;
+    int y = 0;
+    int width = 0;
+    int height = 0;
+    int originX = 0;
+    int originY = 0;
+    int advance = 0;
+};
+
+struct CEFontInit {
+    std::string name;
+    int size;
+    int width;
+    int height;
+    std::array<CEFontInitCharacter, 256> characters;
+    std::vector<unsigned char> texture;
 };
 
 } // namespace chunklands::engine

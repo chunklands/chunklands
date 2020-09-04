@@ -9,8 +9,10 @@
 #include <chunklands/engine/character/CharacterController.hxx>
 #include <chunklands/engine/chunk/Chunk.hxx>
 #include <chunklands/engine/engine_exception.hxx>
+#include <chunklands/engine/font/Font.hxx>
 #include <chunklands/engine/gl/Vao.hxx>
 #include <chunklands/engine/sprite/Sprite.hxx>
+#include <chunklands/engine/text/Text.hxx>
 #include <chunklands/engine/window/Window.hxx>
 #include <chunklands/engine/window/WindowInputController.hxx>
 #include <map>
@@ -65,6 +67,14 @@ struct EngineData {
     } sprite;
 
     algorithm::texture_bake::TextureBaker texture_baker;
+
+    struct {
+        std::set<font::Font*> fonts;
+    } font;
+
+    struct {
+        std::set<text::Text*> texts;
+    } text;
 };
 
 } // namespace chunklands::engine

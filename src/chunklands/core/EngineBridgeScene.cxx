@@ -9,7 +9,7 @@ JSValue
 EngineBridge::JSCall_sceneAddChunk(JSCbi info)
 {
     engine::CEChunkHandle* handle = nullptr;
-    JS_ENGINE_CHECK(unsafe_get_handle_ptr(&handle, info.Env(), info[0]), info.Env(), JSValue());
+    JS_ENGINE_CHECK(info.Env(), unsafe_get_handle_ptr(&handle, info.Env(), info[0]), JSValue());
 
     return MakeEngineCall(info.Env(),
         engine_->SceneAddChunk(handle),
@@ -20,7 +20,7 @@ JSValue
 EngineBridge::JSCall_sceneRemoveChunk(JSCbi info)
 {
     engine::CEChunkHandle* handle = nullptr;
-    JS_ENGINE_CHECK(unsafe_get_handle_ptr(&handle, info.Env(), info[0]), info.Env(), JSValue());
+    JS_ENGINE_CHECK(info.Env(), unsafe_get_handle_ptr(&handle, info.Env(), info[0]), JSValue());
 
     return MakeEngineCall(info.Env(),
         engine_->SceneRemoveChunk(handle),

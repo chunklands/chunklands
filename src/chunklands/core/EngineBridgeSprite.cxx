@@ -24,7 +24,7 @@ EngineBridge::JSCall_spriteCreate(JSCbi info)
 
     // data
     const size_t byte_length = js_data.ByteLength();
-    JS_ENGINE_CHECK(byte_length % sizeof(engine::CEVaoElementSprite) == 0, info.Env(), JSValue());
+    JS_ENGINE_CHECK(info.Env(), byte_length % sizeof(engine::CEVaoElementSprite) == 0, JSValue());
     const int items = byte_length / sizeof(engine::CEVaoElementSprite);
 
     std::vector<engine::CEVaoElementSprite> data;

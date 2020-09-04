@@ -2,6 +2,7 @@
 #define __CHUNKLANDS_ENGINE_GL_UNIFORM_HXX__
 
 #include "Program.hxx"
+#include <chunklands/engine/gl/gl_check.hxx>
 #include <chunklands/libcxx/glfw.hxx>
 #include <glm/gtc/type_ptr.hpp>
 #include <string>
@@ -11,6 +12,11 @@ namespace chunklands::engine::gl {
 inline void update_uniform(GLint location, GLint value)
 {
     glUniform1i(location, value);
+}
+
+inline void update_uniform(GLint location, GLuint value)
+{
+    glUniform1ui(location, value);
 }
 
 inline void update_uniform(GLint location, GLfloat value)
@@ -26,6 +32,11 @@ inline void update_uniform(GLint location, const glm::vec3& value)
 inline void update_uniform(GLint location, const glm::mat4& value)
 {
     glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(value));
+}
+
+inline void update_uniform(GLint location, const glm::vec2& value)
+{
+    glUniform2fv(location, 1, glm::value_ptr(value));
 }
 
 template <class T>
@@ -59,6 +70,7 @@ public:
     {
         assert(location_ != -1);
         update_uniform(location_, value);
+        GL_CHECK_DEBUG();
     }
 
 private:

@@ -1,7 +1,7 @@
 
 #include "Program.hxx"
 #include "gl_check.hxx"
-#include "gl_exception.hxx"
+#include <chunklands/engine/engine_exception.hxx>
 #include <vector>
 
 namespace chunklands::engine::gl {
@@ -23,7 +23,7 @@ GLuint compile(const GLuint shader, const GLchar* const source)
         glGetShaderInfoLog(shader, length, nullptr, message.data());
         glDeleteShader(shader);
 
-        throw_gl_exception("glCompileShader", message.data());
+        throw create_engine_exception("glCompileShader", message.data());
     }
 
     return shader;
@@ -52,7 +52,7 @@ Program::Program(const char* const vsh_source, const char* const fsh_source)
         glGetProgramiv(program_, GL_INFO_LOG_LENGTH, &length);
         std::vector<GLchar> message(length + 1);
         glGetProgramInfoLog(program_, length, nullptr, message.data());
-        throw_gl_exception("glLinkProgram", message.data());
+        throw create_engine_exception("glLinkProgram", message.data());
     }
 
     glDeleteShader(vertex_shader);
@@ -64,7 +64,7 @@ GLint Program::GetUniformLocation(const std::string& name) const
     const GLint location = glGetUniformLocation(program_, name.data());
     if (location == -1) {
         std::string message = "illegal uniform location: " + name;
-        throw_gl_exception("glGetUniformLocation", std::move(message));
+        throw create_engine_exception("glGetUniformLocation", std::move(message));
     }
 
     return location;

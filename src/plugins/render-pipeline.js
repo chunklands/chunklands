@@ -8,14 +8,24 @@ module.exports = async function plugin(registry, {assetsDir}) {
     throw new Error('needs assets dir');
   }
 
-  const [engine, window, gbuffer, lighting, blockSelect, sprite] =
+  const [engine, window, gbufferShader, lightingShader, blockSelectShader, spriteShader, textShader, ubuntuFont] =
       await Promise.all([
         registry.get('engine'), registry.get('window'), loadShader('gbuffer'),
-        loadShader('lighting'), loadShader('block_select'), loadShader('sprite')
+        loadShader('lighting'), loadShader('block_select'),
+        loadShader('sprite'), loadShader('text'), loadFont('ubuntu')
       ]);
 
-  await engine.renderPipelineInit(
-      window.handle, {gbuffer, lighting, blockSelect, sprite});
+  await engine.renderPipelineInit(window.handle, {
+    gbuffer: gbufferShader,
+    lighting: lightingShader,
+    blockSelect: blockSelectShader,
+    sprite: spriteShader,
+    text: textShader
+  });
+
+  const font = await engine.fontLoad(ubuntuFont);
+  const text = await engine.textCreate(font);
+  await engine.textUpdate(text, {pos: {x: 30, y: 30}, text: 'CHUNKLANDS'});
 
   async function loadShader(name) {
     const [vertexShader, fragmentShader] = await Promise.all([
@@ -24,5 +34,14 @@ module.exports = async function plugin(registry, {assetsDir}) {
     ]);
 
     return {vertexShader, fragmentShader};
+  }
+
+  async function loadFont(name) {
+    const [meta, texture] = await Promise.all([
+      readFile(`${assetsDir}/fonts/${name}.json`),
+      readFile(`${assetsDir}/fonts/${name}.png`),
+    ]);
+
+    return {...JSON.parse(meta.toString()), texture};
   }
 }

@@ -3,19 +3,12 @@
 
 #include <boost/signals2.hpp>
 #include <chunklands/engine/engine_exception.hxx>
-#include <chunklands/engine/gl/gl_exception.hxx>
 
 namespace chunklands::core {
 
 inline BOOST_NORETURN void FatalAbort(const engine::engine_exception& e)
 {
     const std::string message = engine::get_engine_exception_message(e);
-    Napi::Error::Fatal(__FILE__, message.data());
-}
-
-inline BOOST_NORETURN void FatalAbort(const engine::gl::gl_exception& e)
-{
-    const std::string message = engine::gl::get_gl_exception_message(e);
     Napi::Error::Fatal(__FILE__, message.data());
 }
 
@@ -77,8 +70,6 @@ JSPromise EngineBridge::MakeEngineCall(JSEnv env, engine::AsyncEngineResult<T> a
                         auto result = data->data.Future().get();
                         fn(env, std::move(result), std::move(deferred)); // may throw
                     } catch (const engine::engine_exception& e) { // TODO(daaitch): no exceptions here ...
-                        FatalAbort(e);
-                    } catch (const engine::gl::gl_exception& e) {
                         FatalAbort(e);
                     } catch (...) {
                         JSError::Fatal("unknown", "UNKNOWN ERROR");

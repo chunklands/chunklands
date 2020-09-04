@@ -65,7 +65,7 @@ EngineBridge::JSCall_blockCreate(JSCbi info)
         JSArrayBuffer js_data = js_faces.Get(js_face_name).As<JSArrayBuffer>();
 
         const size_t byte_length = js_data.ByteLength();
-        JS_ENGINE_CHECK(byte_length % sizeof(engine::CEVaoElementChunkBlock) == 0, info.Env(), JSValue());
+        JS_ENGINE_CHECK(info.Env(), byte_length % sizeof(engine::CEVaoElementChunkBlock) == 0, JSValue());
         const int items = byte_length / sizeof(engine::CEVaoElementChunkBlock);
 
         std::vector<engine::CEVaoElementChunkBlock> data;

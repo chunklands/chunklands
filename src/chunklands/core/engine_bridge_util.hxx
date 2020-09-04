@@ -5,7 +5,7 @@
 #include <chunklands/engine/engine_exception.hxx>
 #include <string>
 
-#define JS_ENGINE_CHECK(x, env, ...)                                                             \
+#define JS_ENGINE_CHECK(env, x, ...)                                                             \
     do {                                                                                         \
         if (!(x)) {                                                                              \
             std::string function_name(BOOST_CURRENT_FUNCTION);                                   \
