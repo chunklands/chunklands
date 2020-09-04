@@ -7,7 +7,7 @@
 
 namespace chunklands::engine::text {
 
-void generate_text_mesh(font::Font* font, text::Text* text);
+void generate_text_mesh(const font::Font* font, text::Text* text);
 
 } // namespace chunklands::engine::text
 

@@ -1,16 +1,17 @@
 
 #include "generate_text_mesh.hxx"
+#include <boost/regex/pending/unicode_iterator.hpp>
 #include <glm/vec2.hpp>
 
 constexpr int LINE_HEIGHT = 32;
 
 namespace chunklands::engine::text {
 
-void generate_text_mesh(font::Font* font, text::Text* text)
+void generate_text_mesh(const font::Font* font, text::Text* text)
 {
     assert(text != nullptr);
     assert(font != nullptr);
-    assert(text->font == reinterpret_cast<CEFontHandle*>(font));
+    assert(text->font == reinterpret_cast<const CEFontHandle*>(font));
 
     const size_t elem_count = text->text.length() * 6;
     std::vector<CEVaoElementText> vb_data(elem_count);
@@ -20,14 +21,21 @@ void generate_text_mesh(font::Font* font, text::Text* text)
     glm::ivec2 pos(0, 0);
 
     unsigned i = 0;
-    for (char c : text->text) {
+    for (boost::u8_to_u32_iterator it(text->text.begin()), end(text->text.end());
+         it != end; it++) {
+        unsigned c = *it;
         if (c == '\n') {
             pos.x = 0;
             pos.y -= LINE_HEIGHT;
             continue;
         }
 
-        const CEFontInitCharacter& ch = font->characters[c];
+        auto it_char = font->characters.find(c);
+        if (it_char == font->characters.end()) {
+            continue;
+        }
+
+        const CEFontInitCharacter& ch = it_char->second;
         const glm::ivec2 v0 = glm::ivec2(pos.x - ch.originX, pos.y - ch.height + ch.originY) + offset;
         const glm::ivec2 v1 = v0 + glm::ivec2(ch.width, ch.height);
 

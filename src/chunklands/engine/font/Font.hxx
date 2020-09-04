@@ -8,7 +8,7 @@ namespace chunklands::engine::font {
 
 struct Font {
     Font(std::string name, int size, int width, int height,
-        std::array<CEFontInitCharacter, 256> characters,
+        std::map<uint32_t, CEFontInitCharacter> characters,
         std::unique_ptr<gl::Texture> texture)
         : name(std::move(name))
         , size(size)
@@ -23,7 +23,7 @@ struct Font {
     int size;
     int width;
     int height;
-    std::array<CEFontInitCharacter, 256> characters;
+    std::map<uint32_t, CEFontInitCharacter> characters;
     std::unique_ptr<gl::Texture> texture;
 };
 

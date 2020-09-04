@@ -1,6 +1,7 @@
 
 #include "EngineBridge.hxx"
 #include "resolver.hxx"
+#include <boost/regex/pending/unicode_iterator.hpp>
 
 namespace chunklands::core {
 
@@ -19,18 +20,21 @@ JSValue EngineBridge::JSCall_fontLoad(JSCbi info)
     JSArray js_characters_keys = js_characters.GetPropertyNames();
     for (unsigned i = 0; i < js_characters_keys.Length(); i++) {
         JSValue js_key = js_characters_keys.Get(i);
-        std::string key = js_key.ToString();
         JSObject item = js_characters.Get(js_key).ToObject();
+        std::string key = js_key.ToString();
 
-        int index = int(key[0]);
-        auto& ch = init.characters[index];
-        ch.x = item.Get("x").ToNumber();
-        ch.y = item.Get("y").ToNumber();
-        ch.width = item.Get("width").ToNumber();
-        ch.height = item.Get("height").ToNumber();
-        ch.originX = item.Get("originX").ToNumber();
-        ch.originY = item.Get("originY").ToNumber();
-        ch.advance = item.Get("advance").ToNumber();
+        for (boost::u8_to_u32_iterator it(key.begin()), end(key.end()); it != end; it++) {
+            unsigned int index = *it;
+            init.characters.insert({ index,
+                engine::CEFontInitCharacter {
+                    .x = item.Get("x").ToNumber(),
+                    .y = item.Get("y").ToNumber(),
+                    .width = item.Get("width").ToNumber(),
+                    .height = item.Get("height").ToNumber(),
+                    .originX = item.Get("originX").ToNumber(),
+                    .originY = item.Get("originY").ToNumber(),
+                    .advance = item.Get("advance").ToNumber() } });
+        }
     }
 
     // texture

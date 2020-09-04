@@ -5,6 +5,7 @@
 #include <chunklands/engine/engine_exception.hxx>
 #include <chunklands/libcxx/boost_thread.hxx>
 #include <chunklands/libcxx/glfw.hxx>
+#include <map>
 #include <string>
 #include <vector>
 
@@ -297,7 +298,7 @@ struct CEFontInit {
     int size;
     int width;
     int height;
-    std::array<CEFontInitCharacter, 256> characters;
+    std::map<uint32_t, CEFontInitCharacter> characters;
     std::vector<unsigned char> texture;
 };
 
