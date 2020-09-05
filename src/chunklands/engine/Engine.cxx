@@ -153,9 +153,9 @@ void Engine::Render(double diff, double now)
             data_->render.lighting->EndPass();
         }
 
-        if (data_->render.pointing_block) {
+        if (auto pointing_block = data_->game.GetPointingBlock(); pointing_block) {
             EASY_BLOCK("SelectBlockPass");
-            data_->render.block_select->MakePass(data_->render.proj, view, *data_->render.pointing_block);
+            data_->render.block_select->MakePass(data_->render.proj, view, *pointing_block);
         }
 
         {

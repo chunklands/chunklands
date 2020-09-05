@@ -81,7 +81,8 @@ void CharacterController::MoveAndLook(double, double now, const glm::vec2& forwa
         }
     }
 
-    engine_render_data_.pointing_block = movement_controller_.PointingBlock(engine_chunk_data_, math::fLine3(camera_.GetEye(), camera_.GetViewDirection() * 4.f));
+    engine_game_data_.UpdatePointingBlock(movement_controller_.PointingBlock(engine_chunk_data_,
+        math::fLine3(camera_.GetEye(), camera_.GetViewDirection() * 4.f)));
 }
 
 } // namespace chunklands::engine::character

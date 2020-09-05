@@ -68,6 +68,9 @@ class EngineBridge : public JSObjectWrap<EngineBridge> {
     JS_DECL_CB(textCreate)
     JS_DECL_CB(textUpdate)
 
+    // Game
+    JS_DECL_CB(gameOn)
+
 public:
     EngineBridge(JSCbi info);
     ~EngineBridge();

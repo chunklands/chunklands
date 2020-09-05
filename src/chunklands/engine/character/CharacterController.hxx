@@ -1,7 +1,7 @@
 #ifndef __CHUNKLANDS_ENGINE_CHARACTER_CHARACTERCONTROLLER_HXX__
 #define __CHUNKLANDS_ENGINE_CHARACTER_CHARACTERCONTROLLER_HXX__
 
-#include <chunklands/engine/EngineRenderData.hxx>
+#include <chunklands/engine/EngineGameData.hxx>
 #include <chunklands/engine/camera/Camera.hxx>
 #include <chunklands/engine/collision/MovementController.hxx>
 #include <glm/vec2.hpp>
@@ -11,10 +11,10 @@ namespace chunklands::engine::character {
 class CharacterController {
 public:
     CharacterController(
-        camera::Camera& camera, EngineChunkData& engine_chunk_data, EngineRenderData& engine_render_data)
+        camera::Camera& camera, EngineChunkData& engine_chunk_data, EngineGameData& engine_game_data)
         : camera_(camera)
         , engine_chunk_data_(engine_chunk_data)
-        , engine_render_data_(engine_render_data)
+        , engine_game_data_(engine_game_data)
     {
     }
 
@@ -47,7 +47,7 @@ public:
 private:
     camera::Camera& camera_;
     EngineChunkData& engine_chunk_data_;
-    EngineRenderData& engine_render_data_;
+    EngineGameData& engine_game_data_;
 
     collision::MovementController movement_controller_;
     bool collision_ = true;

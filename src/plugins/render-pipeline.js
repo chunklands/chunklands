@@ -12,7 +12,7 @@ module.exports = async function plugin(registry, {assetsDir}) {
       await Promise.all([
         registry.get('engine'), registry.get('window'), loadShader('gbuffer'),
         loadShader('lighting'), loadShader('block_select'),
-        loadShader('sprite'), loadShader('text'), loadFont('utf8')
+        loadShader('sprite'), loadShader('text')
       ]);
 
   await engine.renderPipelineInit(window.handle, {
@@ -23,10 +23,6 @@ module.exports = async function plugin(registry, {assetsDir}) {
     text: textShader
   });
 
-  const font = await engine.fontLoad(ubuntuFont);
-  const text = await engine.textCreate(font);
-  await engine.textUpdate(text, {pos: {x: 30, y: 30}, text: '🚀🚀🚀🚀 Chunklands'});
-
   async function loadShader(name) {
     const [vertexShader, fragmentShader] = await Promise.all([
       readFile(`${assetsDir}/shader/${name}.vert`),
@@ -34,14 +30,5 @@ module.exports = async function plugin(registry, {assetsDir}) {
     ]);
 
     return {vertexShader, fragmentShader};
-  }
-
-  async function loadFont(name) {
-    const [meta, texture] = await Promise.all([
-      readFile(`${assetsDir}/fonts/${name}.json`),
-      readFile(`${assetsDir}/fonts/${name}.png`),
-    ]);
-
-    return {...JSON.parse(meta.toString()), texture};
   }
 }

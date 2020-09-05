@@ -205,6 +205,14 @@ struct __attribute__((packed)) CEVaoElementBlockSelectBlock {
     GLfloat position[3];
 };
 
+struct CEVector2f {
+    float x = 0.f, y = 0.f;
+};
+
+struct CEVector3i {
+    int x = 0, y = 0, z = 0;
+};
+
 struct CEBlockFace {
     FaceType type;
     std::vector<CEVaoElementChunkBlock> data;
@@ -263,6 +271,14 @@ struct CEWindowEvent : public CEEvent {
     };
 };
 
+struct CEGameEvent : public CEEvent {
+    using CEEvent::CEEvent;
+
+    union {
+        std::optional<CEVector3i> pointingblockchange {};
+    };
+};
+
 struct CECameraPosition {
     float x, y, z;
 };
@@ -272,10 +288,6 @@ struct CECameraEvent : public CEEvent {
     union {
         CECameraPosition positionchange;
     };
-};
-
-struct CEVector2f {
-    float x, y;
 };
 
 struct CETextUpdate {

@@ -4,6 +4,7 @@
 #include "Engine.hxx"
 #include "EngineChunkData.hxx"
 #include "EngineRenderData.hxx"
+#include <chunklands/engine/EngineGameData.hxx>
 #include <chunklands/engine/algorithm/texture_bake.hxx>
 #include <chunklands/engine/camera/Camera.hxx>
 #include <chunklands/engine/character/CharacterController.hxx>
@@ -44,7 +45,7 @@ struct EngineData {
     EngineChunkData chunk;
     EngineRenderData render;
 
-    character::CharacterController character_controller { camera.camera, chunk, render };
+    character::CharacterController character_controller { camera.camera, chunk, game };
 
     struct {
         int render_refresh_rate = -1;
@@ -75,6 +76,8 @@ struct EngineData {
     struct {
         std::set<text::Text*> texts;
     } text;
+
+    EngineGameData game;
 };
 
 } // namespace chunklands::engine

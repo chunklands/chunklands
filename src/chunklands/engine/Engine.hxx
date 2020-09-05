@@ -60,6 +60,8 @@ public:
 
     AsyncEngineResult<CETextHandle*>    TextCreate(CEFontHandle* font);
     AsyncEngineResult<CENone>           TextUpdate(CETextHandle* handle, CETextUpdate update);
+
+    EngineResultX<EventConnection>      GameOn(const std::string& event, std::function<void(CEGameEvent)> callback);
     // clang-format on
 
 private:

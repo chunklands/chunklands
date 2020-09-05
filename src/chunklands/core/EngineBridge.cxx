@@ -52,6 +52,7 @@ JS_DEF_INITCTOR(EngineBridge, ONE_ARG({
                                   JS_CB(fontLoad),
                                   JS_CB(textCreate),
                                   JS_CB(textUpdate),
+                                  JS_CB(gameOn),
                               }))
 
 void EngineBridge::JSCall_terminate(JSCbi)

@@ -20,8 +20,6 @@ struct EngineRenderData {
     render::SpritePass* sprite = nullptr;
     render::TextPass* text = nullptr;
 
-    std::optional<glm::ivec3> pointing_block;
-
     glm::mat4 proj;
     glm::mat4 sprite_proj;
     glm::mat4 text_proj;
