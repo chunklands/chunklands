@@ -308,11 +308,11 @@ function create(chunkDim, blocks) {
                   (1 + noise.simplex3(coordX / f, coordY / f, coordZ / f)) / 2;
               if (caveNoiseValue * caveNoiseValue < 0.8) {
                 const blockIndex = blockIndex3D(x, y, z);
-                if (x === 16 && y === 16 && z === 16) {
-                  blocks[blockIndex] = BLOCK_PICKAXE;
-                } else {
-                  blocks[blockIndex] = BLOCK_GRASS;
-                }
+                // if (x === 16 && y === 16 && z === 16) {
+                //   blocks[blockIndex] = BLOCK_PICKAXE;
+                // } else {
+                blocks[blockIndex] = BLOCK_GRASS;
+                // }
               }
             }
           }
