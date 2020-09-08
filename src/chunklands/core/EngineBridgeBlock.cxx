@@ -93,6 +93,22 @@ EngineBridge::JSCall_blockBake(JSCbi info)
 {
     return MakeEngineCall(info.Env(),
         engine_->BlockBake(),
-        create_resolver<engine::CENone>());
+        create_resolver<engine::CEBlockBakeResult>([](JSEnv env, const engine::CEBlockBakeResult& result) {
+            JSObject js_sprites = JSObject::New(env);
+            for (auto&& [id, sprite] : result.sprites) {
+                js_sprites[id] = get_handle(env, sprite);
+            }
+
+            JSObject js_blocks = JSObject::New(env);
+            for (auto&& [id, block] : result.blocks) {
+                js_blocks[id] = get_handle(env, block);
+            }
+
+            JSObject js_result = JSObject::New(env);
+            js_result["sprites"] = js_sprites;
+            js_result["blocks"] = js_blocks;
+
+            return js_result;
+        }));
 }
 } // namespace chunklands::core

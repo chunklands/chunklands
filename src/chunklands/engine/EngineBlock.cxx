@@ -6,6 +6,7 @@
 #include <chunklands/engine/image/image_loader.hxx>
 #include <chunklands/engine/render/GBufferPass.hxx>
 #include <chunklands/libcxx/easy_profiler.hxx>
+#include <chunklands/libcxx/easylogging++.hxx>
 #include <chunklands/libcxx/stb.hxx>
 
 namespace chunklands::engine {
@@ -101,24 +102,61 @@ Engine::BlockCreate(CEBlockCreateInit init)
     });
 }
 
-AsyncEngineResult<CENone>
+AsyncEngineResult<CEBlockBakeResult>
 Engine::BlockBake()
 {
     EASY_FUNCTION();
     ENGINE_FN();
 
-    return EnqueueTask(data_->executors.opengl, [this]() -> EngineResultX<CENone> {
+    return EnqueueTask(data_->executors.opengl, [this]() -> EngineResultX<CEBlockBakeResult> {
         ENGINE_CHECK(data_->render.gbuffer != nullptr);
 
         auto result = data_->texture_baker.Bake();
         data_->render.gbuffer->LoadTexture(result.width, result.height, GL_RGBA, GL_UNSIGNED_BYTE, result.texture.data());
 
+        std::unordered_map<std::string, CEBlockHandle*> blocks;
+
+        for (block::Block* const block : data_->block.blocks) {
+            std::vector<CEVaoElementSprite> vb_data;
+            for (const CEBlockFace& face : block->faces) {
+                if (face.type == FaceType::Back || face.type == FaceType::Unknown) {
+                    for (auto&& elem : face.data) {
+                        vb_data.push_back(CEVaoElementSprite {
+                            .position = { elem.position[0], elem.position[1], elem.position[2] },
+                            .normal = { elem.normal[0], elem.normal[1], elem.normal[2] },
+                            .uv = { elem.uv[0], elem.uv[1] } });
+                    }
+                }
+            }
+
+            std::string sprite_id = "sprite." + block->id;
+            LOG(DEBUG) << "auto add sprite '" << sprite_id << "' from block";
+
+            {
+                auto sprite = std::make_unique<sprite::Sprite>(std::move(sprite_id), std::move(vb_data));
+                auto insert_it = data_->sprite.sprites.insert(sprite.release());
+                assert(insert_it.second);
+            }
+
+            {
+                auto insert_it = blocks.insert({ block->id, reinterpret_cast<CEBlockHandle*>(block) });
+                assert(insert_it.second);
+            }
+        }
+
+        std::unordered_map<std::string, CESpriteHandle*> sprites;
+
         for (sprite::Sprite* const sprite : data_->sprite.sprites) {
             sprite->vao.Initialize(
                 sprite->vao_elements.data(), sprite->vao_elements.size());
+
+            auto insert_it = sprites.insert({ sprite->id, reinterpret_cast<CESpriteHandle*>(sprite) });
+            assert(insert_it.second);
         }
 
-        return Ok();
+        return Ok(CEBlockBakeResult {
+            .blocks = std::move(blocks),
+            .sprites = std::move(sprites) });
     });
 }
 

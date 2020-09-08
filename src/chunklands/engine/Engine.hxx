@@ -35,7 +35,7 @@ public:
     AsyncEngineResult<CENone> RenderPipelineInit(CEWindowHandle* handle, CERenderPipelineInit init);
 
     AsyncEngineResult<CEBlockHandle*> BlockCreate(CEBlockCreateInit init);
-    AsyncEngineResult<CENone> BlockBake();
+    AsyncEngineResult<CEBlockBakeResult> BlockBake();
 
     AsyncEngineResult<CESpriteHandle*> SpriteCreate(CESpriteCreateInit init);
 

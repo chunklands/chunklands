@@ -7,6 +7,7 @@
 #include <chunklands/libcxx/glfw.hxx>
 #include <map>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 namespace chunklands::engine {
@@ -232,6 +233,11 @@ struct CEBlockCreateInit {
     bool opaque = false;
     std::vector<CEBlockFace> faces;
     std::vector<unsigned char> texture;
+};
+
+struct CEBlockBakeResult {
+    std::unordered_map<std::string, CEBlockHandle*> blocks;
+    std::unordered_map<std::string, CESpriteHandle*> sprites;
 };
 
 struct CESpriteCreateInit {
