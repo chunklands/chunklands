@@ -1,6 +1,6 @@
 // clang-format off
 
-const dx = 1 / 128;
+const dx = 1/256;
 
 module.exports = {
   // VERTEX1        NORMAL1          UV1        VERTEX2         NORMAL2          UV2        VERTEX3         NORMAL3          UV3
