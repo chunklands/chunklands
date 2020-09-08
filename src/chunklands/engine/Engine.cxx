@@ -169,7 +169,7 @@ void Engine::Render(double diff, double now)
 
                 const glm::mat4 matrix = glm::scale(
                     glm::translate(glm::identity<glm::mat4>(),
-                        glm::vec3(sprite_instance->pos.x, sprite_instance->pos.y, 0)),
+                        glm::vec3(sprite_instance->pos.x, sprite_instance->pos.y, sprite_instance->pos.z)),
                     glm::vec3(sprite_instance->scale));
 
                 data_->render.sprite->SetView(matrix);

@@ -17,7 +17,7 @@ SpritePass::SpritePass(std::unique_ptr<gl::Program> program)
 void SpritePass::BeginPass(const glm::mat4& proj, GLuint texture)
 {
     glDisable(GL_CULL_FACE);
-    glDepthFunc(GL_ALWAYS);
+    // glDepthFunc(GL_ALWAYS);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -33,7 +33,7 @@ void SpritePass::BeginPass(const glm::mat4& proj, GLuint texture)
 void SpritePass::EndPass()
 {
     program_->Unuse();
-    glDepthFunc(GL_LESS);
+    // glDepthFunc(GL_LESS);
     glDisable(GL_BLEND);
     glEnable(GL_CULL_FACE);
 }

@@ -13,7 +13,7 @@ struct SpriteInstance {
     }
 
     sprite::Sprite* sprite = nullptr;
-    glm::vec2 pos {};
+    glm::vec3 pos {};
     float scale = 0.f;
     bool show = false;
 };

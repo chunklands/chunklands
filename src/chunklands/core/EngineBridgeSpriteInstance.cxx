@@ -31,6 +31,10 @@ JSValue EngineBridge::JSCall_spriteInstanceUpdate(JSCbi info)
         update.y = js_y.ToNumber();
     }
 
+    if (JSValue js_z = js_update.Get("z"); !js_z.IsUndefined()) {
+        update.z = js_z.ToNumber();
+    }
+
     if (JSValue js_scale = js_update.Get("scale"); !js_scale.IsUndefined()) {
         update.scale = js_scale.ToNumber();
     }

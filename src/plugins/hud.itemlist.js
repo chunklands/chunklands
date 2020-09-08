@@ -49,12 +49,14 @@ module.exports = async function plugin(registry) {
       const item = items[i];
       const x = LEFT_PADDING + (i * advance);
       const y = 0;
-      engine.spriteInstanceUpdate(item, {x, y, show: true, scale: itemWidth});
+      engine.spriteInstanceUpdate(
+          item, {x, y, z: 0.1, show: true, scale: itemWidth});
 
       const itemBlock = itemBlocks[i];
       engine.spriteInstanceUpdate(itemBlock, {
         x: x + blockPadding,
         y: y + blockPadding,
+        z: 0.2,
         show: true,
         scale: blockWidth
       });

@@ -22,9 +22,13 @@ module.exports = async function plugin(registry) {
     const leftPadding = (screenWidth - CROSSHAIR_SIZE) / 2;
     const topPadding = (screenHeight - CROSSHAIR_SIZE) / 2;
 
-    engine.spriteInstanceUpdate(
-        crosshair,
-        {x: leftPadding, y: topPadding, scale: CROSSHAIR_SIZE, show: true});
+    engine.spriteInstanceUpdate(crosshair, {
+      x: leftPadding,
+      y: topPadding,
+      z: 0.1,
+      scale: CROSSHAIR_SIZE,
+      show: true
+    });
   }
 
   return {

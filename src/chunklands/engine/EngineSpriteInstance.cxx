@@ -30,6 +30,7 @@ AsyncEngineResult<CENone> Engine::SpriteInstanceUpdate(CESpriteInstanceHandle* h
 
         conditional_update(instance->pos.x, update.x);
         conditional_update(instance->pos.y, update.y);
+        conditional_update(instance->pos.z, update.z);
         conditional_update(instance->scale, update.scale);
         conditional_update(instance->show, update.show);
 

@@ -337,6 +337,7 @@ struct CEFontInit {
 struct CESpriteInstanceUpdate {
     std::optional<float> x;
     std::optional<float> y;
+    std::optional<float> z;
     std::optional<float> scale;
     std::optional<bool> show;
 };
