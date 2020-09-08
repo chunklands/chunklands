@@ -11,8 +11,10 @@ const models = [
   require('./block.stone'),
   require('./block.water'),
   require('./block.wood'),
+  require('./block.pickaxe'),
   require('./sprite.crosshair'),
   require('./sprite.item-list'),
+  require('./sprite.itemlist-item'),
 ];
 
 module.exports = () => Promise.all(models.map(createFn => createFn()));

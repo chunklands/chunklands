@@ -1,6 +1,6 @@
 {
   "name": "chunklands",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "3D Game in NodeJS/OpenGL",
   "scripts": {
     "start": "node src/app.js",

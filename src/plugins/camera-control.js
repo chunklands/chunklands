@@ -1,7 +1,7 @@
 const debug = require('debug')('plugin:camera_control');
 const createBatchCall = require('../lib/batchCall');
 
-module.exports = async function plugin(registry, opts) {
+module.exports = async function plugin(registry) {
   const [engine, window] =
       await Promise.all([registry.get('engine'), registry.get('window')]);
 

@@ -161,8 +161,20 @@ void Engine::Render(double diff, double now)
         {
             EASY_BLOCK("SpritePass");
             data_->render.sprite->BeginPass(data_->render.sprite_proj, data_->render.gbuffer->GetBakeTexture());
-            data_->sprite.crosshair.Render();
-            data_->sprite.items.Render();
+
+            for (auto&& sprite_instance : data_->spriteinstance.instances) {
+                if (!sprite_instance->show) {
+                    continue;
+                }
+
+                const glm::mat4 matrix = glm::scale(
+                    glm::translate(glm::identity<glm::mat4>(),
+                        glm::vec3(sprite_instance->pos.x, sprite_instance->pos.y, 0)),
+                    glm::vec3(sprite_instance->scale));
+
+                data_->render.sprite->SetView(matrix);
+                sprite_instance->sprite->vao.Render();
+            }
             data_->render.sprite->EndPass();
         }
 
@@ -231,8 +243,6 @@ void Engine::Terminate()
 
 void Engine::FinalizeOpenGLThread()
 {
-    data_->sprite.crosshair.Clear();
-    data_->sprite.items.Clear();
 }
 
 } // namespace chunklands::engine

@@ -91,7 +91,27 @@ Engine::WindowOn(CEWindowHandle* handle, const std::string& event, std::function
         })));
     }
 
+    if (event == "resize") {
+        return Ok(EventConnection(window->on_resize.connect([callback = std::move(callback)](const window::size& size) {
+            CEWindowEvent event("resize");
+            event.resize.width = size.width;
+            event.resize.height = size.height;
+            callback(std::move(event));
+        })));
+    }
+
     return Ok();
+}
+
+EngineResultX<CESize2i> Engine::WindowGetSize(CEWindowHandle* handle)
+{
+    ENGINE_FN();
+
+    window::Window* window = nullptr;
+    ENGINE_CHECK(get_handle(&window, data_->window.windows, handle));
+
+    window::size size = window->GetSize();
+    return Ok(CESize2i { .width = size.width, .height = size.height });
 }
 
 } // namespace chunklands::engine

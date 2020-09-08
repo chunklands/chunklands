@@ -17,9 +17,15 @@ public:
     void BeginPass(const glm::mat4& proj, GLuint texture);
     void EndPass();
 
+    void SetView(const glm::mat4& view)
+    {
+        u_view_.Update(view);
+    }
+
 private:
     std::unique_ptr<gl::Program> program_;
     gl::Uniform<glm::mat4> u_proj_;
+    gl::Uniform<glm::mat4> u_view_;
     gl::Uniform<GLint> u_texture_;
 
     BOOST_MOVABLE_BUT_NOT_COPYABLE(SpritePass)

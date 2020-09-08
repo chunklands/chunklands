@@ -168,6 +168,7 @@ struct CEGBufferMeshHandle;
 struct CEBlockRegistrar;
 struct CEBlockHandle;
 struct CESpriteHandle;
+struct CESpriteInstanceHandle;
 struct CETextHandle;
 struct CEFontHandle;
 
@@ -207,6 +208,14 @@ struct __attribute__((packed)) CEVaoElementBlockSelectBlock {
 
 struct CEVector2f {
     float x = 0.f, y = 0.f;
+};
+
+struct CEVector2i {
+    int x = 0, y = 0;
+};
+
+struct CESize2i {
+    int width = 0, height = 0;
 };
 
 struct CEVector3i {
@@ -268,6 +277,11 @@ struct CEWindowEvent : public CEEvent {
             int action;
             int mods;
         } key;
+
+        struct {
+            int width;
+            int height;
+        } resize;
     };
 };
 
@@ -312,6 +326,13 @@ struct CEFontInit {
     int height;
     std::map<uint32_t, CEFontInitCharacter> characters;
     std::vector<unsigned char> texture;
+};
+
+struct CESpriteInstanceUpdate {
+    std::optional<float> x;
+    std::optional<float> y;
+    std::optional<float> scale;
+    std::optional<bool> show;
 };
 
 } // namespace chunklands::engine

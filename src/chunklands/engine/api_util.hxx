@@ -4,6 +4,7 @@
 
 #include <boost/current_function.hpp>
 #include <chunklands/libcxx/boost_thread.hxx>
+#include <optional>
 
 #define _ENGINE_FN_NAME __api_fn_name
 #define ENGINE_FN() static const char* _ENGINE_FN_NAME = BOOST_CURRENT_FUNCTION;
@@ -27,6 +28,14 @@ inline boost::future<R> EnqueueTask(boost::loop_executor& executor, F&& fn)
     executor.submit(std::move(task));
 
     return result;
+}
+
+template <class T1, class T2>
+inline void conditional_update(T1& target, const std::optional<T2>& source)
+{
+    if (source) {
+        target = *source;
+    }
 }
 
 } // namespace chunklands::engine

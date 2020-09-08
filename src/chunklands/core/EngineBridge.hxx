@@ -29,6 +29,7 @@ class EngineBridge : public JSObjectWrap<EngineBridge> {
     JS_DECL_CB(windowCreate)
     JS_DECL_CB(windowLoadGL)
     JS_DECL_CB(windowOn)
+    JS_DECL_CB(windowGetSize)
 
     // RenderPipeline
     JS_DECL_CB(renderPipelineInit)
@@ -39,6 +40,10 @@ class EngineBridge : public JSObjectWrap<EngineBridge> {
 
     // Sprite
     JS_DECL_CB(spriteCreate)
+
+    // SpriteInstance
+    JS_DECL_CB(spriteInstanceCreate)
+    JS_DECL_CB(spriteInstanceUpdate)
 
     // Chunk
     JS_DECL_CB(chunkCreate)

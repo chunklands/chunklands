@@ -23,46 +23,48 @@ public:
     void Terminate();
 
 public:
-    // clang-format off
-    AsyncEngineResult<CENone>           GLFWInit();
-    EngineResultX<CENone>               GLFWStartPollEvents(bool poll);
-    EngineResultX<bool>                 GLFWStartPollEvents() const;
-    
-    AsyncEngineResult<CEWindowHandle*>  WindowCreate(int width, int height, std::string title);
-    AsyncEngineResult<CENone>           WindowLoadGL(CEWindowHandle* handle);
-    EngineResultX<EventConnection>      WindowOn(CEWindowHandle* handle, const std::string& event, std::function<void(CEWindowEvent)> callback);
-    
-    AsyncEngineResult<CENone>           RenderPipelineInit(CEWindowHandle* handle, CERenderPipelineInit init);
-    
-    AsyncEngineResult<CEBlockHandle*>   BlockCreate(CEBlockCreateInit init);
-    AsyncEngineResult<CENone>           BlockBake();
+    AsyncEngineResult<CENone> GLFWInit();
+    EngineResultX<CENone> GLFWStartPollEvents(bool poll);
+    EngineResultX<bool> GLFWStartPollEvents() const;
 
-    AsyncEngineResult<CESpriteHandle*>  SpriteCreate(CESpriteCreateInit init);
+    AsyncEngineResult<CEWindowHandle*> WindowCreate(int width, int height, std::string title);
+    AsyncEngineResult<CENone> WindowLoadGL(CEWindowHandle* handle);
+    EngineResultX<EventConnection> WindowOn(CEWindowHandle* handle, const std::string& event, std::function<void(CEWindowEvent)> callback);
+    EngineResultX<CESize2i> WindowGetSize(CEWindowHandle* handle);
 
-    AsyncEngineResult<CEChunkHandle*>   ChunkCreate(int x, int y, int z);
-    AsyncEngineResult<CENone>           ChunkDelete(CEChunkHandle* handle);
-    AsyncEngineResult<CENone>           ChunkUpdateData(CEChunkHandle* handle, CEBlockHandle** blocks);
+    AsyncEngineResult<CENone> RenderPipelineInit(CEWindowHandle* handle, CERenderPipelineInit init);
 
-    AsyncEngineResult<CENone>           SceneAddChunk(CEChunkHandle* handle);
-    AsyncEngineResult<CENone>           SceneRemoveChunk(CEChunkHandle* handle);
+    AsyncEngineResult<CEBlockHandle*> BlockCreate(CEBlockCreateInit init);
+    AsyncEngineResult<CENone> BlockBake();
 
-    AsyncEngineResult<CENone>           CameraAttachWindow(CEWindowHandle* handle);
-    AsyncEngineResult<CENone>           CameraDetachWindow(CEWindowHandle* handle);
+    AsyncEngineResult<CESpriteHandle*> SpriteCreate(CESpriteCreateInit init);
+
+    AsyncEngineResult<CEChunkHandle*> ChunkCreate(int x, int y, int z);
+    AsyncEngineResult<CENone> ChunkDelete(CEChunkHandle* handle);
+    AsyncEngineResult<CENone> ChunkUpdateData(CEChunkHandle* handle, CEBlockHandle** blocks);
+
+    AsyncEngineResult<CENone> SceneAddChunk(CEChunkHandle* handle);
+    AsyncEngineResult<CENone> SceneRemoveChunk(CEChunkHandle* handle);
+
+    AsyncEngineResult<CENone> CameraAttachWindow(CEWindowHandle* handle);
+    AsyncEngineResult<CENone> CameraDetachWindow(CEWindowHandle* handle);
     AsyncEngineResult<CECameraPosition> CameraGetPosition();
-    EngineResultX<EventConnection>      CameraOn(const std::string& event, std::function<void(CECameraEvent)> callback);
+    EngineResultX<EventConnection> CameraOn(const std::string& event, std::function<void(CECameraEvent)> callback);
 
-    EngineResultX<CENone>               CharacterSetCollision(bool collision);
-    EngineResultX<bool>                 CharacterIsCollision();
-    EngineResultX<CENone>               CharacterSetFlightMode(bool flight_mode);
-    EngineResultX<bool>                 CharacterIsFlightMode();
+    EngineResultX<CENone> CharacterSetCollision(bool collision);
+    EngineResultX<bool> CharacterIsCollision();
+    EngineResultX<CENone> CharacterSetFlightMode(bool flight_mode);
+    EngineResultX<bool> CharacterIsFlightMode();
 
-    AsyncEngineResult<CEFontHandle*>    FontLoad(CEFontInit init);
+    AsyncEngineResult<CEFontHandle*> FontLoad(CEFontInit init);
 
-    AsyncEngineResult<CETextHandle*>    TextCreate(CEFontHandle* font);
-    AsyncEngineResult<CENone>           TextUpdate(CETextHandle* handle, CETextUpdate update);
+    AsyncEngineResult<CETextHandle*> TextCreate(CEFontHandle* font);
+    AsyncEngineResult<CENone> TextUpdate(CETextHandle* handle, CETextUpdate update);
 
-    EngineResultX<EventConnection>      GameOn(const std::string& event, std::function<void(CEGameEvent)> callback);
-    // clang-format on
+    EngineResultX<EventConnection> GameOn(const std::string& event, std::function<void(CEGameEvent)> callback);
+
+    AsyncEngineResult<CESpriteInstanceHandle*> SpriteInstanceCreate(CESpriteHandle* handle);
+    AsyncEngineResult<CENone> SpriteInstanceUpdate(CESpriteInstanceHandle* handle, CESpriteInstanceUpdate update);
 
 private:
     EngineData* data_ = nullptr;

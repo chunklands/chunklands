@@ -46,6 +46,24 @@ EngineBridge::JSCall_windowOn(JSCbi info)
         js_event["scancode"]  = JSNumber::New(env, event.key.scancode);
         js_event["action"]    = JSNumber::New(env, event.key.action);
         js_event["mods"]      = JSNumber::New(env, event.key.mods);
+      } else if (event.type == "resize") {
+        js_event["width"]   = JSNumber::New(env, event.resize.width);
+        js_event["height"]  = JSNumber::New(env, event.resize.height);
       } });
+}
+
+JSValue
+EngineBridge::JSCall_windowGetSize(JSCbi info)
+{
+    engine::CEWindowHandle* handle = nullptr;
+    JS_ENGINE_CHECK(info.Env(), unsafe_get_handle_ptr(&handle, info.Env(), info[0]), JSValue());
+
+    return resolve(info.Env(), engine_->WindowGetSize(handle), [&](const engine::CESize2i& size) {
+        JSObject js_size = JSObject::New(info.Env());
+        js_size["width"] = JSNumber::New(info.Env(), size.width);
+        js_size["height"] = JSNumber::New(info.Env(), size.height);
+
+        return js_size;
+    });
 }
 } // namespace chunklands::core

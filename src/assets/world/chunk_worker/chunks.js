@@ -6,11 +6,10 @@ const noise = require('../noise');
 const multiblocks = require('./multiblocks');
 
 function create(chunkDim, blocks) {
-
-  const { blockIndex2D, blockIndex3D, centerChunkPos } = math(chunkDim);
-  const { generateOceanMapForChunk } = ocean(chunkDim);
-  const { biomeGenerator } = biomes(chunkDim);
-  const { tree, house, MultiBlockRef } = multiblocks(chunkDim, blocks);
+  const {blockIndex2D, blockIndex3D, centerChunkPos} = math(chunkDim);
+  const {generateOceanMapForChunk} = ocean(chunkDim);
+  const {biomeGenerator} = biomes(chunkDim);
+  const {tree, house, MultiBlockRef} = multiblocks(chunkDim, blocks);
 
   const {
     'block.air': BLOCK_AIR,
@@ -18,7 +17,8 @@ function create(chunkDim, blocks) {
     'block.dirt': BLOCK_DIRT,
     'block.water': BLOCK_WATER,
     'block.wood': BLOCK_WOOD,
-    'block.monkey': BLOCK_MONKEY
+    'block.monkey': BLOCK_MONKEY,
+    'block.pickaxe': BLOCK_PICKAXE,
   } = blocks;
 
   const kChunkInitialized = 0;
@@ -34,8 +34,9 @@ function create(chunkDim, blocks) {
       this.x = x;
       this.y = y;
       this.z = z;
-      
-      this.data = new ArrayBuffer(BigUint64Array.BYTES_PER_ELEMENT * (chunkDim ** 3));
+
+      this.data =
+          new ArrayBuffer(BigUint64Array.BYTES_PER_ELEMENT * (chunkDim ** 3));
       this.blocks = new BigUint64Array(this.data);
       this.blocks.fill(BLOCK_AIR);
 
@@ -45,14 +46,12 @@ function create(chunkDim, blocks) {
   }
 
   const SMOOTH_KERNEL = new Float32Array([
-    0.05, 0.10, 0.25, 0.10, 0.05,
-    0.10, 0.25, 0.50, 0.25, 0.10,
-    0.25, 0.50, 1.00, 0.50, 0.25,
-    0.10, 0.25, 0.50, 0.25, 0.10,
-    0.05, 0.10, 0.25, 0.10, 0.05,
+    0.05, 0.10, 0.25, 0.10, 0.05, 0.10, 0.25, 0.50, 0.25,
+    0.10, 0.25, 0.50, 1.00, 0.50, 0.25, 0.10, 0.25, 0.50,
+    0.25, 0.10, 0.05, 0.10, 0.25, 0.10, 0.05,
   ]);
   const SMOOTH_KERNEL_SIZE = 2;
-  assert(SMOOTH_KERNEL.length === (2*SMOOTH_KERNEL_SIZE + 1) ** 2)
+  assert(SMOOTH_KERNEL.length === (2 * SMOOTH_KERNEL_SIZE + 1) ** 2)
 
   const houseRef = new MultiBlockRef(house, -80, 15, 2);
   const treeRef = new MultiBlockRef(tree, -78, 15, 10);
@@ -64,9 +63,9 @@ function create(chunkDim, blocks) {
     }
 
     /**
-     * @param {number} x 
-     * @param {number} y 
-     * @param {number} z 
+     * @param {number} x
+     * @param {number} y
+     * @param {number} z
      * @return {Chunk}
      */
     getChunk(x, y, z) {
@@ -74,10 +73,10 @@ function create(chunkDim, blocks) {
     }
 
     /**
-     * @param {number} x 
-     * @param {number} y 
-     * @param {number} z 
-     * @param {number} state 
+     * @param {number} x
+     * @param {number} y
+     * @param {number} z
+     * @param {number} state
      * @return {Chunk}
      */
     _getChunkAdvanced(x, y, z, state) {
@@ -94,7 +93,7 @@ function create(chunkDim, blocks) {
     }
 
     /**
-     * @param {Chunk} chunk 
+     * @param {Chunk} chunk
      */
     _advanceChunkState(chunk, state) {
       if (chunk.state === state) return;
@@ -141,8 +140,8 @@ function create(chunkDim, blocks) {
     }
 
     /**
-     * @param {number} chunkX 
-     * @param {number} chunkZ 
+     * @param {number} chunkX
+     * @param {number} chunkZ
      */
     _calculateOceanAndHeightMap(chunkX, chunkZ) {
       const mapInfoKey = genMapInfoKey(chunkX, chunkZ);
@@ -153,7 +152,8 @@ function create(chunkDim, blocks) {
 
       const oceanMap = new Int8Array(chunkDim ** 2);
       generateOceanMapForChunk(oceanMap, chunkDim * chunkX, chunkDim * chunkZ);
-      const { nearestPoints, nearestDistances } = biomeGenerator.generateChunk(chunkX, chunkZ);
+      const {nearestPoints, nearestDistances} =
+          biomeGenerator.generateChunk(chunkX, chunkZ);
 
       const xOffset = chunkDim * chunkX;
       const zOffset = chunkDim * chunkZ;
@@ -166,7 +166,7 @@ function create(chunkDim, blocks) {
             const coordX = xOffset + x;
             const coordZ = zOffset + z;
             const height = nearestPoints[blockIndex].getHeight(coordX, coordZ);
-            
+
             heightMap[blockIndex] = height;
           } else {
             heightMap[blockIndex] = 0;
@@ -174,25 +174,20 @@ function create(chunkDim, blocks) {
         }
       }
 
-      const newMapInfo = {
-        nearestPoints,
-        nearestDistances,
-        heightMap,
-        oceanMap
-      };
+      const newMapInfo = {nearestPoints, nearestDistances, heightMap, oceanMap};
 
       this._mapInfo.set(mapInfoKey, newMapInfo);
       return newMapInfo;
     }
 
     /**
-     * @param {number} chunkX 
-     * @param {number} chunkZ 
+     * @param {number} chunkX
+     * @param {number} chunkZ
      */
     _smoothHeightMap(chunkX, chunkZ) {
       const mapInfo = this._mapInfo.get(genMapInfoKey(chunkX, chunkZ));
       assert(mapInfo);
-      
+
       const xOffset = chunkX * chunkDim;
       const zOffset = chunkZ * chunkDim;
 
@@ -209,14 +204,17 @@ function create(chunkDim, blocks) {
               const az = z + kz;
               const zCoord = zOffset + az;
 
-              const smoothKernelIndex = (kx + SMOOTH_KERNEL_SIZE) + SMOOTH_KERNEL_SIZE * (kz + SMOOTH_KERNEL_SIZE);
-              assert(smoothKernelIndex >= 0 && smoothKernelIndex < SMOOTH_KERNEL.length);
+              const smoothKernelIndex = (kx + SMOOTH_KERNEL_SIZE) +
+                  SMOOTH_KERNEL_SIZE * (kz + SMOOTH_KERNEL_SIZE);
+              assert(
+                  smoothKernelIndex >= 0 &&
+                  smoothKernelIndex < SMOOTH_KERNEL.length);
 
               const kernelFactor = SMOOTH_KERNEL[smoothKernelIndex];
               assert(isFinite(kernelFactor));
-              
+
               factorSum += kernelFactor;
-              
+
               let info, infoIndex;
               if ((ax >= 0 && ax < chunkDim) && (az >= 0 && az < chunkDim)) {
                 info = mapInfo;
@@ -234,7 +232,7 @@ function create(chunkDim, blocks) {
                 assert(infoIndex >= 0 && infoIndex < chunkDim ** 2);
               }
 
-              const { heightMap } = info;
+              const {heightMap} = info;
               assert(heightMap);
 
               const height = heightMap[infoIndex];
@@ -257,10 +255,9 @@ function create(chunkDim, blocks) {
     }
 
     /**
-     * @param {Chunk} chunk 
+     * @param {Chunk} chunk
      */
     _generateMultiblocks(chunk) {
-
       if (treeRef.touchesChunk(chunk.x, chunk.y, chunk.z)) {
         chunk.multiblockRefs.push(treeRef);
       }
@@ -271,7 +268,7 @@ function create(chunkDim, blocks) {
     }
 
     /**
-     * @param {Chunk} chunk 
+     * @param {Chunk} chunk
      */
     _fillChunkWithBlocks(chunk) {
       const xOffset = chunk.x * chunkDim;
@@ -282,9 +279,10 @@ function create(chunkDim, blocks) {
       const mapInfo = this._mapInfo.get(mapInfoKey);
       assert(mapInfo);
 
-      const { oceanMap, nearestDistances, smoothedHeightMap: heightMap } = mapInfo;
-      const { blocks } = chunk;
-      
+      const {oceanMap, nearestDistances, smoothedHeightMap: heightMap} =
+          mapInfo;
+      const {blocks} = chunk;
+
       for (let x = 0; x < chunkDim; x++) {
         for (let z = 0; z < chunkDim; z++) {
           const isOcean = oceanMap[blockIndex2D(x, z)] == 1;
@@ -299,24 +297,23 @@ function create(chunkDim, blocks) {
             const dd = blockIndex2D(x, z);
             const coordX = x + xOffset;
             const coordZ = z + zOffset;
-    
+
             const distance = nearestDistances[dd];
             const height = heightMap[dd];
-    
+
             for (let y = 0; y < Math.min(height - yOffset, chunkDim); y++) {
               const coordY = y + yOffset;
               const f = 80;
-              const caveNoiseValue = (1 + noise.simplex3(coordX / f, coordY / f, coordZ / f)) / 2;
+              const caveNoiseValue =
+                  (1 + noise.simplex3(coordX / f, coordY / f, coordZ / f)) / 2;
               if (caveNoiseValue * caveNoiseValue < 0.8) {
                 const blockIndex = blockIndex3D(x, y, z);
-                blocks[blockIndex] = BLOCK_GRASS;
+                if (x === 16 && y === 16 && z === 16) {
+                  blocks[blockIndex] = BLOCK_PICKAXE;
+                } else {
+                  blocks[blockIndex] = BLOCK_GRASS;
+                }
               }
-            }
-    
-            const pointY = height + 5;
-            if (distance === 0 && yOffset <= pointY && pointY < yOffset + chunkDim) {
-              const y = pointY - yOffset;
-              blocks[blockIndex3D(x, y, z)] = BLOCK_WOOD;
             }
           }
         }
@@ -324,10 +321,10 @@ function create(chunkDim, blocks) {
     }
 
     /**
-     * @param {Chunk} chunk 
+     * @param {Chunk} chunk
      */
     _morphBlocks(chunk) {
-      const { blocks } = chunk;
+      const {blocks} = chunk;
       for (let x = 0; x < chunkDim; x++) {
         for (let y = 0; y < chunkDim - 1; y++) {
           for (let z = 0; z < chunkDim; z++) {
@@ -344,8 +341,9 @@ function create(chunkDim, blocks) {
       }
 
 
-      const topChunk = this._getChunkAdvanced(chunk.x, chunk.y + 1, chunk.z, kChunkBlockFilled);
-      const { blocks: topChunkBlocks } = topChunk;
+      const topChunk = this._getChunkAdvanced(
+          chunk.x, chunk.y + 1, chunk.z, kChunkBlockFilled);
+      const {blocks: topChunkBlocks} = topChunk;
       for (let x = 0; x < chunkDim; x++) {
         for (let z = 0; z < chunkDim; z++) {
           const blockIndex = blockIndex3D(x, chunkDim - 1, z);
@@ -361,7 +359,7 @@ function create(chunkDim, blocks) {
     }
 
     /**
-     * @param {Chunk} chunk 
+     * @param {Chunk} chunk
      */
     _applyMultiblocks(chunk) {
       const coordX = chunk.x * chunkDim;
@@ -370,17 +368,17 @@ function create(chunkDim, blocks) {
 
       for (let i = 0; i < chunk.multiblockRefs.length; i++) {
         const multiblockRef = chunk.multiblockRefs[i];
-        const { multiblock } = multiblockRef;
+        const {multiblock} = multiblockRef;
 
         const mbXOffset = multiblockRef.x - coordX;
         const mbYOffset = multiblockRef.y - coordY;
         const mbZOffset = multiblockRef.z - coordZ;
 
-        const minX = Math.max(0,        mbXOffset);
+        const minX = Math.max(0, mbXOffset);
         const maxX = Math.min(chunkDim, mbXOffset + multiblock.sx);
-        const minY = Math.max(0,        mbYOffset);
+        const minY = Math.max(0, mbYOffset);
         const maxY = Math.min(chunkDim, mbYOffset + multiblock.sy);
-        const minZ = Math.max(0,        mbZOffset);
+        const minZ = Math.max(0, mbZOffset);
         const maxZ = Math.min(chunkDim, mbZOffset + multiblock.sz);
 
         for (let x = minX, mbX = minX - mbXOffset; x < maxX; x++, mbX++) {
@@ -403,9 +401,7 @@ function create(chunkDim, blocks) {
     return `${x}:${z}`;
   }
 
-  return {
-    ChunkLoader
-  };
+  return {ChunkLoader};
 };
 
 module.exports = create;

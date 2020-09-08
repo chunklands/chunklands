@@ -24,11 +24,12 @@ Window::Window(GLFWwindow* glfw_window)
         thiz->on_close();
     });
 
+    InitializeSize();
     glfwSetWindowSizeCallback(glfw_window, [](GLFWwindow* w, int width, int height) {
         Window* const thiz = detail::Unwrap(w);
-        thiz->on_resize(size {
-            .width = width,
-            .height = height });
+        size s { .width = width, .height = height };
+        thiz->size_ = s;
+        thiz->on_resize(s);
     });
 
     glfwSetCursorPosCallback(glfw_window, [](GLFWwindow* w, double x, double y) {
@@ -76,11 +77,12 @@ void Window::SwapBuffers()
     glfwSwapBuffers(glfw_window_);
 }
 
-size Window::GetSize() const
+void Window::InitializeSize()
 {
     size size;
     glfwGetWindowSize(glfw_window_, &size.width, &size.height);
-    return size;
+
+    size_ = size;
 }
 
 void Window::StartMouseGrab()

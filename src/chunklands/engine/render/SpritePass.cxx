@@ -6,6 +6,7 @@ namespace chunklands::engine::render {
 SpritePass::SpritePass(std::unique_ptr<gl::Program> program)
     : program_(std::move(program))
     , u_proj_(*program_, "u_proj")
+    , u_view_(*program_, "u_view")
     , u_texture_(*program_, "u_texture")
 {
     program_->Use();
@@ -15,6 +16,7 @@ SpritePass::SpritePass(std::unique_ptr<gl::Program> program)
 
 void SpritePass::BeginPass(const glm::mat4& proj, GLuint texture)
 {
+    glDisable(GL_CULL_FACE);
     glDepthFunc(GL_ALWAYS);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -33,6 +35,7 @@ void SpritePass::EndPass()
     program_->Unuse();
     glDepthFunc(GL_LESS);
     glDisable(GL_BLEND);
+    glEnable(GL_CULL_FACE);
 }
 
 } // namespace chunklands::engine::render

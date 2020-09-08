@@ -13,6 +13,7 @@
 #include <chunklands/engine/font/Font.hxx>
 #include <chunklands/engine/gl/Vao.hxx>
 #include <chunklands/engine/sprite/Sprite.hxx>
+#include <chunklands/engine/spriteinstance/SpriteInstance.hxx>
 #include <chunklands/engine/text/Text.hxx>
 #include <chunklands/engine/window/Window.hxx>
 #include <chunklands/engine/window/WindowInputController.hxx>
@@ -62,10 +63,11 @@ struct EngineData {
 
     struct {
         std::set<sprite::Sprite*> sprites;
-
-        gl::Vao<GL_TRIANGLES, CEVaoElementSprite> crosshair;
-        gl::Vao<GL_TRIANGLES, CEVaoElementSprite> items;
     } sprite;
+
+    struct {
+        std::set<spriteinstance::SpriteInstance*> instances;
+    } spriteinstance;
 
     algorithm::texture_bake::TextureBaker texture_baker;
 

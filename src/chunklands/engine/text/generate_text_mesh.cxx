@@ -3,7 +3,7 @@
 #include <boost/regex/pending/unicode_iterator.hpp>
 #include <glm/vec2.hpp>
 
-constexpr int LINE_HEIGHT = 32;
+constexpr int REFERENCE_HEIGHT = 64;
 
 namespace chunklands::engine::text {
 
@@ -17,7 +17,8 @@ void generate_text_mesh(const font::Font* font, text::Text* text)
     std::vector<CEVaoElementText> vb_data(elem_count);
     assert(vb_data.size() == elem_count);
 
-    glm::ivec2 offset(10, -10);
+    const float scale = float(REFERENCE_HEIGHT) / float(font->size);
+
     glm::ivec2 pos(0, 0);
 
     unsigned i = 0;
@@ -26,7 +27,7 @@ void generate_text_mesh(const font::Font* font, text::Text* text)
         unsigned c = *it;
         if (c == '\n') {
             pos.x = 0;
-            pos.y -= LINE_HEIGHT;
+            pos.y -= REFERENCE_HEIGHT;
             continue;
         }
 
@@ -36,8 +37,8 @@ void generate_text_mesh(const font::Font* font, text::Text* text)
         }
 
         const CEFontInitCharacter& ch = it_char->second;
-        const glm::ivec2 v0 = glm::ivec2(pos.x - ch.originX, pos.y - ch.height + ch.originY) + offset;
-        const glm::ivec2 v1 = v0 + glm::ivec2(ch.width, ch.height);
+        const glm::vec2 v0 = glm::vec2(pos.x - ch.originX, pos.y - ch.height + ch.originY) * scale;
+        const glm::vec2 v1 = v0 + glm::vec2(ch.width, ch.height) * scale;
 
         const glm::vec2 uv0(float(ch.x) / font->width,
             1.f - float(-ch.y - ch.height) / font->height);

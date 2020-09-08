@@ -113,13 +113,11 @@ Engine::BlockBake()
         auto result = data_->texture_baker.Bake();
         data_->render.gbuffer->LoadTexture(result.width, result.height, GL_RGBA, GL_UNSIGNED_BYTE, result.texture.data());
 
-        for (auto&& x : data_->sprite.sprites) {
-            if (x->id == "sprite.crosshair") {
-                data_->sprite.crosshair.Initialize(x->vao_elements.data(), x->vao_elements.size());
-            } else if (x->id == "sprite.item-list") {
-                data_->sprite.items.Initialize(x->vao_elements.data(), x->vao_elements.size());
-            }
+        for (sprite::Sprite* const sprite : data_->sprite.sprites) {
+            sprite->vao.Initialize(
+                sprite->vao_elements.data(), sprite->vao_elements.size());
         }
+
         return Ok();
     });
 }

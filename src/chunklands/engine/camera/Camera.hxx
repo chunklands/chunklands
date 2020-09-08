@@ -48,7 +48,7 @@ public:
     boost::signals2::signal<void(CECameraPosition)> on_position_change;
 
 private:
-    glm::vec3 eye_ { 16, 16, 16 };
+    glm::vec3 eye_ { 16, 50, 16 };
     glm::vec2 look_ { 0, -0.2f };
 
     glm::vec3 last_eye_ = eye_;

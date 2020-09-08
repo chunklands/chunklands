@@ -82,12 +82,14 @@ Engine::RenderPipelineInit(CEWindowHandle* handle, CERenderPipelineInit init)
             glViewport(0, 0, size.width, size.height);
             data_->render.proj = glm::perspective(glm::radians(75.f), s.x / s.y, zNear, zFar);
 
-            const float min_dim = std::min(s.x, s.y);
-            data_->render.sprite_proj = glm::ortho(
-                (min_dim - ((min_dim - s.x) / 2.f)) / min_dim,
-                (min_dim - s.x) / 2.f / min_dim,
-                (min_dim - s.y) / 2.f / min_dim,
-                (min_dim - ((min_dim - s.y) / 2.f)) / min_dim);
+            data_->render.sprite_proj = glm::ortho(0.f, float(size.width), 0.f, float(size.height));
+
+            // const float min_dim = std::min(s.x, s.y);
+            // data_->render.sprite_proj = glm::ortho(
+            //     (min_dim - ((min_dim - s.x) / 2.f)) / min_dim,
+            //     (min_dim - s.x) / 2.f / min_dim,
+            //     (min_dim - s.y) / 2.f / min_dim,
+            //     (min_dim - ((min_dim - s.y) / 2.f)) / min_dim);
 
             data_->render.text_proj = glm::ortho(0.f, float(size.width), 0.f, float(size.height));
 

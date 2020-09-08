@@ -1,6 +1,7 @@
 #ifndef __CHUNKLANDS_ENGINE_WINDOW_WINDOW_HXX__
 #define __CHUNKLANDS_ENGINE_WINDOW_WINDOW_HXX__
 
+#include <boost/atomic.hpp>
 #include <boost/signals2.hpp>
 #include <chunklands/libcxx/glfw.hxx>
 
@@ -59,10 +60,16 @@ public:
         return is_gl_loaded_;
     }
 
-    size GetSize() const;
+    size GetSize() const
+    {
+        return size_;
+    }
 
     void StartMouseGrab();
     void StopMouseGrab();
+
+private:
+    void InitializeSize();
 
 public:
     slot<void> on_close;
@@ -78,6 +85,7 @@ private:
 
     cursor_move last_cursor_;
     boost::signals2::scoped_connection mouse_grab_conn_;
+    boost::atomic<size> size_;
 };
 
 } // namespace chunklands::engine::window
