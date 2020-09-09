@@ -288,6 +288,11 @@ struct CEWindowEvent : public CEEvent {
             int width;
             int height;
         } resize;
+
+        struct {
+            double x;
+            double y;
+        } scroll;
     };
 };
 

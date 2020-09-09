@@ -35,6 +35,11 @@ struct key {
     int mods = 0;
 };
 
+struct scroll {
+    double x = 0.0;
+    double y = 0.0;
+};
+
 template <class T>
 struct slot_t {
     using value = boost::signals2::signal<void(const T&)>;
@@ -78,6 +83,7 @@ public:
     slot<click> on_click;
     slot<mouse_grab> on_mouse_grab;
     slot<key> on_key;
+    slot<scroll> on_scroll;
 
 private:
     GLFWwindow* glfw_window_ = nullptr;

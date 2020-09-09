@@ -55,6 +55,14 @@ Window::Window(GLFWwindow* glfw_window)
             .action = action,
             .mods = mods });
     });
+
+    glfwSetScrollCallback(glfw_window, [](GLFWwindow* w, double x, double y) {
+        Window* const thiz = detail::Unwrap(w);
+        thiz->on_scroll(scroll {
+            .x = x,
+            .y = y
+        });
+    });
 }
 
 Window::~Window()

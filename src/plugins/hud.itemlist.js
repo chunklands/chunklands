@@ -13,6 +13,8 @@ module.exports = async function plugin(registry) {
   const sprite = models.sprites['sprite.itemlist-item'];
   const grass = models.sprites['sprite.block.grass'];
 
+  let selectedItem = 0;
+
   const items = [];
   const itemBlocks = [];
   {
@@ -27,17 +29,26 @@ module.exports = async function plugin(registry) {
     itemBlocks.push(...await Promise.all(itemBlockPromises));
   }
 
-  const size = engine.windowGetSize(window.handle);
-  update(size.width);
+  const selection = await engine.spriteInstanceCreate(models.sprites['sprite.itemlist-selection']);
+
+  let screenSize = engine.windowGetSize(window.handle);
+  update();
 
   const cleanup =
-      createBatchCall().add(engine.windowOn(window.handle, 'resize', event => {
-        update(event.width);
-      }));
+      createBatchCall()
+        .add(engine.windowOn(window.handle, 'resize', event => {
+          screenSize = event;
+          update();
+        }))
+        .add(engine.windowOn(window.handle, 'scroll', event => {
+          selectedItem += event.y;
+          selectedItem = (selectedItem + ITEM_COUNT) % ITEM_COUNT;
+          update();
+        }));
 
-  function update(screenWidth) {
+  function update() {
     const itemWidth =
-        ((screenWidth - 2 * LEFT_PADDING) - (ITEM_COUNT - 1) * ITEM_PADDING) /
+        ((screenSize.width - 2 * LEFT_PADDING) - (ITEM_COUNT - 1) * ITEM_PADDING) /
         ITEM_COUNT;
 
     const blockPadding = itemWidth * 0.2;
@@ -51,6 +62,10 @@ module.exports = async function plugin(registry) {
       const y = 0;
       engine.spriteInstanceUpdate(
           item, {x, y, z: 0.1, show: true, scale: itemWidth});
+
+      if (i === Math.round(selectedItem)) {
+        engine.spriteInstanceUpdate(selection, {x, y, z: 0.15, show: true, scale: itemWidth});
+      }
 
       const itemBlock = itemBlocks[i];
       engine.spriteInstanceUpdate(itemBlock, {

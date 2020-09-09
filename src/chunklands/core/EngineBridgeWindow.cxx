@@ -49,7 +49,10 @@ EngineBridge::JSCall_windowOn(JSCbi info)
       } else if (event.type == "resize") {
         js_event["width"]   = JSNumber::New(env, event.resize.width);
         js_event["height"]  = JSNumber::New(env, event.resize.height);
-      } });
+      } else if (event.type == "scroll") {
+        js_event["x"] = JSNumber::New(env, event.scroll.x);
+        js_event["y"] = JSNumber::New(env, event.scroll.y);
+      }});
 }
 
 JSValue

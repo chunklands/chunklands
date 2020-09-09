@@ -13,8 +13,8 @@ const models = [
   require('./block.wood'),
   require('./block.pickaxe'),
   require('./sprite.crosshair'),
-  require('./sprite.item-list'),
   require('./sprite.itemlist-item'),
+  require('./sprite.itemlist-selection'),
 ];
 
 module.exports = () => Promise.all(models.map(createFn => createFn()));

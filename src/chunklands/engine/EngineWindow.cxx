@@ -100,6 +100,15 @@ Engine::WindowOn(CEWindowHandle* handle, const std::string& event, std::function
         })));
     }
 
+    if (event == "scroll") {
+        return Ok(EventConnection(window->on_scroll.connect([callback = std::move(callback)](const window::scroll& scroll) {
+            CEWindowEvent event("scroll");
+            event.scroll.x = scroll.x;
+            event.scroll.y = scroll.y;
+            callback(std::move(event));
+        })));
+    }
+
     return Ok();
 }
 
