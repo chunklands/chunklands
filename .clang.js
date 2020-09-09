@@ -13,30 +13,7 @@ const DEV = process.env.NODE_ENV !== 'production';
     clangBin: process.env.CLANG_BIN,
     clangTidyBin: process.env.CLANG_TIDY_BIN,
     clangNoTidy: process.env.CLANG_NO_TIDY === 'true'
-  })
-  .addMakefileTarget('deps/glfw/src/libglfw3.a', {
-    cmd: `@cd deps/glfw && cmake -DGLFW_BUILD_DOCS=OFF -DGLFW_BUILD_TESTS=OFF -DGLFW_BUILD_EXAMPLES=OFF -DCMAKE_BUILD_TYPE=${DEV ? 'Debug' : 'Release'} --build .`
-      + ' && make'
-  })
-  .addMakefileTarget('deps/backward-cpp/libbackward.a', {
-    cmd: `@cd deps/backward-cpp && cmake -DBACKWARD_HAS_BFD=1 -DCMAKE_BUILD_TYPE=${DEV ? 'Debug' : 'Release'} --build .`
-      + ' && make'
-  })
-  .addMakefileTarget('deps/googletest/lib/libgtestd.a', {
-    cmd: `@cd deps/googletest && cmake -DCMAKE_BUILD_TYPE=${DEV ? 'Debug' : 'Release'} -DCMAKE_CXX_STANDARD=17 -Dgtest_force_shared_crt=ON -DCMAKE_POSITION_INDEPENDENT_CODE=ON .`
-      + ' && make'
-  })
-  // .addMakefileTarget('deps/boost/stage/lib', {
-  //   cmd: `@cd deps/boost && ./b2 link=static variant=${DEV ? 'debug' : 'release'} cxxflags="-fPIC" linkflags="-fPIC"`
-  // })
-  // .addMakefileTarget('deps/easyloggingpp/build/libeasyloggingpp.a', {
-  //   cmd: `@cd deps/easyloggingpp && mkdir -p build && cd build && cmake -Dbuild_static_lib=true -DCMAKE_CXX_FLAGS="-DELPP_THREAD_SAFE" -DCMAKE_BUILD_TYPE=${DEV ? 'Debug' : 'Release'} --build ..`
-  //     + ' && make'
-  // })
-  ;
-
-  // libeasy_profiler
-  // cmake .. -DBUILD_SHARED_LIBS=OFF -DCMAKE_POSITION_INDEPENDENT_CODE=ON
+  });
 
   const gladCs = await new clang.CompileSet(buildSet, {std: 'c99', fPIC: true})
     .addSystemInclude('deps/glfw/deps')
@@ -73,11 +50,11 @@ const DEV = process.env.NODE_ENV !== 'production';
     .addLibrary(
       ...chunklandsGenericCs.getObjectPaths(),
       ...gladCs.getObjectPaths(),
-      'deps/glfw/src/libglfw3.a',
-      'deps/backward-cpp/libbackward.a',
+      'deps/glfw/build/src/libglfw3.a',
+      'deps/backward-cpp/build/libbackward.a',
       'deps/boost/stage/lib/*.a',
       'deps/easy_profiler/build/bin/libeasy_profiler.a',
-      // 'deps/easyloggingpp/build/libeasyloggingpp.a',
+      'deps/easyloggingpp/build/libeasyloggingpp.a',
     )
     .addLink(...os.platform() === 'linux' ? ['X11', 'dl', 'bfd'] : [])
     .addMacOSFramework('CoreVideo', 'OpenGL', 'IOKit', 'Cocoa', 'Carbon')

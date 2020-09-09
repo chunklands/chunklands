@@ -1,2 +1,9 @@
-# not a good idea to add the large boost repo as submodule, so it's downloaded
+/backward-cpp
 /boost
+/easy_profiler
+/easyloggingpp
+/glfw
+/glm
+/googletest
+/node
+/stb

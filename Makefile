@@ -18,15 +18,14 @@ clean:
 
 all: clean prog
 
-setup: setup-git setup-boost npm-ci
+setup: setup-deps npm-ci
 
-setup-git:
-	git submodule update --init --recursive
+setup-deps:
+	@cd deps && \
+		./install.sh && \
+		./build.sh
 
-setup-boost:
-	./bootstrap-boost.sh
-
-npm-ci:	
+npm-ci:
 	npm ci
 
 .PHONY: clean setup setup-git npm-ci test
