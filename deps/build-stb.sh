@@ -1,1 +1,1 @@
-echo "there is build needed for stb"
+echo "there is no build needed for stb"

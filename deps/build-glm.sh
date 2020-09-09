@@ -1,1 +1,1 @@
-echo "there is build needed for glm"
+echo "there is no build needed for glm"
