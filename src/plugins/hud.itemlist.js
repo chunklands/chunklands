@@ -29,26 +29,28 @@ module.exports = async function plugin(registry) {
     itemBlocks.push(...await Promise.all(itemBlockPromises));
   }
 
-  const selection = await engine.spriteInstanceCreate(models.sprites['sprite.itemlist-selection']);
+  const selection = await engine.spriteInstanceCreate(
+      models.sprites['sprite.itemlist-selection']);
 
-  let screenSize = engine.windowGetSize(window.handle);
+  let contentSize = engine.windowGetContentSize(window.handle);
   update();
 
-  const cleanup =
-      createBatchCall()
-        .add(engine.windowOn(window.handle, 'resize', event => {
-          screenSize = event;
-          update();
-        }))
-        .add(engine.windowOn(window.handle, 'scroll', event => {
-          selectedItem += event.y;
-          selectedItem = (selectedItem + ITEM_COUNT) % ITEM_COUNT;
-          update();
-        }));
+  const cleanup = createBatchCall()
+                      .add(engine.windowOn(
+                          window.handle, 'contentresize',
+                          event => {
+                            contentSize = event;
+                            update();
+                          }))
+                      .add(engine.windowOn(window.handle, 'scroll', event => {
+                        selectedItem += event.y;
+                        selectedItem = (selectedItem + ITEM_COUNT) % ITEM_COUNT;
+                        update();
+                      }));
 
   function update() {
-    const itemWidth =
-        ((screenSize.width - 2 * LEFT_PADDING) - (ITEM_COUNT - 1) * ITEM_PADDING) /
+    const itemWidth = ((contentSize.width - 2 * LEFT_PADDING) -
+                       (ITEM_COUNT - 1) * ITEM_PADDING) /
         ITEM_COUNT;
 
     const blockPadding = itemWidth * 0.2;
@@ -64,7 +66,8 @@ module.exports = async function plugin(registry) {
           item, {x, y, z: 0.1, show: true, scale: itemWidth});
 
       if (i === Math.round(selectedItem)) {
-        engine.spriteInstanceUpdate(selection, {x, y, z: 0.15, show: true, scale: itemWidth});
+        engine.spriteInstanceUpdate(
+            selection, {x, y, z: 0.15, show: true, scale: itemWidth});
       }
 
       const itemBlock = itemBlocks[i];

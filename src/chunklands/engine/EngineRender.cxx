@@ -8,6 +8,7 @@
 #include <chunklands/engine/render/LightingPass.hxx>
 #include <chunklands/engine/render/SpritePass.hxx>
 #include <chunklands/engine/window/Window.hxx>
+#include <chunklands/libcxx/ThreadGuard.hxx>
 #include <chunklands/libcxx/easy_profiler.hxx>
 
 namespace chunklands::engine {
@@ -17,8 +18,6 @@ Engine::RenderPipelineInit(CEWindowHandle* handle, CERenderPipelineInit init)
 {
     EASY_FUNCTION();
     ENGINE_FN();
-
-    ENGINE_CHECK(data_->render.gbuffer == nullptr);
 
     return EnqueueTask(data_->executors.opengl, [this, handle, init = std::move(init)]() -> EngineResultX<CENone> {
         EASY_FUNCTION();
@@ -74,30 +73,29 @@ Engine::RenderPipelineInit(CEWindowHandle* handle, CERenderPipelineInit init)
 
         data_->render.initialized = true;
 
-        auto x = [this](const window::size& size) {
-            glm::vec2 s(size.width, size.height);
-            constexpr float zFar = 1000.f;
-            constexpr float zNear = 0.1f;
+        assert(libcxx::ThreadGuard::IsOpenGLThread());
+        auto handle_content_resize = [this](const window::content_size& content_size) {
+            // will be immediately called via OpenGL thread, then always as GLFW callback in main thread
 
-            glViewport(0, 0, size.width, size.height);
-            data_->render.proj = glm::perspective(glm::radians(75.f), s.x / s.y, zNear, zFar);
+            EnqueueTask(data_->executors.opengl, [this, content_size = std::move(content_size)]() {
+                assert(libcxx::ThreadGuard::IsOpenGLThread());
 
-            data_->render.sprite_proj = glm::ortho(0.f, float(size.width), 0.f, float(size.height));
+                glm::vec2 s(content_size.size.width, content_size.size.height);
+                constexpr float zFar = 1000.f;
+                constexpr float zNear = 0.1f;
 
-            // const float min_dim = std::min(s.x, s.y);
-            // data_->render.sprite_proj = glm::ortho(
-            //     (min_dim - ((min_dim - s.x) / 2.f)) / min_dim,
-            //     (min_dim - s.x) / 2.f / min_dim,
-            //     (min_dim - s.y) / 2.f / min_dim,
-            //     (min_dim - ((min_dim - s.y) / 2.f)) / min_dim);
+                glViewport(0, 0, content_size.size.width, content_size.size.height);
+                data_->render.proj = glm::perspective(glm::radians(75.f), s.x / s.y, zNear, zFar);
 
-            data_->render.text_proj = glm::ortho(0.f, float(size.width), 0.f, float(size.height));
+                data_->render.sprite_proj = glm::ortho(0.f, float(content_size.size.width), 0.f, float(content_size.size.height));
+                data_->render.text_proj = glm::ortho(0.f, float(content_size.size.width), 0.f, float(content_size.size.height));
 
-            data_->render.gbuffer->UpdateBuffers(size.width, size.height);
+                data_->render.gbuffer->UpdateBuffers(content_size.size.width, content_size.size.height);
+            });
         };
 
-        data_->render.window_resize_conn = window->on_resize.connect(x);
-        x(window->GetSize());
+        data_->render.window_resize_conn = window->on_content_resize.connect(handle_content_resize);
+        handle_content_resize(window->GetContentSize());
 
         // depth test
         glEnable(GL_DEPTH_TEST);

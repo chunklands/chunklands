@@ -1,6 +1,7 @@
 #ifndef __CHUNKLANDS_ENGINE_COLLISION_COLLISION_HXX__
 #define __CHUNKLANDS_ENGINE_COLLISION_COLLISION_HXX__
 
+#include <algorithm>
 #include <cmath>
 #include <glm/vec3.hpp>
 
@@ -67,7 +68,7 @@ namespace {
 }
 
 struct collision_impulse {
-    explicit collision_impulse() {}
+    explicit collision_impulse() { }
     explicit collision_impulse(collision_1D collision)
         : collision(std::move(collision))
     {

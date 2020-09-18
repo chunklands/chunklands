@@ -3,6 +3,7 @@
 
 #include "Program.hxx"
 #include <chunklands/engine/gl/gl_check.hxx>
+#include <chunklands/libcxx/ThreadGuard.hxx>
 #include <chunklands/libcxx/glfw.hxx>
 #include <glm/gtc/type_ptr.hpp>
 #include <string>
@@ -42,7 +43,7 @@ inline void update_uniform(GLint location, const glm::vec2& value)
 template <class T>
 class Uniform {
 public:
-    Uniform() {}
+    Uniform() { }
     Uniform(GLint location)
         : location_(location)
     {
@@ -68,6 +69,7 @@ public:
 
     inline void Update(const T& value)
     {
+        assert(libcxx::ThreadGuard::IsOpenGLThread());
         assert(location_ != -1);
         update_uniform(location_, value);
         GL_CHECK_DEBUG();

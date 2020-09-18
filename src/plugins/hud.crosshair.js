@@ -10,11 +10,11 @@ module.exports = async function plugin(registry) {
   const sprite = models.sprites['sprite.crosshair'];
   const crosshair = await engine.spriteInstanceCreate(sprite);
 
-  const size = engine.windowGetSize(window.handle);
-  update(size.width, size.height);
+  const contentSize = engine.windowGetContentSize(window.handle);
+  update(contentSize.width, contentSize.height);
 
-  const cleanup =
-      createBatchCall().add(engine.windowOn(window.handle, 'resize', event => {
+  const cleanup = createBatchCall().add(
+      engine.windowOn(window.handle, 'contentresize', event => {
         update(event.width, event.height);
       }));
 

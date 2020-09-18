@@ -7,6 +7,7 @@
 #include <chunklands/engine/render/GBufferPass.hxx>
 #include <chunklands/engine/render/LightingPass.hxx>
 #include <chunklands/engine/window/Window.hxx>
+#include <chunklands/libcxx/ThreadGuard.hxx>
 #include <chunklands/libcxx/easy_profiler.hxx>
 #include <chunklands/libcxx/easylogging++.hxx>
 #include <iostream>
@@ -23,6 +24,7 @@ Engine::Engine()
 
     data_->executors.opengl_thread = std::thread([this]() {
         EASY_THREAD("EngineThread");
+        libcxx::ThreadGuard::DeclareOpenGLThread();
         el::Helpers::setThreadName("ce");
 
         {
@@ -194,11 +196,6 @@ void Engine::Render(double diff, double now)
             }
             data_->render.text->EndPass();
         }
-    }
-
-    if (data_->glfw.start_poll_events) {
-        EASY_BLOCK("glfwPollEvents");
-        glfwPollEvents();
     }
 
     {

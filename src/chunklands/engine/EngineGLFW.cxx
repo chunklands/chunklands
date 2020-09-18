@@ -12,38 +12,34 @@ Engine::GLFWInit()
     EASY_FUNCTION();
     ENGINE_FN();
 
-    return EnqueueTask(data_->executors.opengl, [this]() -> EngineResultX<CENone> {
+    const int result = glfwInit();
+    const bool initialized = result == GLFW_TRUE;
+    ENGINE_CHECK(initialized);
+
+    GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+    ENGINE_CHECK(monitor != nullptr);
+
+    const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+    ENGINE_CHECK(mode != nullptr);
+
+    const int refresh_rate = mode->refreshRate;
+
+    return EnqueueTask(data_->executors.opengl, [this, initialized, refresh_rate]() -> EngineResultX<CENone> {
         EASY_FUNCTION();
-        const int result = glfwInit();
-        data_->glfw.initialized = result == GLFW_TRUE;
-        ENGINE_CHECK(data_->glfw.initialized);
 
-        GLFWmonitor* monitor = glfwGetPrimaryMonitor();
-        ENGINE_CHECK(monitor != nullptr);
+        assert(initialized);
+        data_->glfw.initialized = initialized;
+        data_->gameloop.render_refresh_rate = refresh_rate;
 
-        const GLFWvidmode* mode = glfwGetVideoMode(monitor);
-        ENGINE_CHECK(mode != nullptr);
-
-        data_->gameloop.render_refresh_rate = mode->refreshRate;
         return Ok();
     });
 }
 
-EngineResultX<CENone> Engine::GLFWStartPollEvents(bool poll)
+EngineResultX<CENone>
+Engine::GLFWPollEvents()
 {
-    ENGINE_FN();
-    ENGINE_CHECK(data_->glfw.initialized);
-
-    data_->glfw.start_poll_events = poll;
+    glfwPollEvents();
     return Ok();
-}
-
-EngineResultX<bool> Engine::GLFWStartPollEvents() const
-{
-    ENGINE_FN();
-    ENGINE_CHECK(data_->glfw.initialized);
-
-    return Ok(data_->glfw.start_poll_events);
 }
 
 } // namespace chunklands::engine

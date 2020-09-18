@@ -1,10 +1,13 @@
 #include <chunklands/core/init.hxx>
+#include <chunklands/libcxx/ThreadGuard.hxx>
 #include <chunklands/libcxx/easylogging++.hxx>
 
 using namespace chunklands;
 
 JSObject InitModule(JSEnv env, JSObject exports)
 {
+    libcxx::ThreadGuard::DeclareMainThread();
+
     el::Loggers::addFlag(el::LoggingFlag::ColoredTerminalOutput);
     el::Loggers::reconfigureAllLoggers(el::ConfigurationType::Format, "[%thread] %levshort: %msg");
 

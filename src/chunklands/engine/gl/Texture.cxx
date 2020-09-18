@@ -1,5 +1,6 @@
 
 #include "Texture.hxx"
+#include <chunklands/libcxx/ThreadGuard.hxx>
 
 namespace chunklands::engine::gl {
 
@@ -17,6 +18,8 @@ GLenum channels_to_format(int channels)
 
 Texture::~Texture()
 {
+    assert(libcxx::ThreadGuard::IsOpenGLThread());
+
     if (texture_ != 0) {
         glDeleteTextures(1, &texture_);
         texture_ = 0;
@@ -25,6 +28,8 @@ Texture::~Texture()
 
 Texture::Texture(const image::image& image)
 {
+    assert(libcxx::ThreadGuard::IsOpenGLThread());
+
     glGenTextures(1, &texture_);
     glBindTexture(GL_TEXTURE_2D, texture_);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image.width, image.height, 0, channels_to_format(image.channels), GL_UNSIGNED_BYTE, image.data.get());

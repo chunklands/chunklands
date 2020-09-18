@@ -5,11 +5,22 @@ module.exports = async function plugin(registry) {
 
   await engine.GLFWInit();
 
-  engine.GLFWStartPollEvents(true);
   const handle = await engine.windowCreate(1024, 768, 'chunklands');
   await engine.windowLoadGL(handle);
 
+  let tid;
+  function pollEvents() {
+    tid = setTimeout(() => {
+      engine.GLFWPollEvents();
+      pollEvents();
+    }, 10);
+  }
+  pollEvents();
+
   return {
+    onTerminate() {
+      clearTimeout(tid);
+    },
     handle
   };
 }

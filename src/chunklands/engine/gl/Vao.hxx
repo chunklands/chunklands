@@ -4,6 +4,7 @@
 #include <boost/move/core.hpp>
 #include <chunklands/engine/gl/gl_check.hxx>
 #include <chunklands/engine/types.hxx>
+#include <chunklands/libcxx/ThreadGuard.hxx>
 #include <chunklands/libcxx/glfw.hxx>
 
 namespace chunklands::engine::gl {
@@ -210,7 +211,7 @@ struct X<CEVaoElementText> {
 template <GLenum Mode, class T>
 class Vao {
 public:
-    Vao() {}
+    Vao() { }
     ~Vao()
     {
         Clear();
@@ -218,6 +219,8 @@ public:
 
     void Clear()
     {
+        assert(libcxx::ThreadGuard::IsOpenGLThread());
+
         if (vbo_ != 0) {
             glDeleteBuffers(1, &vbo_);
             vbo_ = 0;
@@ -231,6 +234,8 @@ public:
 
     void Initialize(const T* data, int count)
     {
+        assert(libcxx::ThreadGuard::IsOpenGLThread());
+
         GL_CHECK_DEBUG();
 
         glGenVertexArrays(1, &vao_);
@@ -249,6 +254,8 @@ public:
 
     void Render() const
     {
+        assert(libcxx::ThreadGuard::IsOpenGLThread());
+
         if (count_ > 0 && vao_ != 0) {
             GL_CHECK_DEBUG();
             glBindVertexArray(vao_);

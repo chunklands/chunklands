@@ -45,7 +45,7 @@ EngineBridge::JSCall_cameraGetPosition(JSCbi info)
 JSValue
 EngineBridge::JSCall_cameraOn(JSCbi info)
 {
-    return EventHandler<engine::CECameraEvent>(
+    return OpenGLThreadEventHandler<engine::CECameraEvent>(
         info.Env(), info[0], info[1], [this](const std::string& type, auto cb) { return engine_->CameraOn(type, std::move(cb)); }, [](const engine::CECameraEvent& event, JSEnv, JSObject js_event) {
       if (event.type == "positionchange") {
         js_event["x"] = event.positionchange.x;

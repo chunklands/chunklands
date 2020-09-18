@@ -3,6 +3,7 @@
 
 #include <boost/signals2.hpp>
 #include <chunklands/engine/engine_exception.hxx>
+#include <chunklands/libcxx/ThreadGuard.hxx>
 
 namespace chunklands::core {
 
@@ -122,8 +123,10 @@ struct handler_data_t {
 };
 
 template <class Event, class F, class F2>
-JSValue EngineBridge::EventHandler(JSEnv env, JSValue js_type, JSValue js_callback, F&& fn_calls_engine, F2&& fn_result)
+JSValue EngineBridge::OpenGLThreadEventHandler(JSEnv env, JSValue js_type, JSValue js_callback, F&& fn_calls_engine, F2&& fn_result)
 {
+    assert(libcxx::ThreadGuard::IsMainThread());
+
     std::string type = js_type.ToString();
     napi_status status = napi_reference_ref(env, *this, nullptr);
     NAPI_THROW_IF_FAILED(env, status, JSValue());
@@ -138,10 +141,14 @@ JSValue EngineBridge::EventHandler(JSEnv env, JSValue js_type, JSValue js_callba
             [this,
                 js_callback_ref,
                 fn_result = std::forward<F2>(fn_result)](Event&& event) {
+                assert(libcxx::ThreadGuard::IsOpenGLThread());
+
                 fn_.NonBlockingCall(
                     js_callback_ref,
                     [event = std::forward<Event>(event),
                         fn_result = std::move(fn_result)](JSEnv env, JSFunction, napi_ref js_callback_ref) {
+                        assert(libcxx::ThreadGuard::IsMainThread());
+
                         napi_value js_callback_value;
                         napi_status status = napi_get_reference_value(env, js_callback_ref, &js_callback_value);
                         NAPI_THROW_IF_FAILED(env, status);
@@ -164,6 +171,76 @@ JSValue EngineBridge::EventHandler(JSEnv env, JSValue js_type, JSValue js_callba
                             throw e;
                         }
                     });
+            });
+
+    if (result.IsError()) {
+        status = napi_reference_unref(env, *this, nullptr);
+        NAPI_THROW_IF_FAILED(env, status, JSValue());
+
+        status = napi_delete_reference(env, js_callback_ref);
+        NAPI_THROW_IF_FAILED(env, status, JSValue());
+
+        JSError err = JSError::New(env, engine::get_engine_exception_message(result.Error()));
+        err.ThrowAsJavaScriptException();
+        return JSValue();
+    }
+
+    return JSFunction::New(
+        env, [conn = result.Value().release(), this_ref = (napi_ref)(*this), js_callback_ref](JSCbi info) {
+            assert(libcxx::ThreadGuard::IsMainThread());
+            conn.disconnect();
+
+            napi_status status;
+
+            status = napi_reference_unref(info.Env(), this_ref, nullptr);
+            NAPI_THROW_IF_FAILED(info.Env(), status, JSValue());
+
+            status = napi_delete_reference(info.Env(), js_callback_ref);
+            NAPI_THROW_IF_FAILED(info.Env(), status, JSValue());
+        },
+        "cleanup", nullptr);
+}
+
+template <class Event, class F, class F2>
+JSValue EngineBridge::MainThreadEventHandler(JSEnv env, JSValue js_type, JSValue js_callback, F&& fn_calls_engine, F2&& fn_result)
+{
+    assert(libcxx::ThreadGuard::IsMainThread());
+
+    std::string type = js_type.ToString();
+    napi_status status = napi_reference_ref(env, *this, nullptr);
+    NAPI_THROW_IF_FAILED(env, status, JSValue());
+
+    napi_ref js_callback_ref = nullptr;
+    status = napi_create_reference(env, js_callback, 1, &js_callback_ref);
+    NAPI_THROW_IF_FAILED(env, status, JSValue());
+
+    engine::EngineResultX<engine::EventConnection>
+        result = fn_calls_engine(
+            std::move(type),
+            [js_callback_ref, fn_result = std::forward<F2>(fn_result), env](Event&& event) {
+                assert(libcxx::ThreadGuard::IsMainThread());
+
+                napi_value js_callback_value;
+                napi_status status = napi_get_reference_value(env, js_callback_ref, &js_callback_value);
+                NAPI_THROW_IF_FAILED(env, status);
+
+                JSFunction js_callback(env, js_callback_value);
+
+                JSObject js_event = JSObject::New(env);
+                js_event["type"] = JSString::New(env, event.type);
+
+                fn_result(event, env, js_event);
+
+                try {
+                    js_callback.Call({ js_event });
+                } catch (const JSError& e) {
+                    std::string stack = e.Get("stack").ToString();
+                    std::cerr << e.Message() << "\n"
+                              << stack << std::endl;
+
+                    // TODO(daaitch): js unhandled rejections handler
+                    throw e;
+                }
             });
 
     if (result.IsError()) {

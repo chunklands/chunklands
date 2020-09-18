@@ -12,9 +12,9 @@ EngineBridge::JSCall_GLFWInit(JSCbi info)
         create_resolver<engine::CENone>());
 }
 
-void EngineBridge::JSCall_GLFWStartPollEvents(JSCbi info)
+void EngineBridge::JSCall_GLFWPollEvents(JSCbi info)
 {
-    engine_->GLFWStartPollEvents(info[0].ToBoolean());
+    resolve(info.Env(), engine_->GLFWPollEvents());
 }
 
 } // namespace chunklands::core
