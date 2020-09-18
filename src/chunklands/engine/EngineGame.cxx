@@ -1,6 +1,7 @@
 
 #include "Engine.hxx"
 #include "EngineData.hxx"
+#include <chunklands/libcxx/ThreadGuard.hxx>
 
 namespace chunklands::engine {
 
@@ -8,6 +9,7 @@ EngineResultX<EventConnection> Engine::GameOn(const std::string& event, std::fun
 {
     if (event == "pointingblockchange") {
         return Ok(EventConnection(data_->game.on_pointingblock_change.connect([callback = std::move(callback)](const std::optional<glm::ivec3>& pointing_block) {
+            assert(libcxx::ThreadGuard::IsOpenGLThread());
             CEGameEvent event("pointingblockchange");
             if (pointing_block) {
                 const glm::ivec3& v = *pointing_block;

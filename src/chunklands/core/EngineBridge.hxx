@@ -23,13 +23,14 @@ class EngineBridge : public JSObjectWrap<EngineBridge> {
 
     // GLFW
     JS_DECL_CB(GLFWInit)
-    JS_DECL_CB_VOID(GLFWStartPollEvents)
+    JS_DECL_CB_VOID(GLFWPollEvents)
 
     // window
     JS_DECL_CB(windowCreate)
     JS_DECL_CB(windowLoadGL)
     JS_DECL_CB(windowOn)
     JS_DECL_CB(windowGetSize)
+    JS_DECL_CB(windowGetContentSize)
 
     // RenderPipeline
     JS_DECL_CB(renderPipelineInit)
@@ -97,7 +98,10 @@ private:
     inline JSValue RunInNodeThread(JSEnv env, boost::future<T> result, F&& fn);
 
     template <class Event, class F, class F2>
-    JSValue EventHandler(JSEnv env, JSValue js_type, JSValue js_callback, F&& fn_calls_engine, F2&& fn_result);
+    JSValue OpenGLThreadEventHandler(JSEnv env, JSValue js_type, JSValue js_callback, F&& fn_calls_engine, F2&& fn_result);
+
+    template <class Event, class F, class F2>
+    JSValue MainThreadEventHandler(JSEnv env, JSValue js_type, JSValue js_callback, F&& fn_calls_engine, F2&& fn_result);
 
 private:
     inline bool IsNodeThread() const

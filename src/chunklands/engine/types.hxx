@@ -223,6 +223,13 @@ struct CEVector3i {
     int x = 0, y = 0, z = 0;
 };
 
+struct CEWindowContentSize {
+    int width = 0;
+    int height = 0;
+    float xscale = 0.f;
+    float yscale = 0.f;
+};
+
 struct CEBlockFace {
     FaceType type;
     std::vector<CEVaoElementChunkBlock> data;
@@ -288,6 +295,13 @@ struct CEWindowEvent : public CEEvent {
             int width;
             int height;
         } resize;
+
+        struct {
+            int width;
+            int height;
+            float xscale;
+            float yscale;
+        } content_resize;
 
         struct {
             double x;

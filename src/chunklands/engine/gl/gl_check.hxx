@@ -2,6 +2,7 @@
 #define __CHUNKLANDS_ENGINE_GL_GL_CHECK_HXX__
 
 #include <chunklands/engine/engine_exception.hxx>
+#include <chunklands/libcxx/ThreadGuard.hxx>
 #include <chunklands/libcxx/glfw.hxx>
 
 #ifndef NDEBUG
@@ -16,6 +17,8 @@ namespace chunklands::engine::gl {
 
 inline void gl_check()
 {
+    assert(libcxx::ThreadGuard::IsOpenGLThread());
+
     const GLenum error = glGetError();
     if (error != GL_NO_ERROR) {
         std::stringstream ss;

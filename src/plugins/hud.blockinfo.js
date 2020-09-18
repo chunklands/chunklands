@@ -8,7 +8,7 @@ module.exports = async function plugin(registry) {
 
   const fontHeight = font.fontSize('').height;
   const blockText = await engine.textCreate(font.handle);
-  updatePosition(engine.windowGetSize(window.handle).height);
+  updatePosition(engine.windowGetContentSize(window.handle).height);
 
   const cleanup =
       createBatchCall()
@@ -20,7 +20,7 @@ module.exports = async function plugin(registry) {
                     '';
                 updateText(text);
               }))
-          .add(engine.windowOn(window.handle, 'resize', event => {
+          .add(engine.windowOn(window.handle, 'contentresize', event => {
             updatePosition(event.height);
           }));
 

@@ -31,6 +31,7 @@ GLuint compile(const GLuint shader, const GLchar* const source)
 
 Program::Program(const char* const vsh_source, const char* const fsh_source)
 {
+    assert(libcxx::ThreadGuard::IsOpenGLThread());
     GL_CHECK_DEBUG();
 
     const GLuint vertex_shader = glCreateShader(GL_VERTEX_SHADER);
@@ -61,6 +62,8 @@ Program::Program(const char* const vsh_source, const char* const fsh_source)
 
 GLint Program::GetUniformLocation(const std::string& name) const
 {
+    assert(libcxx::ThreadGuard::IsOpenGLThread());
+
     const GLint location = glGetUniformLocation(program_, name.data());
     if (location == -1) {
         std::string message = "illegal uniform location: " + name;
@@ -72,6 +75,8 @@ GLint Program::GetUniformLocation(const std::string& name) const
 
 GLint Program::GetUniformLocation(const std::string& name, const int index) const
 {
+    assert(libcxx::ThreadGuard::IsOpenGLThread());
+
     return GetUniformLocation(name + "[" + std::to_string(index) + "]");
 }
 

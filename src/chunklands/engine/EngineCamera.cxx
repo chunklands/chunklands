@@ -2,6 +2,7 @@
 #include "Engine.hxx"
 #include "EngineData.hxx"
 #include "api_util.hxx"
+#include <chunklands/libcxx/ThreadGuard.hxx>
 #include <chunklands/libcxx/easy_profiler.hxx>
 
 namespace chunklands::engine {
@@ -63,13 +64,14 @@ Engine::CameraGetPosition()
 }
 
 EngineResultX<EventConnection>
-Engine::CameraOn(const std::string& event, std::function<void(CECameraEvent)> callback)
+Engine::CameraOn(const std::string& event, std::function<void(CECameraEvent)> opengl_thread_callback)
 {
     if (event == "positionchange") {
-        return Ok(EventConnection(data_->camera.camera.on_position_change.connect([callback = std::move(callback)](CECameraPosition pos) {
+        return Ok(EventConnection(data_->camera.camera.on_position_change.connect([opengl_thread_callback = std::move(opengl_thread_callback)](CECameraPosition pos) {
+            assert(libcxx::ThreadGuard::IsOpenGLThread());
             CECameraEvent event("positionchange");
             event.positionchange = std::move(pos);
-            callback(std::move(event));
+            opengl_thread_callback(std::move(event));
         })));
     }
 

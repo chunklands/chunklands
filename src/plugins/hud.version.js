@@ -9,18 +9,16 @@ module.exports = async function plugin(registry) {
       [registry.get('engine'), registry.get('font'), registry.get('window')]);
 
   const versionTextSize = font.fontSize(TEXT);
-  console.log({versionTextSize})
   const versionText = await engine.textCreate(font.handle);
-  const size = engine.windowGetSize(window.handle);
-  update(size.width, size.height);
+  const contentSize = engine.windowGetContentSize(window.handle);
+  update(contentSize.width, contentSize.height);
 
-  const cleanup =
-      createBatchCall().add(engine.windowOn(window.handle, 'resize', event => {
+  const cleanup = createBatchCall().add(
+      engine.windowOn(window.handle, 'contentresize', event => {
         update(event.width, event.height);
       }));
 
   function update(screenWidth, screenHeight) {
-    console.log({screenWidth, screenHeight})
     engine.textUpdate(versionText, {
       text: TEXT,
       pos: {

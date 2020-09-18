@@ -12,6 +12,16 @@ struct size {
     int height = 0;
 };
 
+struct scale {
+    float x = 0.f;
+    float y = 0.f;
+};
+
+struct content_size {
+    size size;
+    scale scale;
+};
+
 struct cursor_move {
     double x = 0;
     double y = 0;
@@ -70,11 +80,29 @@ public:
         return size_;
     }
 
+    scale GetContentScale() const
+    {
+        return content_scale_;
+    }
+
+    size GetFramebufferSize() const
+    {
+        return framebuffer_size_;
+    }
+
+    content_size GetContentSize() const
+    {
+        return {
+            framebuffer_size_,
+            content_scale_
+        };
+    }
+
     void StartMouseGrab();
     void StopMouseGrab();
 
 private:
-    void InitializeSize();
+    void UpdateFramebufferSize();
 
 public:
     slot<void> on_close;
@@ -84,6 +112,8 @@ public:
     slot<mouse_grab> on_mouse_grab;
     slot<key> on_key;
     slot<scroll> on_scroll;
+    slot<scale> on_content_scale;
+    slot<content_size> on_content_resize;
 
 private:
     GLFWwindow* glfw_window_ = nullptr;
@@ -92,6 +122,8 @@ private:
     cursor_move last_cursor_;
     boost::signals2::scoped_connection mouse_grab_conn_;
     boost::atomic<size> size_;
+    boost::atomic<scale> content_scale_;
+    boost::atomic<size> framebuffer_size_;
 };
 
 } // namespace chunklands::engine::window

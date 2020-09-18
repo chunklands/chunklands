@@ -51,7 +51,7 @@ private:
 
     collision::MovementController movement_controller_;
     bool collision_ = true;
-    bool flight_mode_ = false;
+    bool flight_mode_ = true;
     bool is_grounded_ = true;
     double last_ground_time_ = 0.0;
 };

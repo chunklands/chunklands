@@ -12,6 +12,7 @@ const gl::VaoElementRenderQuad quad_vertices[] = {
 
 RenderQuad::RenderQuad()
 {
+    assert(libcxx::ThreadGuard::IsOpenGLThread());
     vao_.Initialize(quad_vertices, 4);
 }
 

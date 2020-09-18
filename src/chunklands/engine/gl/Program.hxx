@@ -1,6 +1,8 @@
 #ifndef __CHUNKLANDS_ENGINE_GL_PROGRAM_HXX__
 #define __CHUNKLANDS_ENGINE_GL_PROGRAM_HXX__
 
+#include <cassert>
+#include <chunklands/libcxx/ThreadGuard.hxx>
 #include <chunklands/libcxx/glfw.hxx>
 #include <string>
 
@@ -12,11 +14,13 @@ public:
 
     void Use() const
     {
+        assert(libcxx::ThreadGuard::IsOpenGLThread());
         glUseProgram(program_);
     }
 
     void Unuse() const
     {
+        assert(libcxx::ThreadGuard::IsOpenGLThread());
         glUseProgram(0);
     }
 

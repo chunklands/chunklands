@@ -1,5 +1,6 @@
 
 #include "Window.hxx"
+#include <chunklands/libcxx/ThreadGuard.hxx>
 #include <iostream>
 
 namespace chunklands::engine::window {
@@ -24,12 +25,45 @@ Window::Window(GLFWwindow* glfw_window)
         thiz->on_close();
     });
 
-    InitializeSize();
+    UpdateFramebufferSize();
+
+    {
+        size size;
+        glfwGetWindowSize(glfw_window_, &size.width, &size.height);
+        size_ = size; // atomic
+    }
+
     glfwSetWindowSizeCallback(glfw_window, [](GLFWwindow* w, int width, int height) {
         Window* const thiz = detail::Unwrap(w);
         size s { .width = width, .height = height };
         thiz->size_ = s;
+
+        thiz->UpdateFramebufferSize();
+
         thiz->on_resize(s);
+        thiz->on_content_resize(content_size {
+            thiz->framebuffer_size_,
+            thiz->content_scale_ });
+    });
+
+    {
+        scale content_scale;
+        glfwGetWindowContentScale(glfw_window_, &content_scale.x, &content_scale.y);
+        content_scale_ = content_scale;
+    }
+
+    glfwSetWindowContentScaleCallback(glfw_window, [](GLFWwindow* w, float xscale, float yscale) {
+        Window* const thiz = detail::Unwrap(w);
+
+        scale s { .x = xscale, .y = yscale };
+        thiz->content_scale_ = s;
+
+        thiz->UpdateFramebufferSize();
+
+        thiz->on_content_scale(s);
+        thiz->on_content_resize(content_size {
+            thiz->framebuffer_size_,
+            thiz->content_scale_ });
     });
 
     glfwSetCursorPosCallback(glfw_window, [](GLFWwindow* w, double x, double y) {
@@ -60,19 +94,29 @@ Window::Window(GLFWwindow* glfw_window)
         Window* const thiz = detail::Unwrap(w);
         thiz->on_scroll(scroll {
             .x = x,
-            .y = y
-        });
+            .y = y });
     });
 }
 
 Window::~Window()
 {
+    assert(libcxx::ThreadGuard::IsMainThread());
+
     glfwDestroyWindow(glfw_window_);
     std::cout << "~Window" << std::endl;
 }
 
+void Window::UpdateFramebufferSize()
+{
+    size framebuffer_size;
+    glfwGetFramebufferSize(glfw_window_, &framebuffer_size.width, &framebuffer_size.height);
+    framebuffer_size_ = framebuffer_size;
+}
+
 bool Window::LoadGL()
 {
+    assert(libcxx::ThreadGuard::IsOpenGLThread());
+
     glfwMakeContextCurrent(glfw_window_);
     glfwSwapInterval(1);
     const int result = gladLoadGL((GLADloadfunc)glfwGetProcAddress);
@@ -82,15 +126,8 @@ bool Window::LoadGL()
 
 void Window::SwapBuffers()
 {
+    assert(libcxx::ThreadGuard::IsOpenGLThread());
     glfwSwapBuffers(glfw_window_);
-}
-
-void Window::InitializeSize()
-{
-    size size;
-    glfwGetWindowSize(glfw_window_, &size.width, &size.height);
-
-    size_ = size;
 }
 
 void Window::StartMouseGrab()
