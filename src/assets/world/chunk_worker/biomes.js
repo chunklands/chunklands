@@ -1,16 +1,12 @@
 const algorithm = require('./algorithm');
-const { BiomeGenerator } = require('../biomes');
+const {BiomeGenerator} = require('../biomes');
 class MountainBiome {
   constructor(x, z) {
     this.x = x;
     this.z = z;
 
-    this._height = algorithm.createSimplexNoise({
-      f0: 256,
-      lacunarity: 3.6,
-      persistence: 0.5,
-      octaves: 7
-    });
+    this._height = algorithm.createSimplexNoise(
+        {f0: 256, lacunarity: 3.6, persistence: 0.5, octaves: 7});
   }
 
   getHeight(x, z) {
@@ -23,12 +19,8 @@ class ExtremeMountainBiome {
     this.x = x;
     this.z = z;
 
-    this._height = algorithm.createSimplexNoise({
-      f0: 11,
-      lacunarity: 8.41,
-      persistence: 0.8,
-      octaves: 7
-    });
+    this._height = algorithm.createSimplexNoise(
+        {f0: 11, lacunarity: 8.41, persistence: 0.8, octaves: 7});
   }
 
   getHeight(x, z) {
@@ -41,9 +33,7 @@ class FlatBiome {
     this.x = x;
     this.z = z;
 
-    this._height = algorithm.createSimplexNoise({
-      f0: 64
-    });
+    this._height = algorithm.createSimplexNoise({f0: 64});
   }
 
   getHeight(x, z) {
@@ -52,7 +42,7 @@ class FlatBiome {
 }
 
 /**
- * @param {number} chunkDim 
+ * @param {number} chunkDim
  */
 function create(chunkDim) {
   let spotCount = 0;
@@ -62,8 +52,10 @@ function create(chunkDim) {
   //   console.log(`spots per chunk = ${spotCount / generatedChunks}`)
   // }, 500);
 
-  const biomeNoise = algorithm.createSimplexNoise({f0: 32, octaves: 3, persistence: 0.5, lacunarity: 3.1});
-  const spotsNoise = algorithm.createSimplexNoise({f0: 8, octaves: 8, persistence: 0.56, lacunarity: 1.34});
+  const biomeNoise = algorithm.createSimplexNoise(
+      {f0: 32, octaves: 3, persistence: 0.5, lacunarity: 3.1});
+  const spotsNoise = algorithm.createSimplexNoise(
+      {f0: 8, octaves: 8, persistence: 0.56, lacunarity: 1.34});
   const biomeGenerator = new BiomeGenerator(chunkDim, (chunkX, chunkZ) => {
     const spotNoiseValue = spotsNoise(chunkX, chunkZ);
     const hasSpot = spotNoiseValue > 0.5;
@@ -80,19 +72,20 @@ function create(chunkDim) {
     const coordZ = chunkZ * chunkDim + z;
 
     const biomeNoiseValue = biomeNoise(coordX, coordZ);
-    const biome = (biomeNoiseValue * 3)|0;
+    const biome = (biomeNoiseValue * 3) | 0;
     switch (biome) {
-      case 0: return [new ExtremeMountainBiome(coordX, coordZ)];
-      case 1: return [new MountainBiome(coordX, coordZ)];
-      case 2: return [new FlatBiome(coordX, coordZ)];
+      case 0:
+        return [new ExtremeMountainBiome(coordX, coordZ)];
+      case 1:
+        return [new MountainBiome(coordX, coordZ)];
+      case 2:
+        return [new FlatBiome(coordX, coordZ)];
     }
 
     return [];
   });
 
-  return {
-    biomeGenerator
-  };
+  return {biomeGenerator};
 }
 
 module.exports = create;

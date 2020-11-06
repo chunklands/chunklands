@@ -1,6 +1,11 @@
 const tap = require('tap');
 const sinon = require('sinon');
-const { boundaries, touchingChunkCoordsWithinDistance, centerChunkPos, BiomeGenerator } = require('./biomes');
+const {
+  boundaries,
+  touchingChunkCoordsWithinDistance,
+  centerChunkPos,
+  BiomeGenerator
+} = require('./biomes');
 
 tap.test('boundaries', async t => {
   const it = boundaries(1, -2, 3);
@@ -10,7 +15,7 @@ tap.test('boundaries', async t => {
     t.false(next.done);
     return next.value;
   }
-  
+
   // center
   t.deepEqual(hasNext(), [1, -2]);
 
@@ -79,7 +84,11 @@ tap.test('BiomeGenerator #1', async t => {
 
   const {nearestPoints, nearestDistances} = b.generateChunk(0, 0);
   const points = nearestPoints.map(p => p.name);
-  t.matchSnapshot({points, nearestDistances, pointGeneratorCalls: pointGenerator.getCalls().map(c => c.args)});
+  t.matchSnapshot({
+    points,
+    nearestDistances,
+    pointGeneratorCalls: pointGenerator.getCalls().map(c => c.args)
+  });
 });
 
 tap.test('BiomeGenerator #2', async t => {
@@ -88,8 +97,10 @@ tap.test('BiomeGenerator #2', async t => {
   const pointC = {x: 1, z: 7, name: 'C'};
   const pointGenerator = sinon.spy((x, z) => {
     switch (`${x}:${z}`) {
-      case '-2:2': return [pointA];
-      case '0:3': return [pointB, pointC];
+      case '-2:2':
+        return [pointA];
+      case '0:3':
+        return [pointB, pointC];
     }
 
     return [];
@@ -99,5 +110,9 @@ tap.test('BiomeGenerator #2', async t => {
 
   const {nearestPoints, nearestDistances} = b.generateChunk(-1, 3);
   const points = nearestPoints.map(p => p.name);
-  t.matchSnapshot({points, nearestDistances, pointGeneratorCalls: pointGenerator.getCalls().map(c => c.args)});
+  t.matchSnapshot({
+    points,
+    nearestDistances,
+    pointGeneratorCalls: pointGenerator.getCalls().map(c => c.args)
+  });
 });

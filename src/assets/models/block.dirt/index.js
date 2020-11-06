@@ -1,4 +1,4 @@
-const { promisify } = require('util');
+const {promisify} = require('util');
 const readFile = promisify(require('fs').readFile);
 
 module.exports = async () => ({

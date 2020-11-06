@@ -78,7 +78,7 @@ class PluginRegistry {
   async invokeHook(hookName, ...args) {
     const hookResults = [];
     for (const [name, {plugin, registry}] of this._plugins.entries()) {
-      const hook = plugin ?.[hookName];
+      const hook = plugin?.[hookName];
       if (hook instanceof Function) {
         registry.debug('invoke hook "%s"', hookName);
         const hookResult = Promise.resolve(hook.apply(plugin, args))

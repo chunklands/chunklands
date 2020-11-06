@@ -1,7 +1,8 @@
 module.exports = function createBatchCall() {
   let asyncCallbacks = [];
   const batchCall = async (...args) => {
-    await Promise.all(asyncCallbacks.map(asyncCallback => asyncCallback(...args)));
+    await Promise.all(
+        asyncCallbacks.map(asyncCallback => asyncCallback(...args)));
     asyncCallbacks = [];
   };
 

@@ -12,7 +12,7 @@ namespace chunklands::engine::algorithm::texture_bake {
 
 class TextureBakerEntity {
 public:
-    virtual ~TextureBakerEntity() {}
+    virtual ~TextureBakerEntity() { }
 
     virtual const stbi_uc* GetTextureData() const = 0;
     virtual int GetTextureWidth() const = 0;

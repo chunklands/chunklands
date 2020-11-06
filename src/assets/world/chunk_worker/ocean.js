@@ -1,16 +1,16 @@
 const algorithm = require('./algorithm');
 const math = require('./math');
 
-const oceanNoise = algorithm.createSimplexNoise({f0: 128, octaves: 8, persistence: 0.9, lacunarity: 4.178});
+const oceanNoise = algorithm.createSimplexNoise(
+    {f0: 128, octaves: 8, persistence: 0.9, lacunarity: 4.178});
 
 function create(chunkDim) {
-
-  const { blockIndex2D } = math(chunkDim);
+  const {blockIndex2D} = math(chunkDim);
 
   /**
-   * @param {Int8Array} oceanMap 
-   * @param {number} xOffset 
-   * @param {number} zOffset 
+   * @param {Int8Array} oceanMap
+   * @param {number} xOffset
+   * @param {number} zOffset
    */
   function generateOceanMapForChunk(oceanMap, xOffset, zOffset) {
     for (let px = 0; px < chunkDim; px++) {
@@ -21,9 +21,7 @@ function create(chunkDim) {
     }
   }
 
-  return {
-    generateOceanMapForChunk
-  };
+  return {generateOceanMapForChunk};
 };
 
 module.exports = create;

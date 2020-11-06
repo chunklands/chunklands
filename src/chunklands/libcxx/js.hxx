@@ -178,7 +178,7 @@ inline uint32_t js_index(int i)
 template <typename T>
 class JSWrapRef {
 public:
-    JSWrapRef() {}
+    JSWrapRef() { }
 
     JSWrapRef(JSObjectWrap<T>& wrap)
     {
@@ -282,7 +282,7 @@ JSError js_create_error(JSEnv env, const std::string& msg);
 template <class A>
 class JSAbstractUnwrap {
 public:
-    JSAbstractUnwrap() {}
+    JSAbstractUnwrap() { }
     JSAbstractUnwrap(JSValue wrap)
     {
         JSObject object = wrap.ToObject();
@@ -340,7 +340,7 @@ public:
         return JSRef2(env, ref);
     }
 
-    JSRef2() {}
+    JSRef2() { }
     JSRef2(napi_env env, napi_ref ref)
         : env_(env)
         , ref_(ref)

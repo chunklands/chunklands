@@ -6,8 +6,8 @@ function createSimplexNoise({f0 = 128, lacunarity, persistence, octaves = 1}) {
   return (x, y) => {
     let sample = 0;
 
-    let f = f0; // freq
-    let A = 1; // amplitude
+    let f = f0;  // freq
+    let A = 1;   // amplitude
     let Asum = 0;
 
     for (let i = 0; i < octaves; i++) {

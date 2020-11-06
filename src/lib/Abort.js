@@ -30,15 +30,14 @@ class Abort {
 
     try {
       return await Promise.race([
-        uncancelablePromise,
-        new Promise((resolve, reject) => {
+        uncancelablePromise, new Promise((resolve, reject) => {
           const abortCleanup = this.onceAbort(() => {
             reject(Abort.ABORT_ERROR);
           });
 
           cleanup = () => {
             abortCleanup();
-            resolve(); // no leaks
+            resolve();  // no leaks
           };
         })
       ]);
@@ -69,12 +68,12 @@ class Abort {
   offAbort(cb) {
     this._asyncCallbacks.delete(cb);
   }
-  
+
   async abort() {
     if (!this.aborted) {
       this.aborted = true;
-      const callbackPromises = []
-      this._asyncCallbacks.forEach(cb => { 
+      const callbackPromises = [];
+      this._asyncCallbacks.forEach(cb => {
         callbackPromises.push(Promise.resolve(cb(Abort.ABORT_ERROR)));
       });
       this._asyncCallbacks.clear();

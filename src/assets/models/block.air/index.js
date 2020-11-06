@@ -1,5 +1,1 @@
-module.exports = () => ({
-  id: 'block.air',
-  faces: {},
-  opaque: false
-});
+module.exports = () => ({id: 'block.air', faces: {}, opaque: false});

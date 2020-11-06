@@ -22,10 +22,11 @@ module.exports = class ChunkPrioLoader {
 
   _sortChunks() {
     this._chunks.sort(
-        (a, b) => {((b.x - this._pos.x) ** 2 + (b.y - this._pos.y) ** 2 +
-                    (b.z - this._pos.z) ** 2) -
-                   (a.x - this._pos.x) ** 2 + (a.y - this._pos.y) ** 2 +
-                   (a.z - this._pos.z) ** 2});
+        (a, b) => {
+            ((b.x - this._pos.x) ** 2 + (b.y - this._pos.y) ** 2 +
+             (b.z - this._pos.z) ** 2) -
+            (a.x - this._pos.x) ** 2 + (a.y - this._pos.y) ** 2 +
+            (a.z - this._pos.z) ** 2});
   }
 
   _generateChunks() {

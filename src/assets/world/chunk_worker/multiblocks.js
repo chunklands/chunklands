@@ -1,14 +1,17 @@
 const assert = require('assert');
 
 function create(chunkDim, blocks) {
-
-  const { 'block.wood': BLOCK_WOOD, 'block.air': BLOCK_AIR, 'block.cobblestone': BLOCK_COBBLESTONE } = blocks;
+  const {
+    'block.wood': BLOCK_WOOD,
+    'block.air': BLOCK_AIR,
+    'block.cobblestone': BLOCK_COBBLESTONE
+  } = blocks;
 
   class MultiBlock {
     /**
-     * @param {number} sx 
-     * @param {number} sy 
-     * @param {number} sz 
+     * @param {number} sx
+     * @param {number} sy
+     * @param {number} sz
      */
     constructor(sx, sy, sz) {
       this.sx = sx;
@@ -19,7 +22,7 @@ function create(chunkDim, blocks) {
     }
 
     /**
-     * @param {bigint[]} blockArray 
+     * @param {bigint[]} blockArray
      */
     setBlocks(blockArray) {
       assert(blockArray.length === this.blocks.length);
@@ -40,77 +43,47 @@ function create(chunkDim, blocks) {
   }
 
   const tree = new MultiBlock(3, 5, 3);
-  tree.setBlocks(blockChars({
-    ' ': BLOCK_AIR,
-    'w': BLOCK_WOOD,
-    'c': BLOCK_COBBLESTONE
-  }, [
-    '   ',
-    ' c ',
-    '   ',
-    '   ',
-    '   ',
+  tree.setBlocks(
+      blockChars({' ': BLOCK_AIR, 'w': BLOCK_WOOD, 'c': BLOCK_COBBLESTONE}, [
+        '   ',
+        ' c ',
+        '   ',
+        '   ',
+        '   ',
 
-    ' c ',
-    'ccc',
-    ' c ',
-    ' w ',
-    ' w ',
+        ' c ',
+        'ccc',
+        ' c ',
+        ' w ',
+        ' w ',
 
-    '   ',
-    ' c ',
-    '   ',
-    '   ',
-    '   ',
+        '   ',
+        ' c ',
+        '   ',
+        '   ',
+        '   ',
 
-  ]));
+      ]));
 
   const house = new MultiBlock(5, 5, 6);
-  house.setBlocks(blockChars({
-    'c': BLOCK_COBBLESTONE,
-    ' ': BLOCK_AIR,
-    'w': BLOCK_WOOD
-  }, [
-    '  w  ',
-    ' www ',
-    'wwwww',
-    'wcccw',
-    'wcccw',
+  house.setBlocks(
+      blockChars({'c': BLOCK_COBBLESTONE, ' ': BLOCK_AIR, 'w': BLOCK_WOOD}, [
+        '  w  ', ' www ', 'wwwww', 'wcccw', 'wcccw',
 
-    '  w  ',
-    ' w w ',
-    'w   w',
-    '    c',
-    'c   c',
+        '  w  ', ' w w ', 'w   w', '    c', 'c   c',
 
-    '  w  ',
-    ' w w ',
-    'w   w',
-    'c   c',
-    'c   c',
+        '  w  ', ' w w ', 'w   w', 'c   c', 'c   c',
 
-    '  w  ',
-    ' w w ',
-    'w   w',
-    '    c',
-    '    c',
+        '  w  ', ' w w ', 'w   w', '    c', '    c',
 
-    '  w  ',
-    ' w w ',
-    'w   w',
-    'c   c',
-    'c   c',
+        '  w  ', ' w w ', 'w   w', 'c   c', 'c   c',
 
-    '  w  ',
-    ' www ',
-    'wwwww',
-    'wcccw',
-    'wcccw',
-  ]));
+        '  w  ', ' www ', 'wwwww', 'wcccw', 'wcccw',
+      ]));
 
   /**
-   * @param {{[c: string]: number}} blocks 
-   * @param {string[]} inputArr 
+   * @param {{[c: string]: number}} blocks
+   * @param {string[]} inputArr
    */
   function blockChars(blocks, inputArr) {
     const buf = [];
@@ -124,13 +97,13 @@ function create(chunkDim, blocks) {
 
     return buf;
   }
-  
+
   class MultiBlockRef {
     /**
-     * @param {MultiBlock} multiblock 
-     * @param {number} x 
-     * @param {number} y 
-     * @param {number} z 
+     * @param {MultiBlock} multiblock
+     * @param {number} x
+     * @param {number} y
+     * @param {number} z
      */
     constructor(multiblock, x, y, z) {
       this.multiblock = multiblock;
@@ -172,11 +145,7 @@ function create(chunkDim, blocks) {
     }
   }
 
-  return {
-    tree,
-    house,
-    MultiBlockRef
-  };
+  return {tree, house, MultiBlockRef};
 }
 
 module.exports = create;

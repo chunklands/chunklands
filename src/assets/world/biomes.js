@@ -12,8 +12,8 @@ class BiomeGenerator {
   }
 
   generateChunk(x, z) {
-    const nearestPoints     = new Array(this._chunkSize * this._chunkSize);
-    const nearestDistances  = new Array(this._chunkSize * this._chunkSize);
+    const nearestPoints = new Array(this._chunkSize * this._chunkSize);
+    const nearestDistances = new Array(this._chunkSize * this._chunkSize);
 
     const points = this._findAllRelevantPointsForChunk(x, z);
     assert(points.length > 0);
@@ -28,7 +28,8 @@ class BiomeGenerator {
         const pz = coffz + z;
 
         let nearestPoint = points[0];
-        let nearestDistance = distance(nearestPoint.x - px, nearestPoint.z - pz);
+        let nearestDistance =
+            distance(nearestPoint.x - px, nearestPoint.z - pz);
 
         for (let pi = 1; pi < points.length; pi++) {
           const point = points[pi];
@@ -40,7 +41,7 @@ class BiomeGenerator {
           }
         }
 
-        nearestPoints[i]    = nearestPoint;
+        nearestPoints[i] = nearestPoint;
         nearestDistances[i] = nearestDistance;
         i++;
       }
@@ -51,10 +52,13 @@ class BiomeGenerator {
 
   _findAllRelevantPointsForChunk(x, z) {
     const nearPoint = this._findSomeNearPointForChunk(x, z);
-    const {farestDistance, farestPoint} = findFarestChunkPointResult(x, z, this._chunkSize, nearPoint.x, nearPoint.z);
+    const {farestDistance, farestPoint} = findFarestChunkPointResult(
+        x, z, this._chunkSize, nearPoint.x, nearPoint.z);
 
     const points = [];
-    for (const [cx, cz] of touchingChunkCoordsWithinDistance(farestPoint[X], farestPoint[Z], farestDistance * 2, this._chunkSize)) {
+    for (const [cx, cz] of touchingChunkCoordsWithinDistance(
+             farestPoint[X], farestPoint[Z], farestDistance * 2,
+             this._chunkSize)) {
       const chunk = this._needChunkWithPoints(cx, cz);
       points.push(...chunk.points);
     }
@@ -82,15 +86,13 @@ class BiomeGenerator {
 
     chunk = this._generateChunk(x, z);
     this._chunks.set(chunkKey, chunk);
-    
+
     return chunk;
   }
 
   _generateChunk(x, z) {
     const points = this._pointGenerator(x, z);
-    const chunk = {
-      points
-    };
+    const chunk = {points};
 
     return chunk;
   }
@@ -103,7 +105,7 @@ class BiomeGenerator {
 function findFarestChunkPointResult(x, z, chunkSize, px, pz) {
   const f00 = [x * chunkSize, z * chunkSize];
 
-  let farestPoint    = f00;
+  let farestPoint = f00;
   let farestDistance = distance(f00[X] - px, f00[Z] - pz);
 
   {
@@ -180,7 +182,7 @@ function* boundaries(x, z, iterationMax = 100) {
 }
 
 function distance(dx, dz) {
-  return Math.sqrt(dx*dx + dz*dz);
+  return Math.sqrt(dx ** 2 + dz ** 2);
 }
 
 module.exports = {

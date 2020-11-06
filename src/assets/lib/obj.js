@@ -2,16 +2,15 @@ const stream = require('stream');
 const assert = require('assert');
 
 class LineReader extends stream.Transform {
-
   constructor() {
     super({readableObjectMode: true});
     this._data = Buffer.from('');
   }
 
   /**
-   * @param {Buffer} chunk 
-   * @param {string} encoding 
-   * @param {Function} callback 
+   * @param {Buffer} chunk
+   * @param {string} encoding
+   * @param {Function} callback
    */
   _transform(chunk, encoding, callback) {
     this._data = Buffer.concat([this._data, chunk]);
@@ -49,9 +48,9 @@ class ObjFileParser extends stream.Transform {
   }
 
   /**
-   * @param {Buffer} chunk 
-   * @param {string} encoding 
-   * @param {Function} callback 
+   * @param {Buffer} chunk
+   * @param {string} encoding
+   * @param {Function} callback
    */
   _transform(chunk, encoding, callback) {
     const str = chunk.toString().trim();
@@ -92,7 +91,7 @@ class ObjFileParser extends stream.Transform {
         const t2 = tokens[3].split('/');
 
         // triangle 1
-        
+
         this._pushTokens(t2);
         this._pushTokens(t1);
         this._pushTokens(t0);
@@ -118,7 +117,7 @@ class ObjFileParser extends stream.Transform {
   }
 
   /**
-   * @param {string} vStr 
+   * @param {string} vStr
    */
   _pushVertex(vStr) {
     if (!vStr) {
@@ -134,11 +133,10 @@ class ObjFileParser extends stream.Transform {
   }
 
   /**
-   * 
-   * @param {[string, string, string]} param0 
+   *
+   * @param {[string, string, string]} param0
    */
   _pushTokens([vStr, vtStr, vnStr]) {
-
     // change order to vertex, normals, uvs
     this._pushVertex(vStr);
     this._pushNormal(vnStr);
@@ -146,7 +144,7 @@ class ObjFileParser extends stream.Transform {
   }
 
   /**
-   * @param {string} vtStr 
+   * @param {string} vtStr
    */
   _pushTexture(vtStr) {
     if (!vtStr) {
@@ -162,7 +160,7 @@ class ObjFileParser extends stream.Transform {
   }
 
   /**
-   * @param {string} vnStr 
+   * @param {string} vnStr
    */
   _pushNormal(vnStr) {
     if (!vnStr) {
@@ -192,7 +190,9 @@ class Sink extends stream.Writable {
 
   _write(chunk, encoding, callback) {
     for (let i = 0; i < chunk.length; i++) {
-      assert.ok(typeof chunk[i] === 'number', `chunk[i] = ${chunk[i]} (${typeof chunk[i]})`);
+      assert.ok(
+          typeof chunk[i] === 'number',
+          `chunk[i] = ${chunk[i]} (${typeof chunk[i]})`);
     }
 
     this._buffer.push(...chunk);
@@ -205,30 +205,25 @@ class Sink extends stream.Writable {
 }
 
 /**
- * @param {NodeJS.ReadableStream} input 
+ * @param {NodeJS.ReadableStream} input
  * @return {Promise<number[]>}
  */
 function readObj(input) {
   return new Promise((resolve, reject) => {
     const sink = new Sink();
-    stream.pipeline(
-      input,
-      new LineReader(),
-      new ObjFileParser(),
-      sink,
-      err => {
-        if (err) {
-          reject(err);
-          return;
-        }
+    stream.pipeline(input, new LineReader(), new ObjFileParser(), sink, err => {
+      if (err) {
+        reject(err);
+        return;
+      }
 
-        resolve(sink.getBuffer());
-      });
+      resolve(sink.getBuffer());
+    });
   });
 }
 
 /**
- * @param {string[]} tokens 
+ * @param {string[]} tokens
  */
 function tokensParseNumber(tokens) {
   const result = [];
