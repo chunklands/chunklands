@@ -81,12 +81,5 @@
     "scoped_allocator": "cpp",
     "valarray": "cpp",
     "*.inc": "cpp"
-  },
-  "C_Cpp.clang_format_fallbackStyle": "WebKit",
-  "C_Cpp.clang_format_style": "WebKit",
-  "clang-format.language.javascript.fallbackStyle": "Google",
-  "clang-format.language.typescript.fallbackStyle": "Google",
-  "editor.formatOnSave": true,
-  "clang-format.executable": "/usr/bin/clang-format-9",
-  "clang-format.language.cpp.style": "WebKit"
+  }
 }
