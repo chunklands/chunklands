@@ -1,18 +1,29 @@
 {
   "name": "chunklands",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "3D Game in NodeJS/OpenGL",
   "scripts": {
-    "start": "node src/app.js",
-    "dev": "nodemon --watch src --ext hxx,cxx,inl --exec \"make\"",
-    "dev:build": "make",
-    "test": "tap src/**/*.test.js",
-    "pretest": "make test",
-    "test:watch": "nodemon --watch src --ext hxx,cxx,inl --exec \"npm test\"",
-    "play": "node src/app.js",
-    "preplay": "cross-env NODE_ENV=production make",
+    "start": "node build",
+    "play": "node build",
+    "preplay": "concurrently npm:build:prod",
+    "dev": "concurrently npm:dev:*",
+    "dev:cxx": "nodemon --watch src --ext hxx,cxx,inl --exec \"make\"",
+    "dev:ts": "tsc -w --preserveWatchOutput",
+    "build:dev": "concurrently npm:build:dev:*",
+    "build:dev:cxx": "make",
+    "build:dev:ts": "tsc",
+    "build:prod": "concurrently npm:build:prod:*",
+    "build:prod:cxx": "cross-env NODE_ENV=production make",
+    "build:prod:ts": "tsc",
+    "test": "tap src/**/*.test.ts",
+    "test:watch": "nodemon --watch src --ext ts --exec \"npm test\"",
     "postinstall": "husky install",
-    "format": "node .clang-format.js"
+    "format": "concurrently npm:format:*",
+    "format:cxx": "node .clang-format.cxx.js",
+    "format:ts": "prettier --write src",
+    "check": "concurrently npm:check:*",
+    "check:prettier": "prettier --check src",
+    "check:lint": "eslint src --ext .ts"
   },
   "keywords": [
     "game",
@@ -24,23 +35,32 @@
     "boost"
   ],
   "license": "MIT",
-  "dependencies": {},
   "devDependencies": {
+    "@types/debug": "^4.1.5",
+    "@types/node": "^14.14.6",
+    "@types/sinon": "^9.0.8",
+    "@types/tap": "^14.10.1",
+    "@typescript-eslint/eslint-plugin": "^4.6.1",
+    "@typescript-eslint/parser": "^4.6.1",
     "concurrently": "^5.3.0",
     "cross-env": "^7.0.2",
     "debug": "^4.1.1",
     "dotenv": "^8.2.0",
+    "eslint": "^7.13.0",
     "execa": "^4.0.3",
     "glob": "^7.1.6",
     "husky": "^4.3.0",
     "node-addon-api": "^3.0.0",
     "nodemon": "^2.0.4",
+    "prettier": "^2.1.2",
     "sinon": "^9.0.3",
-    "tap": "^14.10.8"
+    "tap": "^14.10.8",
+    "typescript": "^4.0.5"
   },
   "husky": {
     "hooks": {
-      "pre-commit": "node .clang-format.js"
+      "pre-commit": "npm run format && npm run check && git add -A",
+      "pre-push": "npm run check"
     }
   }
 }

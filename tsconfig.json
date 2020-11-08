@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "lib": ["ES2020"],
+    "module": "CommonJS",
+    "target": "ES2020",
+    "outDir": "build",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "downlevelIteration": true,
+    "alwaysStrict": true,
+    "strict": true,
+    "resolveJsonModule": true,
+    "allowJs": true
+  },
+  "include": ["index.ts", "src/**/*.ts", "src/**/*.js"],
+  "exclude": ["node_modules", "**/*.spec.ts"]
+}

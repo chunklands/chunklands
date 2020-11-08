@@ -58,7 +58,7 @@ const DEV = process.env.NODE_ENV !== 'production';
     )
     .addLink(...os.platform() === 'linux' ? ['X11', 'dl', 'bfd'] : [])
     .addMacOSFramework('CoreVideo', 'OpenGL', 'IOKit', 'Cocoa', 'Carbon')
-    .addToBuildSet('build/chunklands.node');
+    .addToBuildSet('build/src/chunklands.node');
 
   // await new clang.CompileSet(buildSet, {std: 'c++2a', fPIC: true, shared: true})
   //   .addSystemInclude(
@@ -77,5 +77,5 @@ const DEV = process.env.NODE_ENV !== 'production';
   //   )
   //   .addToBuildSet('build/chunklands_test.node');
 
-  await buildSet.printMakefile('build/chunklands.node', process.stdout);
+  await buildSet.printMakefile('build/src/chunklands.node', process.stdout);
 })();
