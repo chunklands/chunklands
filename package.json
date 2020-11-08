@@ -4,25 +4,26 @@
   "description": "3D Game in NodeJS/OpenGL",
   "scripts": {
     "start": "node build",
-    "dev": "concurrently npm:cxx:watch npm:ts:watch",
-    "cxx:watch": "nodemon --watch src --ext hxx,cxx,inl --exec \"make\"",
-    "ts:watch": "tsc -w --preserveWatchOutput",
-    "build": "concurrently npm:cxx:build npm:ts:build",
-    "cxx:build": "make",
-    "ts:build": "tsc",
     "play": "node build",
-    "preplay": "concurrently -n cxx:build,ts:build \"cross-env NODE_ENV=production make\" npm:ts:build",
+    "preplay": "concurrently npm:build:prod",
+    "dev": "concurrently npm:dev:*",
+    "dev:cxx": "nodemon --watch src --ext hxx,cxx,inl --exec \"make\"",
+    "dev:ts": "tsc -w --preserveWatchOutput",
+    "build:dev": "concurrently npm:build:dev:*",
+    "build:dev:cxx": "make",
+    "build:dev:ts": "tsc",
+    "build:prod": "concurrently npm:build:prod:*",
+    "build:prod:cxx": "cross-env NODE_ENV=production make",
+    "build:prod:ts": "tsc",
     "test": "tap src/**/*.test.ts",
     "test:watch": "nodemon --watch src --ext ts --exec \"npm test\"",
     "postinstall": "husky install",
-    "format": "concurrently npm:format:cxx npm:format:ts",
+    "format": "concurrently npm:format:*",
     "format:cxx": "node .clang-format.cxx.js",
     "format:ts": "prettier --write src",
-    "prettier:check": "prettier --check src",
-    "lint": "eslint src --ext .ts",
-    "git:precommit": "concurrently npm:lint",
-    "pregit:precommit": "concurrently npm:format",
-    "git:prepush": "concurrently npm:prettier:check"
+    "check": "concurrently npm:check:*",
+    "check:prettier": "prettier --check src",
+    "check:lint": "eslint src --ext .ts"
   },
   "keywords": [
     "game",
@@ -58,8 +59,8 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "npm run git:precommit && git add -A",
-      "pre-push": "npm run git:prepush"
+      "pre-commit": "npm run format && npm run check && git add -A",
+      "pre-push": "npm run check"
     }
   }
 }

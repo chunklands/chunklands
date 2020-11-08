@@ -61,15 +61,46 @@ cat .env
 
 ## Development
 
-watch files and build
+### Build / Run
+#### Variant 1 - dev build, watch and run
+
+1. watch files and build dev
 ```bash
-npm run cxx:watch
-npm run ts:watch
+npm run dev
 ```
 
-start game
+2. start game
 ```bash
 npm start
+```
+
+#### Variant 2 - dev build and run
+
+build dev and run
+```bash
+npm run build:dev && npm start
+```
+
+#### Variant 3 - prod build and run
+
+build prod and run
+```bash
+npm run build:prod && npm start
+```
+
+or simply:
+
+```bash
+npm run play
+```
+
+### Other commands
+
+#### Clean
+
+remove /build directory
+```bash
+make clean
 ```
 
 ## Links
