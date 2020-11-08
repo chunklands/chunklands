@@ -39,3 +39,5 @@ registry
   .load('hud.blockinfo', hudBlockInfoPlugin)
   .load('hud.crosshair', hudCrosshairPlugin)
   .load('hud.version', hudVersionPlugin);
+
+console.log('hi')

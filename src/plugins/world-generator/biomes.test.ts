@@ -1,11 +1,7 @@
-const tap = require('tap');
-const sinon = require('sinon');
-const {
-  boundaries,
-  touchingChunkCoordsWithinDistance,
-  centerChunkPos,
-  BiomeGenerator
-} = require('./biomes');
+import tap from 'tap'
+import sinon from 'sinon';
+
+import {boundaries, BiomeGenerator, centerChunkPos, touchingChunkCoordsWithinDistance} from './biomes'
 
 tap.test('boundaries', async t => {
   const it = boundaries(1, -2, 3);

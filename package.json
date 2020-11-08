@@ -4,17 +4,21 @@
   "description": "3D Game in NodeJS/OpenGL",
   "scripts": {
     "start": "node build/app.js",
+    "dev": "concurrently npm:cxx:watch npm:ts:watch",
     "cxx:watch": "nodemon --watch src --ext hxx,cxx,inl --exec \"make\"",
+    "ts:watch": "tsc -w --preserveWatchOutput",
+    "build": "concurrently npm:cxx:build npm:ts:build",
     "cxx:build": "make",
-    "ts:watch": "tsc -w",
     "ts:build": "tsc",
-    "test": "tap src/**/*.test.js",
-    "pretest": "make test",
+    "test": "tap src/**/*.test.ts",
+    "pretestXXX": "make test",
     "test:watch": "nodemon --watch src --ext hxx,cxx,inl --exec \"npm test\"",
     "play": "node src/app.js",
     "preplay": "cross-env NODE_ENV=production make",
     "postinstall": "husky install",
-    "format": "node .clang-format.js"
+    "format": "node .clang-format.js",
+    "prettier": "prettier --write src",
+    "prettier:check": "prettier --check src"
   },
   "keywords": [
     "game",
@@ -29,6 +33,8 @@
   "devDependencies": {
     "@types/debug": "^4.1.5",
     "@types/node": "^14.14.6",
+    "@types/sinon": "^9.0.8",
+    "@types/tap": "^14.10.1",
     "concurrently": "^5.3.0",
     "cross-env": "^7.0.2",
     "debug": "^4.1.1",
@@ -38,6 +44,7 @@
     "husky": "^4.3.0",
     "node-addon-api": "^3.0.0",
     "nodemon": "^2.0.4",
+    "prettier": "^2.1.2",
     "sinon": "^9.0.3",
     "tap": "^14.10.8",
     "typescript": "^4.0.5"
