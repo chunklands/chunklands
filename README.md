@@ -16,7 +16,6 @@ Please also consider the documentation to be out-dated.
 
 ## Technologies
 
-![CI](https://github.com/20hoibe/chunklands/workflows/CI/badge.svg?branch=master)
 ![C++](doc/cpp.svg)
 ![NodeJS](doc/nodejs.svg)
 ![N-API](doc/napi.svg)
@@ -64,7 +63,8 @@ cat .env
 
 watch files and build
 ```bash
-npm run dev
+npm run cxx:watch
+npm run ts:watch
 ```
 
 start game
@@ -74,9 +74,8 @@ npm start
 
 ## Links
 
-- [GitHub Issues](https://github.com/20hoibe/chunklands/issues)
-- [GitHub Project](https://github.com/20hoibe/chunklands/projects/1)
-- [Code Documentation](https://20hoibe.github.io/chunklands.doc/)
+- [GitHub Issues](https://github.com/chunklands/chunklands/issues)
+- [GitHub Project](https://github.com/chunklands/chunklands/projects/1)
 
 
 ## Progress
