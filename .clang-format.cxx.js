@@ -6,7 +6,7 @@ const SRC = `${__dirname}/src`
 
 ;(async () => {
   
-  const matches = await glob(`${SRC}/**/*{.js,.cxx,.hxx}`)
+  const matches = await glob(`${SRC}/**/*{.cxx,.hxx}`)
   await execa('clang-format', [...matches])
 
 })().catch(err => {

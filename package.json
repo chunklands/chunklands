@@ -10,14 +10,14 @@
     "build": "concurrently npm:cxx:build npm:ts:build",
     "cxx:build": "make",
     "ts:build": "tsc",
+    "play": "node build/app.js",
+    "preplay": "concurrently -n cxx:build,ts:build \"cross-env NODE_ENV=production make\" npm:ts:build",
     "test": "tap src/**/*.test.ts",
-    "pretestXXX": "make test",
-    "test:watch": "nodemon --watch src --ext hxx,cxx,inl --exec \"npm test\"",
-    "play": "node src/app.js",
-    "preplay": "cross-env NODE_ENV=production make",
+    "test:watch": "nodemon --watch src --ext ts --exec \"npm test\"",
     "postinstall": "husky install",
-    "format": "node .clang-format.js",
-    "prettier": "prettier --write src",
+    "format": "concurrently npm:format:cxx npm:format:ts",
+    "format:cxx": "node .clang-format.cxx.js",
+    "format:ts": "prettier --write src",
     "prettier:check": "prettier --check src"
   },
   "keywords": [
@@ -51,7 +51,7 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "node .clang-format.js"
+      "pre-commit": "npm run format"
     }
   }
 }
