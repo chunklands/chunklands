@@ -20,8 +20,9 @@
     "format:ts": "prettier --write src",
     "prettier:check": "prettier --check src",
     "lint": "eslint src --ext .ts",
-    "commit": "npm run lint",
-    "precommit": "npm run format"
+    "git:precommit": "concurrently npm:lint",
+    "pregit:precommit": "concurrently npm:format",
+    "git:prepush": "concurrently npm:prettier:check"
   },
   "keywords": [
     "game",
@@ -57,7 +58,8 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "npm run commit && git add -A"
+      "pre-commit": "npm run git:precommit && git add -A",
+      "pre-push": "npm run git:prepush"
     }
   }
 }
