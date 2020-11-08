@@ -1,35 +1,39 @@
-import { EngineBridge } from "../chunklands.node";
-import { PluginRegistry } from "../lib/plugin";
-
-const debug = require('debug')('plugin:engine');
+import { EngineBridge } from '../chunklands.node';
+import { PluginRegistry } from '../lib/plugin';
+import d from 'debug';
+const debug = d('plugin:engine');
 
 const DEBUG_ENGINE = false;
-const DEBUG_PATTERN = /./
+const DEBUG_PATTERN = /./;
 
 interface IOpts {
-  engine: EngineBridge
+  engine: EngineBridge;
 }
 
-export type EnginePlugin = EngineBridge
+export type EnginePlugin = EngineBridge;
 
-export default async function enginePlugin(registry: PluginRegistry, opts: IOpts): Promise<EnginePlugin> {
-
+export default async function enginePlugin(
+  registry: PluginRegistry,
+  opts: IOpts
+): Promise<EnginePlugin> {
   if (DEBUG_ENGINE) {
-    return debugDecoration(opts.engine)
+    return debugDecoration(opts.engine);
   }
 
   return opts.engine;
 }
 
 function debugDecoration(engine: EngineBridge) {
-  const eng = engine as any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const eng = engine as any;
 
   const Engine = Object.getPrototypeOf(eng);
   const engineMethods = Object.getOwnPropertyNames(Engine);
 
-  const engineProxy: {[method: string]: Function} = {};
+  // eslint-disable-next-line @typescript-eslint/ban-types
+  const engineProxy: { [method: string]: Function } = {};
   for (const name of engineMethods) {
-    engineProxy[name] = (...args: any[]) => {
+    engineProxy[name] = (...args: unknown[]) => {
       if (DEBUG_PATTERN.test(name)) {
         debug(`%s(%o)`, name, args);
       }
@@ -37,5 +41,5 @@ function debugDecoration(engine: EngineBridge) {
     };
   }
 
-  return engineProxy as unknown as EngineBridge
+  return (engineProxy as unknown) as EngineBridge;
 }

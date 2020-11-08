@@ -1,38 +1,43 @@
-import { Math } from "../../../chunklands.node";
+import { MessagePort } from 'worker_threads';
+import { Math } from '../../../chunklands.node';
 
 export interface IChunk {
-  data: ArrayBuffer
+  data: ArrayBuffer;
 }
 
 export interface IChunkLoader {
-  getChunk(x: number, y: number, z: number): IChunk
+  getChunk(x: number, y: number, z: number): IChunk;
 }
 
 export default class ChunkPrioLoader {
+  private chunks: { pos: Math.Pos3D; sendPort: MessagePort }[] = [];
+  private pos: Math.Pos3D = { x: 0, y: 0, z: 0 };
+  private generating = false;
 
-  private chunks: {pos: Math.Pos3D, sendPort: any}[] = []
-  private pos: Math.Pos3D = {x: 0, y: 0, z: 0};
-  private generating = false
-
-  constructor(private chunkLoader: IChunkLoader) {
-  }
+  constructor(private chunkLoader: IChunkLoader) {}
 
   updatePositionAndSort(pos: Math.Pos3D) {
     this.pos = pos;
     this.sortChunks();
   }
 
-  addChunk(pos: Math.Pos3D, sendPort) {
-    this.chunks.push({pos, sendPort});
+  addChunk(pos: Math.Pos3D, sendPort: MessagePort) {
+    this.chunks.push({ pos, sendPort });
     // let's not sort here
 
     this.generateChunks();
   }
 
   private sortChunks() {
-    this.chunks.sort(({pos: posA}, {pos: posB}) => (
-      ((posB.x - this.pos.x) ** 2 + (posB.y - this.pos.y) ** 2 + (posB.z - this.pos.z) ** 2) -
-      ((posA.x - this.pos.x) ** 2 + (posA.y - this.pos.y) ** 2 + (posA.z - this.pos.z) ** 2)));
+    this.chunks.sort(
+      ({ pos: posA }, { pos: posB }) =>
+        (posB.x - this.pos.x) ** 2 +
+        (posB.y - this.pos.y) ** 2 +
+        (posB.z - this.pos.z) ** 2 -
+        ((posA.x - this.pos.x) ** 2 +
+          (posA.y - this.pos.y) ** 2 +
+          (posA.z - this.pos.z) ** 2)
+    );
   }
 
   private generateChunks() {
@@ -40,22 +45,27 @@ export default class ChunkPrioLoader {
       return;
     }
 
-    const startGenerate =
-        () => {
-          if (this.chunks.length === 0) {
-            this.generating = false;
-            return;
-          }
+    const startGenerate = () => {
+      const item = this.chunks.shift();
 
-          const {pos, sendPort} = this.chunks.shift();
-          const camDistance = Math.sqrt(((pos.x - this.pos.x) ** 2) + ((pos.y - this.pos.y) ** 2) + ((pos.z - this.pos.z) ** 2));
-          // console.log(`get chunk: ${camDistance}`);
-          const chunk = this.chunkLoader.getChunk(pos.x, pos.y, pos.z);
-          sendPort.postMessage(chunk.data);
-          sendPort.close();
+      if (item === undefined) {
+        this.generating = false;
+        return;
+      }
 
-          setTimeout(startGenerate, 0);
-        }
+      const { pos, sendPort } = item;
+      // const camDistance = Math.sqrt(
+      //   (pos.x - this.pos.x) ** 2 +
+      //     (pos.y - this.pos.y) ** 2 +
+      //     (pos.z - this.pos.z) ** 2
+      // );
+      // console.log(`get chunk: ${camDistance}`);
+      const chunk = this.chunkLoader.getChunk(pos.x, pos.y, pos.z);
+      sendPort.postMessage(chunk.data);
+      sendPort.close();
+
+      setTimeout(startGenerate, 0);
+    };
 
     startGenerate();
   }

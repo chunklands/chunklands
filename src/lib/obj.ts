@@ -1,17 +1,17 @@
-import {Transform, Writable, pipeline} from 'stream'
-import assert from 'assert'
+import { Transform, Writable, pipeline, TransformCallback } from 'stream';
+import assert from 'assert';
 
 class LineReader extends Transform {
-  private data = Buffer.from('')
+  private data = Buffer.from('');
 
   constructor() {
-    super({readableObjectMode: true});
+    super({ readableObjectMode: true });
   }
 
-  _transform(chunk: Buffer, encoding: string, callback) {
+  _transform(chunk: Buffer, encoding: string, callback: TransformCallback) {
     this.data = Buffer.concat([this.data, chunk]);
 
-    while (true) {
+    for (;;) {
       const newLineIndex = this.data.indexOf('\n');
       if (newLineIndex === -1) {
         break;
@@ -24,7 +24,7 @@ class LineReader extends Transform {
     callback();
   }
 
-  _flush(callback) {
+  _flush(callback: TransformCallback) {
     if (this.data.length > 0) {
       this.push(this.data);
     }
@@ -36,15 +36,15 @@ class LineReader extends Transform {
 class ObjFileParser extends Transform {
   static TOKEN_SPLIT = /\s+/;
 
-  private v = []
-  private vt = []
-  private vn = []
+  private v: number[][] = [];
+  private vt: number[][] = [];
+  private vn: number[][] = [];
 
   constructor() {
-    super({objectMode: true});
+    super({ objectMode: true });
   }
 
-  _transform(chunk: Buffer, encoding: string, callback) {
+  _transform(chunk: Buffer, encoding: string, callback: TransformCallback) {
     const str = chunk.toString().trim();
 
     if (!str) {
@@ -61,19 +61,19 @@ class ObjFileParser extends Transform {
     switch (tokens[0]) {
       case 'v': {
         const v = tokensParseNumber(tokens);
-        assert.equal(v.length, 3);
+        assert.strictEqual(v.length, 3);
         this.v.push(v);
         break;
       }
       case 'vt': {
         const vt = tokensParseNumber(tokens);
-        assert.equal(vt.length, 2);
+        assert.strictEqual(vt.length, 2);
         this.vt.push(vt);
         break;
       }
       case 'vn': {
         const vn = tokensParseNumber(tokens);
-        assert.equal(vn.length, 3);
+        assert.strictEqual(vn.length, 3);
         this.vn.push(vn);
         break;
       }
@@ -104,18 +104,18 @@ class ObjFileParser extends Transform {
     callback();
   }
 
-  _flush(callback) {
+  _flush(callback: TransformCallback) {
     callback();
   }
 
   private pushVertex(vStr: string) {
     if (!vStr) {
-      throw new Error(`err in ${vStr}`)
+      throw new Error(`err in ${vStr}`);
     }
 
-    const v = this.v[(+vStr) - 1];
+    const v = this.v[+vStr - 1];
     if (!v) {
-      throw new Error(`err in ${vStr}`)
+      throw new Error(`err in ${vStr}`);
     }
 
     this.push(v);
@@ -130,12 +130,12 @@ class ObjFileParser extends Transform {
 
   private pushTexture(vtStr: string) {
     if (!vtStr) {
-      throw new Error(`err in ${vtStr}`)
+      throw new Error(`err in ${vtStr}`);
     }
 
-    const vt = this.vt[(+vtStr) - 1];
+    const vt = this.vt[+vtStr - 1];
     if (!vt) {
-      throw new Error(`err in ${vtStr}`)
+      throw new Error(`err in ${vtStr}`);
     }
 
     this.push(vt);
@@ -143,12 +143,12 @@ class ObjFileParser extends Transform {
 
   pushNormal(vnStr: string) {
     if (!vnStr) {
-      throw new Error(`err in ${vnStr}`)
+      throw new Error(`err in ${vnStr}`);
     }
 
-    const vn = this.vn[(+vnStr) - 1];
+    const vn = this.vn[+vnStr - 1];
     if (!vn) {
-      throw new Error(`err in ${vnStr}`)
+      throw new Error(`err in ${vnStr}`);
     }
 
     this.push(vn);
@@ -156,29 +156,33 @@ class ObjFileParser extends Transform {
 }
 
 class Sink extends Writable {
-
-  private buffer: number[] = []
+  private buffer: number[] = [];
 
   constructor() {
-    super({objectMode: true});
+    super({ objectMode: true });
   }
 
   getBuffer() {
     return this.buffer;
   }
 
-  _write(chunk: number[], encoding: string, callback) {
+  _write(
+    chunk: number[],
+    encoding: string,
+    callback: (error?: Error | null) => void
+  ) {
     for (let i = 0; i < chunk.length; i++) {
       assert.ok(
-          typeof chunk[i] === 'number',
-          `chunk[i] = ${chunk[i]} (${typeof chunk[i]})`);
+        typeof chunk[i] === 'number',
+        `chunk[i] = ${chunk[i]} (${typeof chunk[i]})`
+      );
     }
 
     this.buffer.push(...chunk);
     callback();
   }
 
-  _final(callback) {
+  _final(callback: (error?: Error | null) => void) {
     callback();
   }
 }
@@ -186,7 +190,7 @@ class Sink extends Writable {
 export async function readObj(input: NodeJS.ReadableStream) {
   return new Promise<number[]>((resolve, reject) => {
     const sink = new Sink();
-    pipeline(input, new LineReader(), new ObjFileParser(), sink, err => {
+    pipeline(input, new LineReader(), new ObjFileParser(), sink, (err) => {
       if (err) {
         reject(err);
         return;

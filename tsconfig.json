@@ -6,8 +6,12 @@
     "outDir": "build",
     "moduleResolution": "node",
     "esModuleInterop": true,
-    "downlevelIteration": true
+    "downlevelIteration": true,
+    "alwaysStrict": true,
+    "strict": true,
+    "resolveJsonModule": true,
+    "allowJs": true
   },
-  "include": ["src/**/*"],
+  "include": ["index.ts", "src/**/*.ts", "src/**/*.js"],
   "exclude": ["node_modules", "**/*.spec.ts"]
 }

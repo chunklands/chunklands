@@ -1,13 +1,21 @@
-import { createSimplexNoise } from "./algorithm";
-import createMath from "./math";
+import { createSimplexNoise } from './algorithm';
+import createMath from './math';
 
-const oceanNoise = createSimplexNoise(
-    {f0: 128, octaves: 8, persistence: 0.9, lacunarity: 4.178});
+const oceanNoise = createSimplexNoise({
+  f0: 128,
+  octaves: 8,
+  persistence: 0.9,
+  lacunarity: 4.178,
+});
 
 export default function createOcean(chunkDim: number) {
-  const {blockIndex2D} = createMath(chunkDim);
+  const { blockIndex2D } = createMath(chunkDim);
 
-  function generateOceanMapForChunk(oceanMap: Int8Array, xOffset: number, zOffset: number) {
+  function generateOceanMapForChunk(
+    oceanMap: Int8Array,
+    xOffset: number,
+    zOffset: number
+  ) {
     for (let px = 0; px < chunkDim; px++) {
       for (let pz = 0; pz < chunkDim; pz++) {
         const sample = oceanNoise(xOffset + px, zOffset + pz);
@@ -16,5 +24,5 @@ export default function createOcean(chunkDim: number) {
     }
   }
 
-  return {generateOceanMapForChunk};
-};
+  return { generateOceanMapForChunk };
+}

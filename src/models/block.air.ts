@@ -1,10 +1,10 @@
-import { ModelLoader } from "./types";
+import { ModelLoader } from './types';
 
 const blockAir: ModelLoader = {
   type: 'block',
   id: 'block.air',
   faces: {},
-  opaque: false
-}
+  opaque: false,
+};
 
-export default blockAir
+export default blockAir;

@@ -1,25 +1,25 @@
-import createBiomes from "./biomes";
-import createMath from "./math";
-import createMultiblocks from "./multiblocks";
-import createOcean from "./ocean";
-import assert from 'assert'
-import { simplex3 } from "../../../lib/noise";
-import { IChunk, IChunkLoader } from "./ChunkPrioLoader";
+import createBiomes from './biomes';
+import createMath from './math';
+import createMultiblocks, { IMultiBlockRef } from './multiblocks';
+import createOcean from './ocean';
+import assert from 'assert';
+import { simplex3 } from '../../../lib/noise';
+import { IChunk, IChunkLoader } from './ChunkPrioLoader';
 
-export default function createChunks(chunkDim: number, blocks: {[id: string]: bigint}) {
-  const {blockIndex2D, blockIndex3D, centerChunkPos} = createMath(chunkDim);
-  const {generateOceanMapForChunk} = createOcean(chunkDim);
-  const {biomeGenerator} = createBiomes(chunkDim);
-  const {tree, house, MultiBlockRef} = createMultiblocks(chunkDim, blocks);
+export default function createChunks(
+  chunkDim: number,
+  blocks: { [id: string]: bigint }
+) {
+  const { blockIndex2D, blockIndex3D, centerChunkPos } = createMath(chunkDim);
+  const { generateOceanMapForChunk } = createOcean(chunkDim);
+  const { biomeGenerator } = createBiomes(chunkDim);
+  const { tree, house, MultiBlockRef } = createMultiblocks(chunkDim, blocks);
 
   const {
     'block.air': BLOCK_AIR,
     'block.grass': BLOCK_GRASS,
     'block.dirt': BLOCK_DIRT,
     'block.water': BLOCK_WATER,
-    'block.wood': BLOCK_WOOD,
-    'block.monkey': BLOCK_MONKEY,
-    'block.pickaxe': BLOCK_PICKAXE,
   } = blocks;
 
   enum ChunkState {
@@ -33,25 +33,49 @@ export default function createChunks(chunkDim: number, blocks: {[id: string]: bi
   }
 
   class Chunk implements IChunk {
-    public data = new ArrayBuffer(BigUint64Array.BYTES_PER_ELEMENT * (chunkDim ** 3));
-    public blocks: BigUint64Array
-    public state: ChunkState = ChunkState.kInitialized
+    public data = new ArrayBuffer(
+      BigUint64Array.BYTES_PER_ELEMENT * chunkDim ** 3
+    );
+    public blocks: BigUint64Array;
+    public state: ChunkState = ChunkState.kInitialized;
 
-    public multiblockRefs = []
+    public multiblockRefs: IMultiBlockRef[] = [];
 
-    constructor(public x: number, public y: number, public z: number) {          
+    constructor(public x: number, public y: number, public z: number) {
       this.blocks = new BigUint64Array(this.data);
       this.blocks.fill(BLOCK_AIR);
     }
   }
 
   const SMOOTH_KERNEL = new Float32Array([
-    0.05, 0.10, 0.25, 0.10, 0.05, 0.10, 0.25, 0.50, 0.25,
-    0.10, 0.25, 0.50, 1.00, 0.50, 0.25, 0.10, 0.25, 0.50,
-    0.25, 0.10, 0.05, 0.10, 0.25, 0.10, 0.05,
+    0.05,
+    0.1,
+    0.25,
+    0.1,
+    0.05,
+    0.1,
+    0.25,
+    0.5,
+    0.25,
+    0.1,
+    0.25,
+    0.5,
+    1.0,
+    0.5,
+    0.25,
+    0.1,
+    0.25,
+    0.5,
+    0.25,
+    0.1,
+    0.05,
+    0.1,
+    0.25,
+    0.1,
+    0.05,
   ]);
   const SMOOTH_KERNEL_SIZE = 2;
-  assert(SMOOTH_KERNEL.length === (2 * SMOOTH_KERNEL_SIZE + 1) ** 2)
+  assert(SMOOTH_KERNEL.length === (2 * SMOOTH_KERNEL_SIZE + 1) ** 2);
 
   const houseRef = new MultiBlockRef(house, -80, 15, 2);
   const treeRef = new MultiBlockRef(tree, -78, 15, 10);
@@ -64,7 +88,12 @@ export default function createChunks(chunkDim: number, blocks: {[id: string]: bi
       return this.getChunkAdvanced(x, y, z, ChunkState.kFinalized);
     }
 
-    private getChunkAdvanced(x: number, y: number, z: number, state: ChunkState) {
+    private getChunkAdvanced(
+      x: number,
+      y: number,
+      z: number,
+      state: ChunkState
+    ) {
       const chunkKey = genChunkKey(x, y, z);
       let chunk = this.chunks.get(chunkKey);
 
@@ -130,8 +159,10 @@ export default function createChunks(chunkDim: number, blocks: {[id: string]: bi
 
       const oceanMap = new Int8Array(chunkDim ** 2);
       generateOceanMapForChunk(oceanMap, chunkDim * chunkX, chunkDim * chunkZ);
-      const {nearestPoints, nearestDistances} =
-          biomeGenerator.generateChunk(chunkX, chunkZ);
+      const { nearestPoints, nearestDistances } = biomeGenerator.generateChunk(
+        chunkX,
+        chunkZ
+      );
 
       const xOffset = chunkDim * chunkX;
       const zOffset = chunkDim * chunkZ;
@@ -152,7 +183,12 @@ export default function createChunks(chunkDim: number, blocks: {[id: string]: bi
         }
       }
 
-      const newMapInfo = {nearestPoints, nearestDistances, heightMap, oceanMap};
+      const newMapInfo = {
+        nearestPoints,
+        nearestDistances,
+        heightMap,
+        oceanMap,
+      };
 
       this.mapInfo.set(mapInfoKey, newMapInfo);
       return newMapInfo;
@@ -178,11 +214,14 @@ export default function createChunks(chunkDim: number, blocks: {[id: string]: bi
               const az = z + kz;
               const zCoord = zOffset + az;
 
-              const smoothKernelIndex = (kx + SMOOTH_KERNEL_SIZE) +
-                  SMOOTH_KERNEL_SIZE * (kz + SMOOTH_KERNEL_SIZE);
+              const smoothKernelIndex =
+                kx +
+                SMOOTH_KERNEL_SIZE +
+                SMOOTH_KERNEL_SIZE * (kz + SMOOTH_KERNEL_SIZE);
               assert(
-                  smoothKernelIndex >= 0 &&
-                  smoothKernelIndex < SMOOTH_KERNEL.length);
+                smoothKernelIndex >= 0 &&
+                  smoothKernelIndex < SMOOTH_KERNEL.length
+              );
 
               const kernelFactor = SMOOTH_KERNEL[smoothKernelIndex];
               assert(isFinite(kernelFactor));
@@ -190,7 +229,7 @@ export default function createChunks(chunkDim: number, blocks: {[id: string]: bi
               factorSum += kernelFactor;
 
               let info, infoIndex;
-              if ((ax >= 0 && ax < chunkDim) && (az >= 0 && az < chunkDim)) {
+              if (ax >= 0 && ax < chunkDim && az >= 0 && az < chunkDim) {
                 info = mapInfo;
                 infoIndex = blockIndex2D(ax, az);
                 assert(infoIndex >= 0 && infoIndex < chunkDim ** 2);
@@ -206,7 +245,7 @@ export default function createChunks(chunkDim: number, blocks: {[id: string]: bi
                 assert(infoIndex >= 0 && infoIndex < chunkDim ** 2);
               }
 
-              const {heightMap} = info;
+              const { heightMap } = info;
               assert(heightMap);
 
               const height = heightMap[infoIndex];
@@ -218,7 +257,7 @@ export default function createChunks(chunkDim: number, blocks: {[id: string]: bi
           }
 
           const heightMapIndex = blockIndex2D(x, z);
-          const smoothSample = sample / factorSum
+          const smoothSample = sample / factorSum;
           assert(!isNaN(smoothSample));
 
           smoothedHeightMap[heightMapIndex] = smoothSample;
@@ -247,9 +286,8 @@ export default function createChunks(chunkDim: number, blocks: {[id: string]: bi
       const mapInfo = this.mapInfo.get(mapInfoKey);
       assert(mapInfo);
 
-      const {oceanMap, nearestDistances, smoothedHeightMap: heightMap} =
-          mapInfo;
-      const {blocks} = chunk;
+      const { oceanMap, smoothedHeightMap: heightMap } = mapInfo;
+      const { blocks } = chunk;
 
       for (let x = 0; x < chunkDim; x++) {
         for (let z = 0; z < chunkDim; z++) {
@@ -266,14 +304,13 @@ export default function createChunks(chunkDim: number, blocks: {[id: string]: bi
             const coordX = x + xOffset;
             const coordZ = z + zOffset;
 
-            const distance = nearestDistances[dd];
             const height = heightMap[dd];
 
             for (let y = 0; y < Math.min(height - yOffset, chunkDim); y++) {
               const coordY = y + yOffset;
               const f = 80;
               const caveNoiseValue =
-                  (1 + simplex3(coordX / f, coordY / f, coordZ / f)) / 2;
+                (1 + simplex3(coordX / f, coordY / f, coordZ / f)) / 2;
               if (caveNoiseValue * caveNoiseValue < 0.8) {
                 const blockIndex = blockIndex3D(x, y, z);
                 // if (x === 16 && y === 16 && z === 16) {
@@ -289,7 +326,7 @@ export default function createChunks(chunkDim: number, blocks: {[id: string]: bi
     }
 
     private morphBlocks(chunk: Chunk) {
-      const {blocks} = chunk;
+      const { blocks } = chunk;
       for (let x = 0; x < chunkDim; x++) {
         for (let y = 0; y < chunkDim - 1; y++) {
           for (let z = 0; z < chunkDim; z++) {
@@ -305,10 +342,13 @@ export default function createChunks(chunkDim: number, blocks: {[id: string]: bi
         }
       }
 
-
       const topChunk = this.getChunkAdvanced(
-          chunk.x, chunk.y + 1, chunk.z, ChunkState.kBlockFilled);
-      const {blocks: topChunkBlocks} = topChunk;
+        chunk.x,
+        chunk.y + 1,
+        chunk.z,
+        ChunkState.kBlockFilled
+      );
+      const { blocks: topChunkBlocks } = topChunk;
       for (let x = 0; x < chunkDim; x++) {
         for (let z = 0; z < chunkDim; z++) {
           const blockIndex = blockIndex3D(x, chunkDim - 1, z);
@@ -330,7 +370,7 @@ export default function createChunks(chunkDim: number, blocks: {[id: string]: bi
 
       for (let i = 0; i < chunk.multiblockRefs.length; i++) {
         const multiblockRef = chunk.multiblockRefs[i];
-        const {multiblock} = multiblockRef;
+        const { multiblock } = multiblockRef;
 
         const mbXOffset = multiblockRef.x - coordX;
         const mbYOffset = multiblockRef.y - coordY;
@@ -363,5 +403,5 @@ export default function createChunks(chunkDim: number, blocks: {[id: string]: bi
     return `${x}:${z}`;
   }
 
-  return {ChunkLoader};
-};
+  return { ChunkLoader };
+}

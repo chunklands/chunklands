@@ -1,11 +1,10 @@
-import {parentPort, workerData, isMainThread} from 'worker_threads';
-import chunks from './chunks'
-import ChunkPrioLoader from './ChunkPrioLoader'
+import { parentPort, workerData, isMainThread } from 'worker_threads';
+import chunks from './chunks';
+import ChunkPrioLoader from './ChunkPrioLoader';
 
 export const filename = __filename;
 
 if (!isMainThread) {
-
   // WorldGenerator:
   // 1. ocean / land via simplex noise
   // 2. Biomes + HeightMap via voronoi cells
@@ -13,26 +12,20 @@ if (!isMainThread) {
   // 4. caves
   // 5. multi-blocks
 
-  const {chunkDim, blocks} = workerData;
-  const {ChunkLoader} = chunks(chunkDim, blocks);
+  if (!parentPort) {
+    throw new Error('expect parent port');
+  }
 
-  parentPort.on('message', handleMessage);
+  const { chunkDim, blocks } = workerData;
+  const { ChunkLoader } = chunks(chunkDim, blocks);
 
   const prioLoader = new ChunkPrioLoader(new ChunkLoader());
 
-  function handleMessage({type, payload}) {
+  parentPort.on('message', ({ type, payload }) => {
     if (type === 'updateposition') {
-      handleUpdatePosition(payload);
+      prioLoader.updatePositionAndSort(payload);
     } else if (type === 'requestchunk') {
-      handleRequestChunk(payload);
+      prioLoader.addChunk(payload.pos, payload.sendPort);
     }
-  }
-
-  function handleUpdatePosition(pos) {
-    prioLoader.updatePositionAndSort(pos);
-  }
-
-  function handleRequestChunk({pos, sendPort}) {
-    prioLoader.addChunk(pos, sendPort);
-  }
+  });
 }

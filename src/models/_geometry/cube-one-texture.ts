@@ -1,7 +1,6 @@
-// clang-format off
+const dx = 1 / 256;
 
-const dx = 1/256;
-
+// prettier-ignore
 const facesCubeOneTexture = {
   // VERTEX1        NORMAL1          UV1        VERTEX2         NORMAL2          UV2        VERTEX3         NORMAL3          UV3
   front: new Float32Array([
@@ -30,4 +29,4 @@ const facesCubeOneTexture = {
   ]).buffer,
 };
 
-export default facesCubeOneTexture
+export default facesCubeOneTexture;

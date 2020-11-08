@@ -1,14 +1,14 @@
-import {promisify} from 'util'
-import fs from 'fs'
+import { promisify } from 'util';
+import fs from 'fs';
 import { ModelLoader } from './types';
 const readFile = promisify(fs.readFile);
 
 const dx = 1 / 128;
 
-// clang-format off
-const blockGrass: ModelLoader = async config => ({
+const blockGrass: ModelLoader = async (config) => ({
   type: 'block',
   id: 'block.grass',
+  // prettier-ignore
   faces: {
       // VERTEX1      NORMAL1          UV1           VERTEX2         NORMAL2          UV2             VERTEX3         NORMAL3          UV3
     front: new Float32Array([
@@ -37,7 +37,7 @@ const blockGrass: ModelLoader = async config => ({
     ]).buffer,
   },
   opaque: true,
-  texture: await readFile(`${config.assetsDir}/models//block.grass.png`)
+  texture: await readFile(`${config.assetsDir}/models/block.grass.png`),
 });
 
-export default blockGrass
+export default blockGrass;

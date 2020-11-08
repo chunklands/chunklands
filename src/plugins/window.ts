@@ -2,11 +2,13 @@ import { PluginRegistry } from '../lib/plugin';
 import { EnginePlugin } from './engine';
 
 export interface WindowPlugin {
-  onTerminate(): void
-  handle: bigint
+  onTerminate(): void;
+  handle: bigint;
 }
 
-export default async function windowPlugin(registry: PluginRegistry): Promise<WindowPlugin> {
+export default async function windowPlugin(
+  registry: PluginRegistry
+): Promise<WindowPlugin> {
   const engine = await registry.get<EnginePlugin>('engine');
 
   await engine.GLFWInit();
@@ -26,8 +28,10 @@ export default async function windowPlugin(registry: PluginRegistry): Promise<Wi
 
   return {
     onTerminate() {
-      clearTimeout(tid);
+      if (tid !== undefined) {
+        clearTimeout(tid);
+      }
     },
-    handle
+    handle,
   };
 }

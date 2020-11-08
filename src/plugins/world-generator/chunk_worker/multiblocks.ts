@@ -1,16 +1,33 @@
-import assert from 'assert'
+import assert from 'assert';
 
-export default function createMultiblocks(chunkDim: number, blocks: {[id: string]: bigint}) {
+export interface IMultiBlock {
+  sx: number;
+  sy: number;
+  sz: number;
+
+  blockAt(x: number, y: number, z: number): bigint;
+}
+
+export interface IMultiBlockRef {
+  multiblock: IMultiBlock;
+  x: number;
+  y: number;
+  z: number;
+}
+
+export default function createMultiblocks(
+  chunkDim: number,
+  blocks: { [id: string]: bigint }
+) {
   const {
     'block.wood': BLOCK_WOOD,
     'block.air': BLOCK_AIR,
-    'block.cobblestone': BLOCK_COBBLESTONE
+    'block.cobblestone': BLOCK_COBBLESTONE,
   } = blocks;
 
   class MultiBlock {
+    private blocks: BigUint64Array;
 
-    private blocks: BigUint64Array
-    
     constructor(public sx: number, public sy: number, public sz: number) {
       this.blocks = new BigUint64Array(sx * sy * sz);
     }
@@ -35,44 +52,69 @@ export default function createMultiblocks(chunkDim: number, blocks: {[id: string
 
   const tree = new MultiBlock(3, 5, 3);
   tree.setBlocks(
-      blockChars({' ': BLOCK_AIR, 'w': BLOCK_WOOD, 'c': BLOCK_COBBLESTONE}, [
-        '   ',
-        ' c ',
-        '   ',
-        '   ',
-        '   ',
+    blockChars({ ' ': BLOCK_AIR, w: BLOCK_WOOD, c: BLOCK_COBBLESTONE }, [
+      '   ',
+      ' c ',
+      '   ',
+      '   ',
+      '   ',
 
-        ' c ',
-        'ccc',
-        ' c ',
-        ' w ',
-        ' w ',
+      ' c ',
+      'ccc',
+      ' c ',
+      ' w ',
+      ' w ',
 
-        '   ',
-        ' c ',
-        '   ',
-        '   ',
-        '   ',
-
-      ]));
+      '   ',
+      ' c ',
+      '   ',
+      '   ',
+      '   ',
+    ])
+  );
 
   const house = new MultiBlock(5, 5, 6);
   house.setBlocks(
-      blockChars({'c': BLOCK_COBBLESTONE, ' ': BLOCK_AIR, 'w': BLOCK_WOOD}, [
-        '  w  ', ' www ', 'wwwww', 'wcccw', 'wcccw',
+    blockChars({ c: BLOCK_COBBLESTONE, ' ': BLOCK_AIR, w: BLOCK_WOOD }, [
+      '  w  ',
+      ' www ',
+      'wwwww',
+      'wcccw',
+      'wcccw',
 
-        '  w  ', ' w w ', 'w   w', '    c', 'c   c',
+      '  w  ',
+      ' w w ',
+      'w   w',
+      '    c',
+      'c   c',
 
-        '  w  ', ' w w ', 'w   w', 'c   c', 'c   c',
+      '  w  ',
+      ' w w ',
+      'w   w',
+      'c   c',
+      'c   c',
 
-        '  w  ', ' w w ', 'w   w', '    c', '    c',
+      '  w  ',
+      ' w w ',
+      'w   w',
+      '    c',
+      '    c',
 
-        '  w  ', ' w w ', 'w   w', 'c   c', 'c   c',
+      '  w  ',
+      ' w w ',
+      'w   w',
+      'c   c',
+      'c   c',
 
-        '  w  ', ' www ', 'wwwww', 'wcccw', 'wcccw',
-      ]));
+      '  w  ',
+      ' www ',
+      'wwwww',
+      'wcccw',
+      'wcccw',
+    ])
+  );
 
-  function blockChars(blocks: {[c: string]: bigint}, inputArr: string[]) {
+  function blockChars(blocks: { [c: string]: bigint }, inputArr: string[]) {
     const buf = [];
     for (let i = inputArr.length - 1; i >= 0; i--) {
       const input = inputArr[i];
@@ -85,10 +127,13 @@ export default function createMultiblocks(chunkDim: number, blocks: {[id: string
     return buf;
   }
 
-  class MultiBlockRef {
-
-    constructor(private multiblock: MultiBlock, private x: number, private y: number, private z: number) {
-    }
+  class MultiBlockRef implements IMultiBlockRef {
+    constructor(
+      public multiblock: MultiBlock,
+      public x: number,
+      public y: number,
+      public z: number
+    ) {}
 
     touchesChunk(chunkX: number, chunkY: number, chunkZ: number) {
       const offsetX = chunkX * chunkDim;
@@ -123,5 +168,5 @@ export default function createMultiblocks(chunkDim: number, blocks: {[id: string
     }
   }
 
-  return {tree, house, MultiBlockRef};
+  return { tree, house, MultiBlockRef };
 }

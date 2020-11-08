@@ -1,4 +1,3 @@
-
 export default class Abort {
   static ABORT_ERROR = new Error('abort error');
 
@@ -6,14 +5,14 @@ export default class Abort {
     return e === Abort.ABORT_ERROR;
   }
 
-  static catchResolver(e: Error) {
+  static catchResolver(e: Error): void {
     if (!Abort.isAbort(e)) {
       throw e;
     }
   }
 
-  private aborted = false
-  private asyncCallbacks = new Set<AbortCallback>()
+  private aborted = false;
+  private asyncCallbacks = new Set<AbortCallback>();
 
   check() {
     if (this.aborted) {
@@ -21,10 +20,10 @@ export default class Abort {
     }
   }
 
-  async race<T>(uncancelablePromise: Promise<T>): Promise<T | undefined> {
+  async race<T>(uncancelablePromise: Promise<T>): Promise<T> {
     this.check();
 
-    let cleanup: () => void | undefined;
+    let cleanup: (() => void) | undefined;
 
     try {
       return await Promise.race([
@@ -36,9 +35,9 @@ export default class Abort {
 
           cleanup = () => {
             abortCleanup();
-            resolve();  // no leaks
+            resolve(); // no leaks
           };
-        })
+        }),
       ]);
     } finally {
       if (cleanup) {
@@ -71,8 +70,8 @@ export default class Abort {
   async abort() {
     if (!this.aborted) {
       this.aborted = true;
-      const callbackPromises: Promise<any>[] = [];
-      this.asyncCallbacks.forEach(cb => {
+      const callbackPromises: Promise<unknown>[] = [];
+      this.asyncCallbacks.forEach((cb) => {
         callbackPromises.push(Promise.resolve(cb(Abort.ABORT_ERROR)));
       });
       this.asyncCallbacks.clear();
@@ -82,4 +81,4 @@ export default class Abort {
   }
 }
 
-export type AbortCallback = (err: Error) => any | Promise<any>
+export type AbortCallback = (err: Error) => unknown | Promise<unknown>;

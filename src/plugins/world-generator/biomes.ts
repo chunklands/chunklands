@@ -1,13 +1,24 @@
-const assert = require('assert');
+import assert from 'assert';
 
 const X = 0;
 const Z = 1;
 
-export class BiomeGenerator {
-  private chunks = new Map()
+export interface PointXZ {
+  x: number;
+  z: number;
+}
 
-  constructor(private chunkSize: number, private pointGenerator) {
-  }
+interface IChunk {
+  points: PointXZ[];
+}
+
+export class BiomeGenerator {
+  private chunks = new Map<string, IChunk>();
+
+  constructor(
+    private chunkSize: number,
+    private pointGenerator: (chunkX: number, chunkZ: number) => PointXZ[]
+  ) {}
 
   generateChunk(x: number, z: number) {
     const nearestPoints = new Array(this.chunkSize ** 2);
@@ -26,8 +37,10 @@ export class BiomeGenerator {
         const pz = coffz + z;
 
         let nearestPoint = points[0];
-        let nearestDistance =
-            distance(nearestPoint.x - px, nearestPoint.z - pz);
+        let nearestDistance = distance(
+          nearestPoint.x - px,
+          nearestPoint.z - pz
+        );
 
         for (let pi = 1; pi < points.length; pi++) {
           const point = points[pi];
@@ -45,18 +58,26 @@ export class BiomeGenerator {
       }
     }
 
-    return {nearestPoints, nearestDistances};
+    return { nearestPoints, nearestDistances };
   }
 
   private findAllRelevantPointsForChunk(x: number, z: number) {
     const nearPoint = this.findSomeNearPointForChunk(x, z);
-    const {farestDistance, farestPoint} = findFarestChunkPointResult(
-        x, z, this.chunkSize, nearPoint.x, nearPoint.z);
+    const { farestDistance, farestPoint } = findFarestChunkPointResult(
+      x,
+      z,
+      this.chunkSize,
+      nearPoint.x,
+      nearPoint.z
+    );
 
     const points = [];
     for (const [cx, cz] of touchingChunkCoordsWithinDistance(
-             farestPoint[X], farestPoint[Z], farestDistance * 2,
-             this.chunkSize)) {
+      farestPoint[X],
+      farestPoint[Z],
+      farestDistance * 2,
+      this.chunkSize
+    )) {
       const chunk = this.needChunkWithPoints(cx, cz);
       points.push(...chunk.points);
     }
@@ -90,7 +111,7 @@ export class BiomeGenerator {
 
   private generateChunkInternal(x: number, z: number) {
     const points = this.pointGenerator(x, z);
-    const chunk = {points};
+    const chunk = { points };
 
     return chunk;
   }
@@ -100,7 +121,13 @@ export class BiomeGenerator {
   }
 }
 
-function findFarestChunkPointResult(x: number, z: number, chunkSize: number, px: number, pz: number) {
+function findFarestChunkPointResult(
+  x: number,
+  z: number,
+  chunkSize: number,
+  px: number,
+  pz: number
+) {
   const f00 = [x * chunkSize, z * chunkSize];
 
   let farestPoint = f00;
@@ -133,14 +160,19 @@ function findFarestChunkPointResult(x: number, z: number, chunkSize: number, px:
     }
   }
 
-  return {farestPoint, farestDistance};
+  return { farestPoint, farestDistance };
 }
 
 export function centerChunkPos(px: number, pz: number, chunkSize: number) {
   return [Math.floor(px / chunkSize), Math.floor(pz / chunkSize)];
 }
 
-export function* touchingChunkCoordsWithinDistance(px: number, pz: number, distance: number, chunkSize: number) {
+export function* touchingChunkCoordsWithinDistance(
+  px: number,
+  pz: number,
+  distance: number,
+  chunkSize: number
+) {
   if (distance < 0) {
     throw new TypeError('distance should be positive');
   }

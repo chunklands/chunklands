@@ -1,13 +1,16 @@
-import { BiomeGenerator } from '../biomes';
-import {createSimplexNoise, SimpleNoise} from './algorithm'
+import { BiomeGenerator, PointXZ } from '../biomes';
+import { createSimplexNoise, SimpleNoise } from './algorithm';
 
-class MountainBiome {
-  private height: SimpleNoise
+class MountainBiome implements PointXZ {
+  private height: SimpleNoise;
 
-  constructor(private x: number, private z: number) {
-
-    this.height = createSimplexNoise(
-        {f0: 256, lacunarity: 3.6, persistence: 0.5, octaves: 7});
+  constructor(public x: number, public z: number) {
+    this.height = createSimplexNoise({
+      f0: 256,
+      lacunarity: 3.6,
+      persistence: 0.5,
+      octaves: 7,
+    });
   }
 
   getHeight(x: number, z: number) {
@@ -15,14 +18,15 @@ class MountainBiome {
   }
 }
 
-class ExtremeMountainBiome {
-  private height: SimpleNoise
-  constructor(private x: number, private z: number) {
-    this.x = x;
-    this.z = z;
-
-    this.height = createSimplexNoise(
-        {f0: 11, lacunarity: 8.41, persistence: 0.8, octaves: 7});
+class ExtremeMountainBiome implements PointXZ {
+  private height: SimpleNoise;
+  constructor(public x: number, public z: number) {
+    this.height = createSimplexNoise({
+      f0: 11,
+      lacunarity: 8.41,
+      persistence: 0.8,
+      octaves: 7,
+    });
   }
 
   getHeight(x: number, z: number) {
@@ -30,10 +34,10 @@ class ExtremeMountainBiome {
   }
 }
 
-class FlatBiome {
-  private height: SimpleNoise
-  constructor(private x: number, private z: number) {
-    this.height = createSimplexNoise({f0: 64, lacunarity: 1, persistence: 1});
+class FlatBiome implements PointXZ {
+  private height: SimpleNoise;
+  constructor(public x: number, public z: number) {
+    this.height = createSimplexNoise({ f0: 64, lacunarity: 1, persistence: 1 });
   }
 
   getHeight(x: number, z: number) {
@@ -42,26 +46,34 @@ class FlatBiome {
 }
 
 export default function createBiomes(chunkDim: number) {
-  let spotCount = 0;
-  let generatedChunks = 0;
+  // let spotCount = 0;
+  // let generatedChunks = 0;
 
   // setInterval(() => {
   //   console.log(`spots per chunk = ${spotCount / generatedChunks}`)
   // }, 500);
 
-  const biomeNoise = createSimplexNoise(
-      {f0: 32, octaves: 3, persistence: 0.5, lacunarity: 3.1});
-  const spotsNoise = createSimplexNoise(
-      {f0: 8, octaves: 8, persistence: 0.56, lacunarity: 1.34});
+  const biomeNoise = createSimplexNoise({
+    f0: 32,
+    octaves: 3,
+    persistence: 0.5,
+    lacunarity: 3.1,
+  });
+  const spotsNoise = createSimplexNoise({
+    f0: 8,
+    octaves: 8,
+    persistence: 0.56,
+    lacunarity: 1.34,
+  });
   const biomeGenerator = new BiomeGenerator(chunkDim, (chunkX, chunkZ) => {
     const spotNoiseValue = spotsNoise(chunkX, chunkZ);
     const hasSpot = spotNoiseValue > 0.5;
 
-    generatedChunks++;
+    // generatedChunks++;
     if (!hasSpot) {
       return [];
     }
-    spotCount++;
+    // spotCount++;
 
     const x = (spotNoiseValue * 731323) & (chunkDim - 1);
     const z = (spotNoiseValue * 138234) & (chunkDim - 1);
@@ -82,5 +94,5 @@ export default function createBiomes(chunkDim: number) {
     return [];
   });
 
-  return {biomeGenerator};
+  return { biomeGenerator };
 }

@@ -1,12 +1,13 @@
 // clang-format off
-import {promisify} from 'util'
-import fs from 'fs'
+import { promisify } from 'util';
+import fs from 'fs';
 import { ModelLoader } from './types';
 const readFile = promisify(fs.readFile);
 
-const blockWood: ModelLoader = async config => ({
+const blockWood: ModelLoader = async (config) => ({
   type: 'block',
   id: 'block.wood',
+  // prettier-ignore
   faces: {
     // VERTEX1        NORMAL1          UV1        VERTEX2         NORMAL2          UV2        VERTEX3         NORMAL3          UV3
     front: new Float32Array([
@@ -35,7 +36,7 @@ const blockWood: ModelLoader = async config => ({
     ]).buffer,
   },
   opaque: true,
-  texture: await readFile(`${config.assetsDir}/models/block.wood.png`)
+  texture: await readFile(`${config.assetsDir}/models/block.wood.png`),
 });
 
-export default blockWood
+export default blockWood;

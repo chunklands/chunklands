@@ -1,26 +1,26 @@
-import {MessageChannel, Worker} from 'worker_threads'
+import { MessageChannel, Worker } from 'worker_threads';
 import { Math } from '../../chunklands.node';
-import Abort from '../../lib/Abort'
+import Abort from '../../lib/Abort';
 
-import {filename} from './chunk_worker'
+import { filename } from './chunk_worker';
 
 export default class SimpleWorldGen {
-  private worker: Worker | undefined
+  private worker: Worker;
 
-  constructor(blocks: {[blockId: string]: bigint}, abort: Abort) {
+  constructor(blocks: { [blockId: string]: bigint }, abort: Abort) {
     this.worker = new Worker(filename, {
       workerData: {
         blocks,
-        chunkDim: 32  // TODO(daaitch): magic number
-      }
+        chunkDim: 32, // TODO(daaitch): magic number
+      },
     });
 
-    this.worker.on('error', err => {
+    this.worker.on('error', (err) => {
       console.error(err);
       process.exit(1);
     });
 
-    this.worker.on('message', msg => {
+    this.worker.on('message', (msg) => {
       console.log(msg);
     });
 
@@ -32,17 +32,18 @@ export default class SimpleWorldGen {
   async generateChunk(pos: Math.Pos3D, abort: Abort) {
     abort.check();
 
-    const {port1: sendPort, port2: recvPort} = new MessageChannel();
+    const { port1: sendPort, port2: recvPort } = new MessageChannel();
 
     try {
       this.worker.postMessage(
-          {type: 'requestchunk', payload: {pos, sendPort}}, [sendPort]);
+        { type: 'requestchunk', payload: { pos, sendPort } },
+        [sendPort]
+      );
 
       return await new Promise<ArrayBuffer>((resolve, reject) => {
-        const messageCleanup =
-            () => {
-              recvPort.off('message', handleMessage);
-            }
+        const messageCleanup = () => {
+          recvPort.off('message', handleMessage);
+        };
 
         const abortCleanup = abort.onceAbort(() => {
           messageCleanup();
@@ -69,6 +70,6 @@ export default class SimpleWorldGen {
   }
 
   updatePosition(pos: Math.Pos3D) {
-    this.worker.postMessage({type: 'updateposition', payload: pos});
+    this.worker.postMessage({ type: 'updateposition', payload: pos });
   }
 }

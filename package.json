@@ -3,14 +3,14 @@
   "version": "0.1.0",
   "description": "3D Game in NodeJS/OpenGL",
   "scripts": {
-    "start": "node build/app.js",
+    "start": "node build",
     "dev": "concurrently npm:cxx:watch npm:ts:watch",
     "cxx:watch": "nodemon --watch src --ext hxx,cxx,inl --exec \"make\"",
     "ts:watch": "tsc -w --preserveWatchOutput",
     "build": "concurrently npm:cxx:build npm:ts:build",
     "cxx:build": "make",
     "ts:build": "tsc",
-    "play": "node build/app.js",
+    "play": "node build",
     "preplay": "concurrently -n cxx:build,ts:build \"cross-env NODE_ENV=production make\" npm:ts:build",
     "test": "tap src/**/*.test.ts",
     "test:watch": "nodemon --watch src --ext ts --exec \"npm test\"",
@@ -18,7 +18,10 @@
     "format": "concurrently npm:format:cxx npm:format:ts",
     "format:cxx": "node .clang-format.cxx.js",
     "format:ts": "prettier --write src",
-    "prettier:check": "prettier --check src"
+    "prettier:check": "prettier --check src",
+    "lint": "eslint src --ext .ts",
+    "commit": "npm run lint",
+    "precommit": "npm run format"
   },
   "keywords": [
     "game",
@@ -35,10 +38,13 @@
     "@types/node": "^14.14.6",
     "@types/sinon": "^9.0.8",
     "@types/tap": "^14.10.1",
+    "@typescript-eslint/eslint-plugin": "^4.6.1",
+    "@typescript-eslint/parser": "^4.6.1",
     "concurrently": "^5.3.0",
     "cross-env": "^7.0.2",
     "debug": "^4.1.1",
     "dotenv": "^8.2.0",
+    "eslint": "^7.13.0",
     "execa": "^4.0.3",
     "glob": "^7.1.6",
     "husky": "^4.3.0",
@@ -51,7 +57,7 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "npm run format"
+      "pre-commit": "npm run commit && git add -A"
     }
   }
 }

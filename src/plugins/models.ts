@@ -1,17 +1,19 @@
-import { ModelsLoader } from "../models/types";
-import { Block } from "../chunklands.node";
-import { PluginRegistry } from "../lib/plugin";
-import { EnginePlugin } from "./engine";
-import { RenderPipelinePlugin } from './render-pipeline'
+import { ModelsLoader } from '../models/types';
+import { Block } from '../chunklands.node';
+import { PluginRegistry } from '../lib/plugin';
+import { EnginePlugin } from './engine';
+import { RenderPipelinePlugin } from './render-pipeline';
 interface IOpts {
-  assetsDir: string
-  modelsLoader: ModelsLoader
+  assetsDir: string;
+  modelsLoader: ModelsLoader;
 }
 
-export type ModelsPlugin = Block.BakeResult
+export type ModelsPlugin = Block.BakeResult;
 
-export default async function modelsPlugin(registry: PluginRegistry, opts: IOpts): Promise<ModelsPlugin> {
-
+export default async function modelsPlugin(
+  registry: PluginRegistry,
+  opts: IOpts
+): Promise<ModelsPlugin> {
   const engine = await registry.get<EnginePlugin>('engine');
   // TODO(daaitch): improper - needed for gbuffer to set texture id
   await registry.get<RenderPipelinePlugin>('render_pipeline');
@@ -21,13 +23,15 @@ export default async function modelsPlugin(registry: PluginRegistry, opts: IOpts
   return models;
 
   async function loadModels() {
-    for (const model of await opts.modelsLoader({assetsDir: opts.assetsDir})) {
+    for (const model of await opts.modelsLoader({
+      assetsDir: opts.assetsDir,
+    })) {
       if (model.type === 'block') {
-        engine.blockCreate(model)
+        engine.blockCreate(model);
       }
 
       if (model.type === 'sprite') {
-        engine.spriteCreate(model)
+        engine.spriteCreate(model);
       }
     }
 

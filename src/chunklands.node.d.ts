@@ -1,156 +1,207 @@
-
-declare module chunklands {
+declare namespace chunklands {
   export class EngineBridge {
-
     // TODO(daaitch): naming profilingStart(), profilingStop()
-    startProfiling(): void
-    stopProfiling(outFile: string): void
+    startProfiling(): void;
+    stopProfiling(outFile: string): void;
 
-    blockCreate(model: Models.BlockModel): void
+    blockCreate(model: Models.BlockModel): void;
     // TODO(daaitch): it's also spriteBake - better naming here, maybe renderPipelineBake?
-    blockBake(): Promise<Block.BakeResult>
-    
-    cameraAttachWindow(windowHandle: bigint): Promise<void>
-    cameraDetachWindow(windowHandle: bigint): Promise<void>
-    cameraGetPosition(): Promise<Math.Pos3D>
-    cameraOn(type: string, fn: Function): Unsubscribe
+    blockBake(): Promise<Block.BakeResult>;
 
-    characterIsCollision(): boolean
-    characterSetCollision(collision: boolean): void
-    characterIsFlightMode(): boolean
-    characterSetFlightMode(flightMode: boolean): void
-    
-    chunkCreate(x: number, y: number, z: number): Promise<bigint>
-    chunkDelete(handle: bigint): Promise<void>
-    chunkUpdate(handle: bigint, data: ArrayBuffer): Promise<void>
+    cameraAttachWindow(windowHandle: bigint): Promise<void>;
+    cameraDetachWindow(windowHandle: bigint): Promise<void>;
+    cameraGetPosition(): Promise<Math.Pos3D>;
+    cameraOn(
+      type: 'positionchange',
+      handler: (pos: Math.Pos3D) => void
+    ): Unsubscribe;
 
-    fontLoad(font: Font.Font): Promise<bigint>
+    characterIsCollision(): boolean;
+    characterSetCollision(collision: boolean): void;
+    characterIsFlightMode(): boolean;
+    characterSetFlightMode(flightMode: boolean): void;
 
-    gameOn(type: string, handler: Function): Unsubscribe
+    chunkCreate(x: number, y: number, z: number): Promise<bigint>;
+    chunkDelete(handle: bigint): Promise<void>;
+    chunkUpdate(handle: bigint, data: ArrayBuffer): Promise<void>;
 
-    GLFWInit(): Promise<void>
-    GLFWPollEvents(): void
+    fontLoad(font: Font.Font): Promise<bigint>;
 
-    renderPipelineInit(windowHandle: bigint, opts: RenderPipeline.InitOpts): Promise<void>
+    gameOn(
+      type: 'pointingblockchange',
+      handler: (event: { pos: Math.Pos3D | null }) => void
+    ): Unsubscribe;
 
-    sceneAddChunk(chunkHandle: bigint): Promise<void>
+    GLFWInit(): Promise<void>;
+    GLFWPollEvents(): void;
 
-    spriteCreate(model: Models.SpriteModel): void
-    spriteInstanceCreate(spriteHandle: bigint): Promise<bigint>
-    spriteInstanceUpdate(instanceHandle: bigint, update: Sprite.SpriteInstanceUpdate): Promise<void>
+    renderPipelineInit(
+      windowHandle: bigint,
+      opts: RenderPipeline.InitOpts
+    ): Promise<void>;
 
-    terminate(): void
+    sceneAddChunk(chunkHandle: bigint): Promise<void>;
 
-    textCreate(fontHandle: bigint): Promise<bigint>
-    textUpdate(handle: bigint, update: Text.TextUpdate): Promise<void>
+    spriteCreate(model: Models.SpriteModel): void;
+    spriteInstanceCreate(spriteHandle: bigint): Promise<bigint>;
+    spriteInstanceUpdate(
+      instanceHandle: bigint,
+      update: Sprite.SpriteInstanceUpdate
+    ): Promise<void>;
 
-    windowCreate(width: number, height: number, title: string): Promise<bigint>
-    windowGetContentSize(handle: bigint): Math.Size2D
-    windowLoadGL(handle: bigint): Promise<void>
-    windowOn(handle: bigint, type: string, handler: Function): Unsubscribe
+    terminate(): void;
+
+    textCreate(fontHandle: bigint): Promise<bigint>;
+    textUpdate(handle: bigint, update: Text.TextUpdate): Promise<void>;
+
+    windowCreate(width: number, height: number, title: string): Promise<bigint>;
+    windowGetContentSize(handle: bigint): Math.Size2D;
+    windowLoadGL(handle: bigint): Promise<void>;
+    windowOn(
+      handle: bigint,
+      type: 'shouldclose',
+      handler: () => void
+    ): Unsubscribe;
+    windowOn(
+      handle: bigint,
+      type: 'click',
+      handler: (event: { button: number; action: number; mods: number }) => void
+    ): Unsubscribe;
+    windowOn(
+      handle: bigint,
+      type: 'key',
+      handler: (event: {
+        key: number;
+        scancode: number;
+        action: number;
+        mods: number;
+      }) => void
+    ): Unsubscribe;
+    windowOn(
+      handle: bigint,
+      type: 'resize',
+      handler: (event: { width: number; height: number }) => void
+    ): Unsubscribe;
+    windowOn(
+      handle: bigint,
+      type: 'contentresize',
+      handler: (event: {
+        width: number;
+        height: number;
+        xscale: number;
+        yscale: number;
+      }) => void
+    ): Unsubscribe;
+    windowOn(
+      handle: bigint,
+      type: 'scroll',
+      handler: (event: { x: number; y: number }) => void
+    ): Unsubscribe;
   }
 
-  export module Block {
+  export namespace Block {
     interface BakeResult {
-      sprites: {[id: string]: bigint}
-      blocks: {[id: string]: bigint}
+      sprites: { [id: string]: bigint };
+      blocks: { [id: string]: bigint };
     }
   }
 
-  export module Font {
+  export namespace Font {
     interface Font extends FontDefinition {
-      texture: Buffer
+      texture: Buffer;
     }
 
     interface FontDefinition {
-      name: string
-      size: number
-      bold: boolean
-      italic: boolean
-      width: number
-      height: number
-      characters: {[character: string]: {
-        x: number
-        y: number
-        width: number
-        height: number
-        originX: number
-        originY: number
-        advance: number
-      }}
+      name: string;
+      size: number;
+      bold: boolean;
+      italic: boolean;
+      width: number;
+      height: number;
+      characters: {
+        [character: string]: {
+          x: number;
+          y: number;
+          width: number;
+          height: number;
+          originX: number;
+          originY: number;
+          advance: number;
+        };
+      };
     }
   }
 
-  export module Math {
+  export namespace Math {
     interface Pos3D {
-      x: number
-      y: number
-      z: number
+      x: number;
+      y: number;
+      z: number;
     }
 
     interface Size2D {
-      width: number
-      height: number
+      width: number;
+      height: number;
     }
   }
 
-  export module Models {
+  export namespace Models {
     interface BaseModel {
-      id: string
-      texture?: Buffer
+      id: string;
+      texture?: Buffer;
     }
-    
+
     interface BlockModel extends BaseModel {
-      type: 'block'
-      faces: {[face: string]: ArrayBuffer}
-      opaque: boolean
+      type: 'block';
+      faces: { [face: string]: ArrayBuffer };
+      opaque: boolean;
     }
-    
+
     interface SpriteModel extends BaseModel {
-      type: 'sprite'
-      data: ArrayBuffer
+      type: 'sprite';
+      data: ArrayBuffer;
     }
-    
-    type Model = BlockModel | SpriteModel
+
+    type Model = BlockModel | SpriteModel;
   }
 
-  export module RenderPipeline {
+  export namespace RenderPipeline {
     interface InitShader {
       // TODO(daaitch): string would be a better interface than Buffer
-      vertexShader: Buffer
-      fragmentShader: Buffer
+      vertexShader: Buffer;
+      fragmentShader: Buffer;
     }
 
     interface InitOpts {
-      gbuffer: InitShader
-      lighting: InitShader
-      blockSelect: InitShader
-      sprite: InitShader
-      text: InitShader
+      gbuffer: InitShader;
+      lighting: InitShader;
+      blockSelect: InitShader;
+      sprite: InitShader;
+      text: InitShader;
     }
   }
 
-  export module Sprite {
+  export namespace Sprite {
     interface SpriteInstanceUpdate {
-      x?: number
-      y?: number
-      z?: number
-      show?: boolean
-      scale?: number
+      x?: number;
+      y?: number;
+      z?: number;
+      show?: boolean;
+      scale?: number;
     }
   }
 
-  export module Text {
+  export namespace Text {
     interface TextUpdate {
       pos?: {
-        x: number
-        y: number
-      }
-      text?: string
+        x: number;
+        y: number;
+      };
+      text?: string;
     }
   }
 
-  export type Unsubscribe = () => void
+  export type Unsubscribe = () => void;
 }
 
-export = chunklands
+export = chunklands;

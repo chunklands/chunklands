@@ -1,26 +1,27 @@
-import { Font, Math } from "../chunklands.node";
-import { PluginRegistry } from "../lib/plugin";
-import { EnginePlugin } from "./engine";
-import { RenderPipelinePlugin } from "./render-pipeline";
-
-const {promisify} = require('util');
-const fs = require('fs');
+import { Font, Math } from '../chunklands.node';
+import { PluginRegistry } from '../lib/plugin';
+import { EnginePlugin } from './engine';
+import { RenderPipelinePlugin } from './render-pipeline';
+import { promisify } from 'util';
+import fs from 'fs';
 const readFile = promisify(fs.readFile);
 
 interface IOpts {
-  assetsDir: string
+  assetsDir: string;
 }
 
 export interface FontPlugin {
-  handle: bigint
-  fontSize(string: string): Math.Size2D
+  handle: bigint;
+  fontSize(string: string): Math.Size2D;
 }
 
-export default async function fontPlugin(registry: PluginRegistry, opts: IOpts): Promise<FontPlugin> {
-
+export default async function fontPlugin(
+  registry: PluginRegistry,
+  opts: IOpts
+): Promise<FontPlugin> {
   const engine = await registry.get<EnginePlugin>('engine');
   await registry.get<RenderPipelinePlugin>('render_pipeline');
-  const utf8 = await loadFont('OBICHO__')
+  const utf8 = await loadFont('OBICHO__');
 
   const font = await engine.fontLoad(utf8);
 
@@ -30,7 +31,7 @@ export default async function fontPlugin(registry: PluginRegistry, opts: IOpts):
       readFile(`${opts.assetsDir}/fonts/${name}.png`),
     ]);
 
-    return {...JSON.parse(meta.toString()), texture};
+    return { ...JSON.parse(meta.toString()), texture };
   }
 
   return {
@@ -53,7 +54,7 @@ export default async function fontPlugin(registry: PluginRegistry, opts: IOpts):
         }
       }
 
-      return {width, height};
-    }
+      return { width, height };
+    },
   };
 }

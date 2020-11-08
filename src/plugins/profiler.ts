@@ -1,20 +1,23 @@
-import { PluginRegistry } from "../lib/plugin";
-import { EnginePlugin } from "./engine";
+import { PluginRegistry } from '../lib/plugin';
+import { EnginePlugin } from './engine';
 
 interface IOptsDisabled {
-  enable: undefined | false
+  enable: undefined | false;
 }
 
 interface IOptsEnabled {
-  enable: true
-  profilesDir: string
+  enable: true;
+  profilesDir: string;
 }
 
 export interface ProfilerPlugin {
-  onTerminate: () => void
+  onTerminate: () => void;
 }
 
-export default async function profilerPlugin(registry: PluginRegistry, opts: IOptsDisabled | IOptsEnabled): Promise<ProfilerPlugin> {
+export default async function profilerPlugin(
+  registry: PluginRegistry,
+  opts: IOptsDisabled | IOptsEnabled
+): Promise<ProfilerPlugin> {
   const engine = await registry.get<EnginePlugin>('engine');
 
   if (opts.enable) {
@@ -26,6 +29,6 @@ export default async function profilerPlugin(registry: PluginRegistry, opts: IOp
       if (opts.enable) {
         engine.stopProfiling(`${opts.profilesDir}/profile-${Date.now()}.prof`);
       }
-    }
-  }
+    },
+  };
 }
