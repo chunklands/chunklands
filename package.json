@@ -17,7 +17,7 @@
     "build:prod:ts": "tsc",
     "test": "tap src/**/*.test.ts",
     "test:watch": "nodemon --watch src --ext ts --exec \"npm test\"",
-    "postinstall": "husky install",
+    "postinstall": "husky-run install",
     "format": "concurrently npm:format:*",
     "format:cxx": "node .clang-format.cxx.js",
     "format:ts": "prettier --write src",
