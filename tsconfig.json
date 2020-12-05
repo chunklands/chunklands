@@ -10,8 +10,9 @@
     "alwaysStrict": true,
     "strict": true,
     "resolveJsonModule": true,
-    "allowJs": true
+    "allowJs": true,
+    "declaration": true,
   },
-  "include": ["index.ts", "src/**/*.ts", "src/**/*.js"],
-  "exclude": ["node_modules", "**/*.spec.ts"]
+  "include": ["src/**/*.ts"],
+  "exclude": ["build", "node_modules", "**/*.spec.ts"]
 }

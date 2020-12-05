@@ -1,9 +1,9 @@
 import { PluginRegistry } from '../lib/plugin';
-import { EnginePlugin } from './engine';
 import { WindowPlugin } from './window';
 
 import { promisify } from 'util';
 import fs from 'fs';
+import { Renderpipeline } from 'crankshaft-node-binding';
 const readFile = promisify(fs.readFile);
 
 interface IOpts {
@@ -16,7 +16,6 @@ export default async function renderPipelinePlugin(
   registry: PluginRegistry,
   opts: IOpts
 ): Promise<RenderPipelinePlugin> {
-  const engine = await registry.get<EnginePlugin>('engine');
   const window = await registry.get<WindowPlugin>('window');
 
   const [
@@ -33,12 +32,17 @@ export default async function renderPipelinePlugin(
     loadShader('text'),
   ]);
 
-  await engine.renderPipelineInit(window.handle, {
-    gbuffer: gbufferShader,
-    lighting: lightingShader,
-    blockSelect: blockSelectShader,
-    sprite: spriteShader,
-    text: textShader,
+  await Renderpipeline.init(window.window.handle, {
+    gbufferVertexShader: gbufferShader.vertexShader,
+    gbufferFragmentShader: gbufferShader.fragmentShader,
+    lightingVertexShader: lightingShader.vertexShader,
+    lightingFragmentShader: lightingShader.fragmentShader,
+    selectblockVertexShader: blockSelectShader.vertexShader,
+    selectblockFragmentShader: blockSelectShader.fragmentShader,
+    spriteVertexShader: spriteShader.vertexShader,
+    spriteFragmentShader: spriteShader.fragmentShader,
+    textVertexShader: textShader.vertexShader,
+    textFragmentShader: textShader.fragmentShader
   });
 
   async function loadShader(name: string) {
@@ -47,6 +51,9 @@ export default async function renderPipelinePlugin(
       readFile(`${opts.assetsDir}/shader/${name}.frag`),
     ]);
 
-    return { vertexShader, fragmentShader };
+    return {
+      vertexShader: vertexShader.toString(),
+      fragmentShader: fragmentShader.toString()
+    };
   }
 }

@@ -1,1 +1,0 @@
-echo "there is no build needed for node"

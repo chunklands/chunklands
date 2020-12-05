@@ -20,7 +20,7 @@ export default class Abort {
     }
   }
 
-  async race<T>(uncancelablePromise: Promise<T>): Promise<T> {
+  async race<T>(uncancelablePromise: Promise<T>): Promise<T | void> {
     this.check();
 
     let cleanup: (() => void) | undefined;
@@ -35,7 +35,7 @@ export default class Abort {
 
           cleanup = () => {
             abortCleanup();
-            resolve(); // no leaks
+            resolve(undefined as unknown as T); // no leaks
           };
         }),
       ]);

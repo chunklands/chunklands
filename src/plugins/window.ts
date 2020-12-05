@@ -1,9 +1,10 @@
+import { Window } from 'crankshaft-node-binding';
 import { PluginRegistry } from '../lib/plugin';
 import { EnginePlugin } from './engine';
 
 export interface WindowPlugin {
   onTerminate(): void;
-  handle: bigint;
+  window: Window;
 }
 
 export default async function windowPlugin(
@@ -11,27 +12,18 @@ export default async function windowPlugin(
 ): Promise<WindowPlugin> {
   const engine = await registry.get<EnginePlugin>('engine');
 
-  await engine.GLFWInit();
+  const window = await Window.create(engine, {width: 1024, height: 768, title: 'CHUNKLANDS'});
+  await window.loadGL();
 
-  const handle = await engine.windowCreate(1024, 768, 'chunklands');
-  await engine.windowLoadGL(handle);
-
-  let tid: NodeJS.Timeout | undefined;
-  // TODO(daaitch): start poll events, instead of timeout?
-  function pollEvents() {
-    tid = setTimeout(() => {
-      engine.GLFWPollEvents();
-      pollEvents();
-    }, 10);
-  }
-  pollEvents();
+  window.onClose(async () => {
+    await window.destroy();
+    await engine.stop();
+    engine.destroy();
+  })
 
   return {
     onTerminate() {
-      if (tid !== undefined) {
-        clearTimeout(tid);
-      }
     },
-    handle,
+    window
   };
 }
