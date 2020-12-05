@@ -4,7 +4,7 @@
       "name": "(lldb) Launch",
       "type": "cppdbg",
       "request": "launch",
-      "program": "/Users/aitch/.nvm/versions/node/v14.10.0/bin/node",
+      "program": "node",
       "args": ["${workspaceFolder}/node_modules/.bin/ts-node", "${workspaceFolder}/src/app.ts"],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
