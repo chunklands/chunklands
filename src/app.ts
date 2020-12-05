@@ -6,6 +6,8 @@ import enginePlugin from './plugins/engine';
 import windowPlugin from './plugins/window';
 import renderPipelinePlugin from './plugins/render-pipeline';
 import { Log } from 'crankshaft-node-binding';
+import modelsPlugin from './plugins/models';
+import modelsLoader from './models'
 
 Log.setLevel(1);
 
@@ -21,3 +23,4 @@ registry
   .load('engine', enginePlugin, undefined)
   .load('window', windowPlugin, undefined)
   .load('render_pipeline', renderPipelinePlugin, { assetsDir })
+  .load('models', modelsPlugin, {assetsDir, modelsLoader})

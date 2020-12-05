@@ -12,6 +12,7 @@ export class PluginRegistry {
     this.ee.setMaxListeners(50); // suppress memory leak warning
     this.ee.on('error', (event) => {
       console.error(`PLUGIN ERROR ${event.name}`, event.error);
+      console.error(event.error);
       process.exit(1);
     });
   }
@@ -60,7 +61,8 @@ export class PluginRegistry {
         this.plugins.set(name, { plugin, registry });
         this.ee.emit('pluginloaded', { name, plugin });
       } catch (e) {
-        this.debug('loaded "%s" with error: %j', name, e);
+        console.error(e)
+        this.debug('loaded "%s" with error: %s', name, e.message);
         this.ee.emit('error', { name, error: e });
       }
     })();
