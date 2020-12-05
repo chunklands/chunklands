@@ -25,11 +25,13 @@ export default async function modelsPlugin(
       assetsDir: opts.assetsDir,
     })) {
       if (model.type === 'block') {
-        await engine.blockNew(model);
+        engine.blockNew(model);
       } else {
         console.warn(`unknown type: ${model.type}`)
       }
     }
+
+    await engine.bakeTexture();
 
   }
 }
